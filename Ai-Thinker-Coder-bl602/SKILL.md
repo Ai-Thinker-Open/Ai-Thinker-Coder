@@ -13,7 +13,7 @@ tags:
   - 二次开发
 version: 1.0.0
 author: 安信可科技 & Hermes Agent
-license: MIT
+license: MIT-0
 metadata:
   chip: BL602
   module_family: Ai-WB2

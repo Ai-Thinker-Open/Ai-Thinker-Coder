@@ -17,7 +17,7 @@ tags:
   - NearLink
 version: 1.0.0
 author: 安信可科技 & Hermes Agent
-license: MIT
+license: MIT-0
 metadata:
   hermes:
     tags: [WiFi, BLE, LoRa, Radar, NB-IoT, 物联网, IoT, 模组开发]
@@ -129,3 +129,9 @@ ls /dev/ttyACM*
 ```
 /skill Ai-Thinker-Coder-bl602   # 加载 Ai-WB2 (BL602) 开发指南
 ```
+
+---
+
+## 许可证
+
+本项目采用 MIT-0 许可证，详见 [LICENSE](LICENSE) 文件。
