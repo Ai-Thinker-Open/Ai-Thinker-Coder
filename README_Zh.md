@@ -1,5 +1,7 @@
 # Ai-Thinker-Coder
 
+[![English Version](https://img.shields.io/badge/English-README-blue?style=flat-square)](README.md)
+
 Hermes Agent 安信可科技物联网模组开发助手。
 
 ## 概述

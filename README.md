@@ -1,5 +1,7 @@
 # Ai-Thinker-Coder
 
+[![中文版本](https://img.shields.io/badge/中文版-README_Zh-blue?style=flat-square)](README_Zh.md)
+
 Hermes Agent skill for Ai-Thinker IoT module development.
 
 ## Overview
