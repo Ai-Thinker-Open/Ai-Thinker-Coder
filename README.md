@@ -1,7 +1,5 @@
 # Ai-Thinker-Coder
 
-[![中文版本](https://img.shields.io/badge/中文版-README_Zh-blue?style=flat-square)](README_Zh.md)
-
 Hermes Agent skill for Ai-Thinker IoT module development.
 
 ## Overview
@@ -30,10 +28,10 @@ cp -r Ai-Thinker-Coder ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
 
 ```bash
 # Install specific chip skill
-/skill install Ai-Thinker-Coder-bl602    # Ai-WB2 (BL602)
+/skill install Ai-Thinker-Coder/bl602    # Ai-WB2 (BL602)
 
 # Or manually
-cp -r Ai-Thinker-Coder-bl602 ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
+cp -r Ai-Thinker-Coder/bl602 ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
 ```
 
 ## Usage
@@ -49,18 +47,18 @@ Displays product overview and links to sub-skills.
 ### Load Chip-Specific Skill
 
 ```
-/skill Ai-Thinker-Coder-bl602    # Ai-WB2 series (BL602 chip)
+/skill Ai-Thinker-Coder/bl602    # Ai-WB2 series (BL602 chip)
 ```
 
 ### Available Sub-Skills
 
 | Skill | Chip Platform | Product Series |
 |-------|-------------|----------------|
-| Ai-Thinker-Coder-bl602 | BL602 | Ai-WB2-01S/12F/32S |
-| Ai-Thinker-Coder-bl618 | BL616/BL618 | Ai-M61/M62 series |
-| Ai-Thinker-Coder-esp32 | ESP32/ESP8266 | ESP-12F/ESP32-S3 |
-| Ai-Thinker-Coder-lora | - | Ra-01/RA-01H LoRa |
-| Ai-Thinker-Coder-radar | - | RD-01/03/04 Radar |
+| Ai-Thinker-Coder/bl602 | BL602 | Ai-WB2-01S/12F/32S |
+| Ai-Thinker-Coder/bl618 | BL616/BL618 | Ai-M61/M62 series |
+| Ai-Thinker-Coder/esp32 | ESP32/ESP8266 | ESP-12F/ESP32-S3 |
+| Ai-Thinker-Coder/lora | - | Ra-01/RA-01H LoRa |
+| Ai-Thinker-Coder/radar | - | RD-01/03/04 Radar |
 
 ## Development Workflow
 
@@ -73,7 +71,7 @@ Displays product overview and links to sub-skills.
 
 ```bash
 # 1. Load the skill
-/skill Ai-Thinker-Coder-bl602
+/skill Ai-Thinker-Coder/bl602
 
 # 2. Clone SDK
 cd /home/seahi/workspase
@@ -96,7 +94,7 @@ Ai-Thinker-Coder/
 ├── SKILL.md              # Main entry (Chinese)
 ├── README.md             # English installation guide
 ├── README_Zh.md         # Chinese installation guide
-└── Ai-Thinker-Coder-bl602/
+└── Ai-Thinker-Coder/bl602/
     └── SKILL.md          # BL602 detailed guide
 ```
 

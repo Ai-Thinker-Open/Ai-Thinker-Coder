@@ -21,7 +21,7 @@ license: MIT-0
 metadata:
   hermes:
     tags: [WiFi, BLE, LoRa, Radar, NB-IoT, 物联网, IoT, 模组开发]
-    related_skills: [Ai-Thinker-Coder-bl602, Ai-Thinker-Coder-bl618, Ai-Thinker-Coder-esp32]
+    related_skills: [Ai-Thinker-Coder/bl602, Ai-Thinker-Coder/bl618, Ai-Thinker-Coder/esp32]
 ---
 
 # 安信可科技 (Ai-Thinker) 物联网模组开发指南
@@ -54,11 +54,11 @@ metadata:
 加载特定芯片平台的开发指南：
 
 ```bash
-/skill Ai-Thinker-Coder-bl602    # Ai-WB2 系列 (BL602)
-/skill Ai-Thinker-Coder-bl618    # Ai-M61/M62 系列 (BL616/BL618) - 待发布
-/skill Ai-Thinker-Coder-esp32    # ESP32/ESP8266 系列 - 待发布
-/skill Ai-Thinker-Coder-lora     # LoRa 系列 - 待发布
-/skill Ai-Thinker-Coder-radar    # Radar 系列 - 待发布
+/skill Ai-Thinker-Coder/bl602    # Ai-WB2 系列 (BL602)
+/skill Ai-Thinker-Coder/bl618    # Ai-M61/M62 系列 (BL616/BL618) - 待发布
+/skill Ai-Thinker-Coder/esp32    # ESP32/ESP8266 系列 - 待发布
+/skill Ai-Thinker-Coder/lora     # LoRa 系列 - 待发布
+/skill Ai-Thinker-Coder/radar    # Radar 系列 - 待发布
 ```
 
 ---
@@ -119,7 +119,7 @@ ls /dev/ttyACM*
 
 ## 使用说明
 
-本 skill 是安信可模组开发的入口指南。使用 `/skill Ai-Thinker-Coder-<芯片平台>` 加载对应芯片的详细开发文档。
+本 skill 是安信可模组开发的入口指南。使用 `/skill Ai-Thinker-Coder/<芯片平台>` 加载对应芯片的详细开发文档。
 
 详细安装和使用说明请参考:
 - [README.md](README.md) - 英文安装指南
@@ -127,7 +127,7 @@ ls /dev/ttyACM*
 
 **示例**:
 ```
-/skill Ai-Thinker-Coder-bl602   # 加载 Ai-WB2 (BL602) 开发指南
+/skill Ai-Thinker-Coder/bl602   # 加载 Ai-WB2 (BL602) 开发指南
 ```
 
 ---

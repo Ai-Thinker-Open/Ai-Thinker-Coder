@@ -1,7 +1,5 @@
 # Ai-Thinker-Coder
 
-[![English Version](https://img.shields.io/badge/English-README-blue?style=flat-square)](README.md)
-
 Hermes Agent 安信可科技物联网模组开发助手。
 
 ## 概述
@@ -30,10 +28,10 @@ cp -r Ai-Thinker-Coder ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
 
 ```bash
 # 安装特定芯片的 skill
-/skill install Ai-Thinker-Coder-bl602    # Ai-WB2 (BL602)
+/skill install Ai-Thinker-Coder/bl602    # Ai-WB2 (BL602)
 
 # 或手动复制
-cp -r Ai-Thinker-Coder-bl602 ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
+cp -r Ai-Thinker-Coder/bl602 ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
 ```
 
 ## 使用方法
@@ -49,18 +47,18 @@ cp -r Ai-Thinker-Coder-bl602 ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
 ### 加载芯片专属 skill
 
 ```
-/skill Ai-Thinker-Coder-bl602    # Ai-WB2 系列 (BL602 芯片)
+/skill Ai-Thinker-Coder/bl602    # Ai-WB2 系列 (BL602 芯片)
 ```
 
 ### 可用子 skill
 
 | Skill | 芯片平台 | 产品系列 |
 |-------|---------|---------|
-| Ai-Thinker-Coder-bl602 | BL602 | Ai-WB2-01S/12F/32S |
-| Ai-Thinker-Coder-bl618 | BL616/BL618 | Ai-M61/M62 系列 |
-| Ai-Thinker-Coder-esp32 | ESP32/ESP8266 | ESP-12F/ESP32-S3 |
-| Ai-Thinker-Coder-lora | - | Ra-01/RA-01H LoRa |
-| Ai-Thinker-Coder-radar | - | RD-01/03/04 Radar |
+| Ai-Thinker-Coder/bl602 | BL602 | Ai-WB2-01S/12F/32S |
+| Ai-Thinker-Coder/bl618 | BL616/BL618 | Ai-M61/M62 系列 |
+| Ai-Thinker-Coder/esp32 | ESP32/ESP8266 | ESP-12F/ESP32-S3 |
+| Ai-Thinker-Coder/lora | - | Ra-01/RA-01H LoRa |
+| Ai-Thinker-Coder/radar | - | RD-01/03/04 Radar |
 
 ## 开发流程
 
@@ -73,7 +71,7 @@ cp -r Ai-Thinker-Coder-bl602 ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
 
 ```bash
 # 1. 加载 skill
-/skill Ai-Thinker-Coder-bl602
+/skill Ai-Thinker-Coder/bl602
 
 # 2. 克隆 SDK
 cd /home/seahi/workspase
@@ -96,7 +94,7 @@ Ai-Thinker-Coder/
 ├── SKILL.md              # 主入口（中文）
 ├── README.md             # 英文安装指南
 ├── README_Zh.md         # 中文安装指南
-└── Ai-Thinker-Coder-bl602/
+└── Ai-Thinker-Coder/bl602/
     └── SKILL.md          # BL602 详细开发指南
 ```
 
