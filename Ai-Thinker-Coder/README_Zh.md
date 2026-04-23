@@ -39,33 +39,39 @@ cp -r Ai-Thinker-Coder-bl602 ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
 ### 加载主 skill
 
 ```
-/kill Ai-Thinker-Coder
+/skill Ai-Thinker-Coder
 ```
 
 显示产品总览和子 skill 链接。
 
 ### 加载芯片专属 skill
 
-```
-/skill Ai-Thinker-Coder-bl602    # Ai-WB2 系列 (BL602 芯片)
+首先安装子 skill，然后加载：
+
+```bash
+# 安装子 skill
+/skill install Ai-Thinker-Coder-bl602    # Ai-WB2 系列 (BL602 芯片)
+
+# 加载子 skill
+/skill Ai-Thinker-Coder-bl602
 ```
 
 ### 可用子 skill
 
-| Skill | 芯片平台 | 产品系列 |
-|-------|---------|---------|
-| Ai-Thinker-Coder-bl602 | BL602 | Ai-WB2-01S/12F/32S |
-| Ai-Thinker-Coder-bl618 | BL616/BL618 | Ai-M61/M62 系列 |
-| Ai-Thinker-Coder-esp32 | ESP32/ESP8266 | ESP-12F/ESP32-S3 |
-| Ai-Thinker-Coder-lora | - | Ra-01/RA-01H LoRa |
-| Ai-Thinker-Coder-radar | - | RD-01/03/04 Radar |
+| Skill | 芯片平台 | 产品系列 | 状态 |
+|-------|---------|---------|------|
+| Ai-Thinker-Coder-bl602 | BL602 | Ai-WB2-01S/12F/32S | 可用 |
+| Ai-Thinker-Coder-bl618 | BL616/BL618 | Ai-M61/M62 系列 | 待发布 |
+| Ai-Thinker-Coder-lora | - | Ra-01/RA-01H LoRa | 待发布 |
+| Ai-Thinker-Coder-radar | - | RD-01/03/04 Radar | 待发布 |
 
 ## 开发流程
 
-1. **确认模组型号** - 查看模组上的芯片平台标识
-2. **加载对应 skill** - 使用 `/skill Ai-Thinker-Coder-<芯片型号>`
-3. **按照指南搭建环境** - 配置开发工具链
-4. **编译并烧录** - 使用提供的 Makefile 和烧录命令
+1. **安装主 skill** - `/skill install Ai-Thinker-Coder`
+2. **安装子 skill** - `/skill install Ai-Thinker-Coder-bl602` (根据芯片型号)
+3. **加载子 skill** - `/skill Ai-Thinker-Coder-bl602`
+4. **按照指南搭建环境** - 配置开发工具链
+5. **编译并烧录** - 使用提供的 Makefile 和烧录命令
 
 ## 快速开始示例 (BL602/Ai-WB2)
 
@@ -119,4 +125,4 @@ Ai-Thinker-Coder/
 
 ## 许可证
 
-MIT 许可证 - 详见各子 skill 的许可证说明。
+MIT-0 许可证 - 详见 [LICENSE](LICENSE) 文件。

@@ -46,26 +46,32 @@ Displays product overview and links to sub-skills.
 
 ### Load Chip-Specific Skill
 
-```
-/skill Ai-Thinker-Coder-bl602    # Ai-WB2 series (BL602 chip)
+First install the sub-skill, then load it:
+
+```bash
+# Install sub-skill
+/skill install Ai-Thinker-Coder-bl602    # Ai-WB2 series (BL602 chip)
+
+# Load sub-skill
+/skill Ai-Thinker-Coder-bl602
 ```
 
 ### Available Sub-Skills
 
-| Skill | Chip Platform | Product Series |
-|-------|-------------|----------------|
-| Ai-Thinker-Coder-bl602 | BL602 | Ai-WB2-01S/12F/32S |
-| Ai-Thinker-Coder-bl618 | BL616/BL618 | Ai-M61/M62 series |
-| Ai-Thinker-Coder-esp32 | ESP32/ESP8266 | ESP-12F/ESP32-S3 |
-| Ai-Thinker-Coder-lora | - | Ra-01/RA-01H LoRa |
-| Ai-Thinker-Coder-radar | - | RD-01/03/04 Radar |
+| Skill | Chip Platform | Product Series | Status |
+|-------|-------------|----------------|--------|
+| Ai-Thinker-Coder-bl602 | BL602 | Ai-WB2-01S/12F/32S | Available |
+| Ai-Thinker-Coder-bl618 | BL616/BL618 | Ai-M61/M62 series | Coming soon |
+| Ai-Thinker-Coder-lora | - | Ra-01/RA-01H LoRa | Coming soon |
+| Ai-Thinker-Coder-radar | - | RD-01/03/04 Radar | Coming soon |
 
 ## Development Workflow
 
-1. **Identify your module** - Check the chip platform on your Ai-Thinker module
-2. **Load corresponding skill** - Use `/skill Ai-Thinker-Coder-<chip>`
-3. **Follow setup guide** - Configure development environment
-4. **Build and flash** - Use provided Makefile and flash commands
+1. **Install main skill** - `/skill install Ai-Thinker-Coder`
+2. **Install sub-skill** - `/skill install Ai-Thinker-Coder-bl602` (for your chip)
+3. **Load sub-skill** - `/skill Ai-Thinker-Coder-bl602`
+4. **Follow setup guide** - Configure development environment
+5. **Build and flash** - Use provided Makefile and flash commands
 
 ## Quick Start Example (BL602/Ai-WB2)
 
@@ -119,4 +125,4 @@ Ai-Thinker-Coder/
 
 ## License
 
-MIT License - See individual sub-skill licenses for details.
+MIT-0 License - See [LICENSE](LICENSE) file for details.

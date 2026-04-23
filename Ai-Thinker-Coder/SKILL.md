@@ -119,14 +119,30 @@ ls /dev/ttyACM*
 
 本 skill 是安信可模组开发的入口指南。使用 `/skill Ai-Thinker-Coder-<芯片平台>` 加载对应芯片的详细开发文档。
 
+### 安装子 Skill
+
+加载主 skill 后，系统会自动提示可用的子 skill。安装子 skill 可以：
+
+**方式一：通过命令安装**
+```bash
+# 安装 BL602 子 skill
+/skill install Ai-Thinker-Coder-bl602
+```
+
+**方式二：通过 hermes 命令安装**
+```bash
+hermes skills install Ai-Thinker-Coder-bl602
+```
+
+### 快速开始
+
+1. 安装主 skill：`/skill install Ai-Thinker-Coder`
+2. 安装目标芯片的子 skill：如 `/skill install Ai-Thinker-Coder-bl602`
+3. 加载子 skill：`/skill Ai-Thinker-Coder-bl602`
+
 详细安装和使用说明请参考:
 - [README.md](README.md) - 英文安装指南
 - [README_Zh.md](README_Zh.md) - 中文安装指南
-
-**示例**:
-```
-/skill Ai-Thinker-Coder-bl602   # 加载 Ai-WB2 (BL602) 开发指南
-```
 
 ---
 
