@@ -22,6 +22,21 @@ metadata:
 
 # 安信可 Ai-WB2 系列开发指南 (BL602)
 
+## 编程范式说明
+
+> **重要**：除非用户明确要求采用**寄存器级（bare metal）编程**，否则本 skill 提供的代码示例均使用 **HOSAL (Hardware Operating System Abstraction Layer) 库**进行开发，循环逻辑通过 **FreeRTOS 任务**实现。
+
+**默认编程方式**（HOSAL + FreeRTOS）：
+- 外设初始化、配置：调用 HOSAL API
+- 业务逻辑循环：放在 FreeRTOS 任务中（`xTaskCreate`）
+- 延时：`vTaskDelay`（非 `HAL_Delay`）
+
+**寄存器级编程**（当用户明确要求时）：
+- 直接操作 `*(volatile uint32_t *)addr` 访问外设寄存器
+- 所有时序和配置需自行控制
+
+---
+
 ## 产品概述
 
 **Ai-WB2** 系列是安信可科技开发的 Wi-Fi & BLE 双模模组，基于 **BL602 芯片** (Bouffalolab)，支持：
