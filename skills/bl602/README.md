@@ -88,6 +88,13 @@ cd Ai-Thinker-WB2
 git submodule update --init --recursive
 ```
 
+> **China mainland users**: if GitHub is inaccessible, use the Gitee mirror:
+> ```bash
+> git clone https://gitee.com/aithinker_open/Ai-Thinker-WB2.git
+> cd Ai-Thinker-WB2
+> git submodule update --init --recursive
+> ```
+
 ### Build
 
 ```bash

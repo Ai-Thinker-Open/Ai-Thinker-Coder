@@ -88,6 +88,13 @@ cd Ai-Thinker-WB2
 git submodule update --init --recursive
 ```
 
+> **国内用户**：如果 GitHub 访问不稳定，可使用 Gitee 镜像：
+> ```bash
+> git clone https://gitee.com/aithinker_open/Ai-Thinker-WB2.git
+> cd Ai-Thinker-WB2
+> git submodule update --init --recursive
+> ```
+
 ### 设置工具链权限
 
 ```bash
