@@ -10,36 +10,58 @@ This is a comprehensive skill collection for Ai-Thinker IoT modules, covering Wi
 
 ### Hermes Agent (Recommended)
 
-Hermes uses `git clone` to install skills:
+Hermes supports two install methods:
+
+**Method 1: git clone (manual)**
 
 ```bash
 # Clone to Hermes skills directory
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/Ai-Thinker-Coder
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git \
+  ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/Ai-Thinker-Coder
+```
 
-# Or use hermes tap (if repo is registered)
+**Method 2: hermes tap (auto-discover)**
+
+```bash
+# Add the GitHub repo as a skill source
 hermes skills tap add Ai-Thinker-Open/Ai-Thinker-Coder
+
+# Then install from tap
+hermes skills install Ai-Thinker-Open/Ai-Thinker-Coder/skills
+```
+
+**Load the skill:**
+
+```
+/skill Ai-Thinker-Coder
 ```
 
 ### Trae
 
-```bash
-# Clone to Trae skills directory
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.trae/skills/Ai-Thinker-Coder
+Trae IDE stores skills at the **project level** in `.trae/skills/`:
 
-# Or for project-level installation
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git <your-project>/.trae/skills/Ai-Thinker-Coder
+```bash
+# Project-level installation
+mkdir -p <your-project>/.trae/skills
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git \
+  <your-project>/.trae/skills/Ai-Thinker-Coder
 ```
+
+Trae will automatically discover skills in the `.trae/skills/` directory.
 
 ### CodeBuddy
 
 ```bash
 # Clone to CodeBuddy skills marketplace
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.codebuddy/skills-marketplace/skills/Ai-Thinker-Coder
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git \
+  ~/.codebuddy/skills-marketplace/skills/Ai-Thinker-Coder
 ```
 
-### OpenClaw (CLI Installation)
+Skills in the marketplace are automatically indexed by CodeBuddy.
 
-OpenClaw uses its own command-line tool to install skills:
+### OpenClaw (CLI)
+
+OpenClaw uses its own command-line installation tool:
 
 ```bash
 # Install via openclaw CLI
@@ -56,12 +78,12 @@ Sub-skills are organized by chip platform. You can install the main skill (which
 ### Hermes / Trae / CodeBuddy (git clone)
 
 ```bash
-# Install specific chip skill
+# Install all sub-skills via main repo
 git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git <skills-dir>/Ai-Thinker-Coder
 
-# Example paths:
-# Hermes:  ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
-# Trae:    ~/.trae/skills/
+# Paths by platform:
+# Hermes:    ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
+# Trae:      <your-project>/.trae/skills/
 # CodeBuddy: ~/.codebuddy/skills-marketplace/skills/
 ```
 

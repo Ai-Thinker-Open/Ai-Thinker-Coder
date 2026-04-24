@@ -10,34 +10,56 @@ Hermes Agent 安信可科技物联网模组开发助手。
 
 ### Hermes Agent（推荐）
 
-Hermes 使用 `git clone` 方式安装 skills：
+Hermes 支持两种安装方式：
+
+**方式一：git clone（手动）**
 
 ```bash
 # 克隆到 Hermes skills 目录
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/Ai-Thinker-Coder
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git \
+  ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/Ai-Thinker-Coder
+```
 
-# 或使用 hermes tap（需先注册仓库）
+**方式二：hermes tap（自动发现）**
+
+```bash
+# 添加 GitHub 仓库为 skill 数据源
 hermes skills tap add Ai-Thinker-Open/Ai-Thinker-Coder
+
+# 从 tap 安装
+hermes skills install Ai-Thinker-Open/Ai-Thinker-Coder/skills
+```
+
+**加载 skill：**
+
+```
+/skill Ai-Thinker-Coder
 ```
 
 ### Trae
 
-```bash
-# 克隆到 Trae skills 目录
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.trae/skills/Ai-Thinker-Coder
+Trae IDE 将 skills 存储在**项目级别**的 `.trae/skills/` 目录：
 
-# 或在项目级别安装
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git <your-project>/.trae/skills/Ai-Thinker-Coder
+```bash
+# 项目级别安装
+mkdir -p <your-project>/.trae/skills
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git \
+  <your-project>/.trae/skills/Ai-Thinker-Coder
 ```
+
+Trae 会自动发现 `.trae/skills/` 目录下的 skills。
 
 ### CodeBuddy
 
 ```bash
 # 克隆到 CodeBuddy skills marketplace
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.codebuddy/skills-marketplace/skills/Ai-Thinker-Coder
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git \
+  ~/.codebuddy/skills-marketplace/skills/Ai-Thinker-Coder
 ```
 
-### OpenClaw（命令行安装）
+marketplace 中的 skills 会被 CodeBuddy 自动索引。
+
+### OpenClaw（命令行）
 
 OpenClaw 使用独立的命令行工具安装 skills：
 
@@ -56,12 +78,12 @@ openclaw skill install --github Ai-Thinker-Open/Ai-Thinker-Coder
 ### Hermes / Trae / CodeBuddy（git clone）
 
 ```bash
-# 安装特定芯片的 skill
+# 通过主仓库安装所有子 skill
 git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git <skills-dir>/Ai-Thinker-Coder
 
 # 各平台路径：
 # Hermes:    ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
-# Trae:      ~/.trae/skills/
+# Trae:      <your-project>/.trae/skills/
 # CodeBuddy: ~/.codebuddy/skills-marketplace/skills/
 ```
 
