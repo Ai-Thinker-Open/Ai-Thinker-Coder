@@ -6,32 +6,73 @@ Hermes Agent skill for Ai-Thinker IoT module development.
 
 This is a comprehensive skill collection for Ai-Thinker IoT modules, covering WiFi, BLE, LoRa, Radar, NB-IoT, and NearLink modules. Sub-skills are organized by chip platform.
 
-## Installation
+## Platform-Specific Installation
 
-### Method 1: Via Hermes Agent (Recommended)
+### Hermes Agent (Recommended)
 
-```
-/skill install Ai-Thinker-Coder
-```
-
-### Method 2: Manual Installation
+Hermes uses `git clone` to install skills:
 
 ```bash
-# Clone the skill repository to your Hermes skills directory
-git clone <repo-url> ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/Ai-Thinker-Coder
+# Clone to Hermes skills directory
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/Ai-Thinker-Coder
 
-# Or copy the skill directory manually
-cp -r Ai-Thinker-Coder ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
+# Or use hermes tap (if repo is registered)
+hermes skills tap add Ai-Thinker-Open/Ai-Thinker-Coder
 ```
 
-### Method 3: Install Sub-Skills Individually
+### Trae
+
+```bash
+# Clone to Trae skills directory
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.trae/skills/Ai-Thinker-Coder
+
+# Or for project-level installation
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git <your-project>/.trae/skills/Ai-Thinker-Coder
+```
+
+### CodeBuddy
+
+```bash
+# Clone to CodeBuddy skills marketplace
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.codebuddy/skills-marketplace/skills/Ai-Thinker-Coder
+```
+
+### OpenClaw (CLI Installation)
+
+OpenClaw uses its own command-line tool to install skills:
+
+```bash
+# Install via openclaw CLI
+openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder
+
+# Or specify the GitHub repository directly
+openclaw skill install --github Ai-Thinker-Open/Ai-Thinker-Coder
+```
+
+## Sub-Skill Installation
+
+Sub-skills are organized by chip platform. You can install the main skill (which includes all sub-skills) or install specific chip skills individually.
+
+### Hermes / Trae / CodeBuddy (git clone)
 
 ```bash
 # Install specific chip skill
-/skill install Ai-Thinker-Coder/bl602    # Ai-WB2 (BL602)
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git <skills-dir>/Ai-Thinker-Coder
 
-# Or manually
-cp -r Ai-Thinker-Coder/bl602 ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
+# Example paths:
+# Hermes:  ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
+# Trae:    ~/.trae/skills/
+# CodeBuddy: ~/.codebuddy/skills-marketplace/skills/
+```
+
+### OpenClaw (CLI)
+
+```bash
+# Install main skill (includes all sub-skills)
+openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder
+
+# Install specific sub-skill
+openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder/bl602
 ```
 
 ## Usage
@@ -94,19 +135,23 @@ Ai-Thinker-Coder/
 ├── SKILL.md              # Main entry (Chinese)
 ├── README.md             # English installation guide
 ├── README_Zh.md         # Chinese installation guide
-└── Ai-Thinker-Coder/bl602/
-    └── SKILL.md          # BL602 detailed guide
+└── skills/
+    └── bl602/
+        ├── SKILL.md      # BL602 detailed guide
+        ├── README.md     # English usage guide
+        └── README_Zh.md  # Chinese usage guide
 ```
 
 ## Requirements
 
-- Hermes Agent with skill management enabled
-- For hardware development: USB serial connection to module
+- Git for version control
+- USB serial connection to module for hardware development
 - For WSL development: usbipd configured for device passthrough
+- Platform-specific CLI (openclaw for OpenClaw platform)
 
 ## Troubleshooting
 
-- **Skill not found**: Ensure skill is in `~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/`
+- **Skill not found**: Ensure skill is in the correct platform-specific skills directory
 - **Build errors**: Check git submodules are initialized (`git submodule update --init --recursive`)
 - **Flash failures**: Verify BOOT pin pulled low and serial port correct
 

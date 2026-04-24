@@ -6,32 +6,73 @@ Hermes Agent 安信可科技物联网模组开发助手。
 
 本 skill 集合涵盖安信可全系列模组开发指南，包括 WiFi、BLE、LoRa、Radar、NB-IoT、星闪等。子 skill 按芯片平台分组，便于针对性开发。
 
-## 安装方法
+## 平台化安装方法
 
-### 方法一：通过 Hermes Agent 安装（推荐）
+### Hermes Agent（推荐）
 
-```
-/skill install Ai-Thinker-Coder
-```
-
-### 方法二：手动安装
+Hermes 使用 `git clone` 方式安装 skills：
 
 ```bash
-# 克隆 skill 仓库到 Hermes skills 目录
-git clone <仓库地址> ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/Ai-Thinker-Coder
+# 克隆到 Hermes skills 目录
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/Ai-Thinker-Coder
 
-# 或手动复制
-cp -r Ai-Thinker-Coder ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
+# 或使用 hermes tap（需先注册仓库）
+hermes skills tap add Ai-Thinker-Open/Ai-Thinker-Coder
 ```
 
-### 方法三：单独安装子 skill
+### Trae
+
+```bash
+# 克隆到 Trae skills 目录
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.trae/skills/Ai-Thinker-Coder
+
+# 或在项目级别安装
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git <your-project>/.trae/skills/Ai-Thinker-Coder
+```
+
+### CodeBuddy
+
+```bash
+# 克隆到 CodeBuddy skills marketplace
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.codebuddy/skills-marketplace/skills/Ai-Thinker-Coder
+```
+
+### OpenClaw（命令行安装）
+
+OpenClaw 使用独立的命令行工具安装 skills：
+
+```bash
+# 通过 openclaw CLI 安装
+openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder
+
+# 或直接指定 GitHub 仓库
+openclaw skill install --github Ai-Thinker-Open/Ai-Thinker-Coder
+```
+
+## 子 Skill 安装
+
+子 skill 按芯片平台组织。你可以安装主 skill（包含所有子 skill）或单独安装特定芯片的 skill。
+
+### Hermes / Trae / CodeBuddy（git clone）
 
 ```bash
 # 安装特定芯片的 skill
-/skill install Ai-Thinker-Coder/bl602    # Ai-WB2 (BL602)
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git <skills-dir>/Ai-Thinker-Coder
 
-# 或手动复制
-cp -r Ai-Thinker-Coder/bl602 ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
+# 各平台路径：
+# Hermes:    ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
+# Trae:      ~/.trae/skills/
+# CodeBuddy: ~/.codebuddy/skills-marketplace/skills/
+```
+
+### OpenClaw（命令行）
+
+```bash
+# 安装主 skill（包含所有子 skill）
+openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder
+
+# 安装特定子 skill
+openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder/bl602
 ```
 
 ## 使用方法
@@ -39,7 +80,7 @@ cp -r Ai-Thinker-Coder/bl602 ~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/
 ### 加载主 skill
 
 ```
-/kill Ai-Thinker-Coder
+/skill Ai-Thinker-Coder
 ```
 
 显示产品总览和子 skill 链接。
@@ -94,19 +135,23 @@ Ai-Thinker-Coder/
 ├── SKILL.md              # 主入口（中文）
 ├── README.md             # 英文安装指南
 ├── README_Zh.md         # 中文安装指南
-└── Ai-Thinker-Coder/bl602/
-    └── SKILL.md          # BL602 详细开发指南
+└── skills/
+    └── bl602/
+        ├── SKILL.md      # BL602 详细开发指南
+        ├── README.md     # 英文使用指南
+        └── README_Zh.md  # 中文使用指南
 ```
 
 ## 前置要求
 
-- 已启用 skill 管理的 Hermes Agent
+- Git 版本控制工具
 - 硬件开发：USB 串口连接模组
 - WSL 开发：配置 usbipd 进行设备穿透
+- OpenClaw 平台需安装 openclaw CLI
 
 ## 常见问题
 
-- **Skill 找不到**：确认 skill 位于 `~/.hermes/profiles/<YOUR_PROFILE>/skills/hardware/` 目录
+- **Skill 找不到**：确认 skill 位于对应平台的 skills 目录下
 - **编译报错**：检查 git 子模块是否已初始化 (`git submodule update --init --recursive`)
 - **烧录失败**：确认 BOOT 引脚拉低，串口选择正确
 
