@@ -85,7 +85,7 @@ metadata:
 wsl --install
 
 # 重启后安装 Ubuntu
-# 参考: /home/seahi/workspase/vitpress_docs_resoure/docs/zh/development/devel_env_setup/install_wsl.md
+# 参考: https://docs.ai-thinker.com/zh/wsl2
 ```
 
 ### USB 转串口映射 (WSL2)
