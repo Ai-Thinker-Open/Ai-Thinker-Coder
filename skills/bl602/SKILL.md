@@ -53,32 +53,27 @@ metadata:
 
 ## 开发环境配置（必读）
 
-> **重要提醒**：在编写任何代码之前，必须先完成以下两个步骤，否则无法编译和烧录固件。
->
-> **第一步：安装工具链** → **第二步：克隆 SDK** → **第三步：编程**
+> **重要提醒**：在编写任何代码之前，必须先完成环境配置。**工具链安装和 SDK 克隆是编程的前置条件**，否则无法编译和烧录固件。
 
-### 开发流程总览
+### 第一步：判断当前平台
 
-| 步骤 | 操作 | 完成标志 |
-|-----|------|---------|
-| 1 | 安装 MSYS2 并通过 pacman 安装编译工具链 | 执行 `riscv64-unknown-elf-gcc -v` 成功 |
-| 2 | 安装 Python3 + pyserial | 执行 `python3 --version` 和 `pip show pyserial` 成功 |
-| 3 | 克隆 SDK 仓库 | `Ai-Thinker-WB2` 目录存在且包含 `build/` 等目录 |
-| 4 | 初始化子模块 | `git submodule update --init --recursive` 无报错 |
-| 5 | 编译验证 | `make -j8` 生成 `build/out/` 固件文件 |
-| 6 | 烧录验证 | 固件成功烧录到模组，串口有输出 |
+在开始之前，先确认当前操作系统：
 
-### 第一步：安装工具链（Windows）
+```bash
+# Windows MSYS2/MINGW 环境
+echo $MSYSTEM
+# 输出 MINGW64 或 MSYS 表示在 MSYS2 环境中
 
-**必须先完成此步骤才能进行编译。**
+# Linux / WSL / macOS
+uname -s
+# 输出 Linux 表示 Linux/WSL，Darwin 表示 macOS
+```
 
-#### 1. 安装 MSYS2
+### 第二步：安装工具链（按平台）
 
-下载: https://www.msys2.org/
+#### Windows MSYS2 环境
 
-安装后打开 **MSYS2 MINGW64** 终端（不要用 MSYS2 原生终端）。
-
-#### 2. 安装编译工具链
+**适用场景**：已安装 MSYS2，在 MSYS2 MINGW64 终端中操作。
 
 ```bash
 # 更新包数据库
@@ -94,46 +89,102 @@ pacman -S python3 python3-pip
 pip install pyserial
 ```
 
-#### 3. 验证工具链安装
+**验证安装**：
 
 ```bash
-# 验证 GCC
-riscv64-unknown-elf-gcc -v
-
-# 验证 Python
-python3 --version
-
-# 验证 pyserial
-pip show pyserial
+riscv64-unknown-elf-gcc -v    # 应输出版本信息
+python3 --version             # 应输出版本号
+pip show pyserial            # 应显示 pyserial 信息
 ```
 
-> **如果以上命令有任何报错，说明工具链未安装成功，必须先解决才能继续。**
+> **报错则无法继续**，必须先解决工具链问题。
 
-### 第二步：克隆 SDK（必做）
+#### Linux (Ubuntu 20.04 / WSL) 环境
+
+**适用场景**：原生 Ubuntu、WSL2、Debian 等 Linux 环境。
 
 ```bash
-# 选择一个合适的目录存放项目
-# 例如 D:\workspace 或 ~/projects
-# 克隆 SDK（不依赖任何编译工具，任何时候都可以做）
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-WB2.git
+# 更新软件源
+sudo apt update
 
-# 进入目录
+# 安装编译工具链
+sudo apt install -y build-essential git python3 python3-pip python3-dev wget sed
+
+# 安装 Python 依赖（烧录需要）
+pip3 install pyserial
+
+# 添加串口权限（可选，针对真实硬件）
+sudo usermod -a -G dialout $USER
+```
+
+**验证安装**：
+
+```bash
+riscv64-unknown-elf-gcc -v    # 或 gcc -v，BL602 SDK 在 Linux 下使用系统 gcc
+python3 --version              # 应输出版本号
+pip3 show pyserial            # 应显示 pyserial 信息
+```
+
+> **报错则无法继续**，必须先解决工具链问题。
+>
+> **WSL2 用户注意**：Windows 11 不支持自动串口映射，需在 Windows PowerShell（管理员）中手动映射：
+> ```powershell
+> # 列出设备
+> usbipd list
+> # 绑定并附加到 WSL
+> usbipd bind --busid <busid>
+> usbipd attach --wsl --busid <busid>
+> ```
+> 然后在 WSL 中验证 `ls /dev/ttyACM*`。
+
+#### macOS 环境
+
+```bash
+# 使用 Homebrew 安装
+brew install gcc git python3
+
+# 安装 PySerial
+pip3 install pyserial
+```
+
+**验证安装**：
+
+```bash
+gcc -v
+python3 --version
+pip3 show pyserial
+```
+
+### 第三步：克隆 SDK（所有平台通用）
+
+工具链安装完成后，所有平台执行相同的 SDK 获取步骤：
+
+```bash
+# 选择合适的目录存放项目（如 ~/projects 或 D:\workspace）
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-WB2.git
 cd Ai-Thinker-WB2
 
-# 初始化子模块（必须执行，否则编译缺文件）
+# 必须执行：初始化子模块（否则编译缺少关键文件）
 git submodule update --init --recursive
 ```
 
-### 第三步：编译验证
+**Linux/WSL 额外步骤**：设置工具链权限
+
+```bash
+cd toolchain/riscv/Linux/
+bash chmod755.sh
+```
+
+### 第四步：编译验证
 
 ```bash
 cd applications/get-started/helloworld
 make -j8
 ```
 
-编译成功后会在 `build/out/` 目录生成固件文件。
+编译成功会在 `build/out/` 目录生成固件文件。
 
-### 第四步：烧录验证
+### 第五步：烧录验证
 
 参见下方「固件烧录」章节。烧录成功且模组串口有输出才算环境配置完成。
 
@@ -141,7 +192,7 @@ make -j8
 
 ## BL602 GPIO 寄存器编程
 
-**前置条件**：已完成「开发环境配置」中的第一步和第二步。
+**前置条件**：已完成上述「开发环境配置」第二步和第三步。
 
 **GPIO 基础地址**:
 - GLB_BASE = 0x40000000
@@ -199,136 +250,6 @@ static void gpio_write(uint8_t pin, uint8_t val) {
 ```
 
 **项目结构**: `applications/get-started/<project>/<project>/main.c`
-
-### Windows WSL2 开发环境
-
-推荐使用 WSL2 进行开发，兼顾 Linux 构建环境和 Windows 调试便利性。
-
-#### 1. 安装 WSL2 + Ubuntu 20.04
-
-以**管理员身份**打开 PowerShell：
-
-```powershell
-wsl --install -d Ubuntu-20.04
-```
-
-重启电脑后首次启动会自动完成 Ubuntu 配置。
-
-#### 2. 在 WSL2 中配置开发环境
-
-```bash
-# 更新并安装基础工具
-sudo apt update
-sudo apt install -y build-essential git python3 python3-pip python3-dev wget sed
-
-# 安装 PySerial（烧录需要）
-pip3 install pyserial
-
-# 添加当前用户到 dialout 组（串口权限）
-sudo usermod -a -G dialout $USER
-newgrp dialout
-```
-
-#### 3. 获取 SDK
-
-```bash
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-WB2.git
-cd Ai-Thinker-WB2
-git submodule update --init --recursive
-```
-
-#### 4. 设置工具链权限
-
-```bash
-cd toolchain/riscv/Linux/
-bash chmod755.sh
-```
-
-#### 5. 编译
-
-```bash
-cd applications/get-started/helloworld
-make -j8
-```
-
-#### 6. WSL2 串口映射（USBIPD-WIN）
-
-Windows 11 的 WSL2 不支持自动串口映射，需要手动映射：
-
-**步骤1**：在 Windows 安装 USBIPD-WIN
-- 下载 [usbipd-win_5.2.0_x64.msi](https://aithinker-static.oss-cn-shenzhen.aliyuncs.com/docs/media/development/tools/usbipd-win_5.2.0_x64.msi)
-- 双击安装，重启电脑
-
-**步骤2**：在 PowerShell（管理员）中列出设备
-
-```powershell
-usbipd list
-```
-
-**步骤3**：绑定并附加到 WSL
-
-```powershell
-# 替换 <busid> 为实际总线ID
-usbipd bind --busid <busid>
-usbipd attach --wsl --busid <busid>
-```
-
-**步骤4**：在 WSL 中验证
-
-```bash
-ls /dev/ttyACM*
-```
-
-**断开串口**（在 PowerShell 管理员中）：
-
-```powershell
-usbipd detach --busid <busid>
-```
-
-#### 7. 烧录
-
-固件编译完成后，在 WSL 中使用 make 命令烧录：
-
-```bash
-make flash p=/dev/ttyACM0 b=921600
-```
-
-其中 `/dev/ttyACM0` 为串口设备名，`921600` 为波特率。
-
-**视频教程**: https://www.bilibili.com/video/BV1Rd4y117oA/
-
-### Linux (Ubuntu 20.04) 开发环境
-
-#### 1. 安装依赖
-
-```bash
-sudo apt update
-sudo apt install -y build-essential git python3 python3-pip python3-dev wget sed
-```
-
-#### 2. 获取 SDK
-
-```bash
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-WB2.git
-cd Ai-Thinker-WB2
-git submodule update --init --recursive
-```
-
-#### 3. 设置工具链权限 (重要!)
-
-```bash
-cd toolchain/riscv/Linux/
-bash chmod755.sh
-```
-
-#### 4. 编译示例项目
-
-```bash
-cd applications/get-started/helloworld
-make -j8
-```
-
-**注意**: SDK 使用 Makefile 构建系统，直接在应用程序目录执行 `make -j8`，不需要 Python 脚本配置。
 
 ---
 
