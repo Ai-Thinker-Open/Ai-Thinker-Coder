@@ -21,7 +21,7 @@ license: MIT-0
 metadata:
   hermes:
     tags: [WiFi, BLE, LoRa, Radar, NB-IoT, 物联网, IoT, 模组开发]
-    related_skills: [Ai-Thinker-Coder-bl602, Ai-Thinker-Coder-bl618, Ai-Thinker-Coder-lora]
+    related_skills: [Ai-Thinker-Coder-bl602]
 ---
 
 # 安信可科技 (Ai-Thinker) 物联网模组开发指南
