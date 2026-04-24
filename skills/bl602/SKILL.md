@@ -51,9 +51,97 @@ metadata:
 
 ---
 
+## 开发环境配置（必读）
+
+> **重要提醒**：在编写任何代码之前，必须先完成以下两个步骤，否则无法编译和烧录固件。
+>
+> **第一步：安装工具链** → **第二步：克隆 SDK** → **第三步：编程**
+
+### 开发流程总览
+
+| 步骤 | 操作 | 完成标志 |
+|-----|------|---------|
+| 1 | 安装 MSYS2 并通过 pacman 安装编译工具链 | 执行 `riscv64-unknown-elf-gcc -v` 成功 |
+| 2 | 安装 Python3 + pyserial | 执行 `python3 --version` 和 `pip show pyserial` 成功 |
+| 3 | 克隆 SDK 仓库 | `Ai-Thinker-WB2` 目录存在且包含 `build/` 等目录 |
+| 4 | 初始化子模块 | `git submodule update --init --recursive` 无报错 |
+| 5 | 编译验证 | `make -j8` 生成 `build/out/` 固件文件 |
+| 6 | 烧录验证 | 固件成功烧录到模组，串口有输出 |
+
+### 第一步：安装工具链（Windows）
+
+**必须先完成此步骤才能进行编译。**
+
+#### 1. 安装 MSYS2
+
+下载: https://www.msys2.org/
+
+安装后打开 **MSYS2 MINGW64** 终端（不要用 MSYS2 原生终端）。
+
+#### 2. 安装编译工具链
+
+```bash
+# 更新包数据库
+pacman -Sy
+
+# 安装编译工具链（包含 riscv64-unknown-elf-gcc）
+pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-make
+
+# 安装 Python3（烧录工具需要）
+pacman -S python3 python3-pip
+
+# 安装 PySerial（串口烧录用）
+pip install pyserial
+```
+
+#### 3. 验证工具链安装
+
+```bash
+# 验证 GCC
+riscv64-unknown-elf-gcc -v
+
+# 验证 Python
+python3 --version
+
+# 验证 pyserial
+pip show pyserial
+```
+
+> **如果以上命令有任何报错，说明工具链未安装成功，必须先解决才能继续。**
+
+### 第二步：克隆 SDK（必做）
+
+```bash
+# 选择一个合适的目录存放项目
+# 例如 D:\workspace 或 ~/projects
+# 克隆 SDK（不依赖任何编译工具，任何时候都可以做）
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-WB2.git
+
+# 进入目录
+cd Ai-Thinker-WB2
+
+# 初始化子模块（必须执行，否则编译缺文件）
+git submodule update --init --recursive
+```
+
+### 第三步：编译验证
+
+```bash
+cd applications/get-started/helloworld
+make -j8
+```
+
+编译成功后会在 `build/out/` 目录生成固件文件。
+
+### 第四步：烧录验证
+
+参见下方「固件烧录」章节。烧录成功且模组串口有输出才算环境配置完成。
+
+---
+
 ## BL602 GPIO 寄存器编程
 
-**SDK路径**: `/home/seahi/workspase/Ai-Thinker-WB2`
+**前置条件**：已完成「开发环境配置」中的第一步和第二步。
 
 **GPIO 基础地址**:
 - GLB_BASE = 0x40000000
@@ -111,86 +199,6 @@ static void gpio_write(uint8_t pin, uint8_t val) {
 ```
 
 **项目结构**: `applications/get-started/<project>/<project>/main.c`
-
-### Windows 原生开发环境
-
-#### 1. 安装 VSCode
-
-下载: https://code.visualstudio.com/
-
-安装时务必勾选：
-- 添加到 PATH
-- 创建桌面快捷方式
-- 关联 .c/.cpp 文件
-
-推荐插件（C/C++ Extension Pack 一键安装）：
-- C/C++（Microsoft 官方）
-- CMake Tools
-- Serial Monitor（串口调试）
-- Remote - SSH（远程开发）
-
-#### 2. 安装 MSYS2 工具链
-
-下载: https://www.msys2.org/
-
-打开 **MSYS2 MINGW64** 终端，执行：
-
-```bash
-# 更新包数据库
-pacman -Sy
-
-# 安装编译工具链
-pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-make
-
-# 安装 Python3（烧录工具需要）
-pacman -S python3 python3-pip
-
-# 安装 PySerial（串口通信，用于烧录和调试）
-pip install pyserial
-```
-
-#### 3. 获取 SDK
-
-```bash
-# 在 Windows 文件资源管理器中找一个合适的位置
-# 打开 MSYS2 MINGW64 终端，cd 到目标目录
-
-git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-WB2.git
-cd Ai-Thinker-WB2
-git submodule update --init --recursive
-```
-
-#### 4. 编译示例项目
-
-```bash
-cd applications/get-started/helloworld
-make -j8
-```
-
-**注意**: SDK 使用 Makefile 构建系统，直接在应用程序目录执行 `make -j8`。
-
-#### 5. 固件烧录（Windows）
-
-##### 烧录工具
-
-| 工具 | 下载 | 说明 |
-|-----|------|-----|
-| BL602 Flash Download Tool | [点击下载](https://aithinker-static.oss-cn-shenzhen.aliyuncs.com/docs/_media_old/bl602_flash_download_tool.zip) | 官方工具 |
-| 开发板专用工具(含GUI) | [点击下载](https://aithinker-static.oss-cn-shenzhen.aliyuncs.com/docs/_media_old/v1.7.4-release.zip) | 带图形界面 |
-
-##### 烧录步骤
-
-1. 将模组进入烧录模式：**BOOT 引脚拉低**，然后复位
-2. 打开烧录工具，选择对应串口（可在 Windows 设备管理器查看 COM 口）
-3. 选择编译生成的固件文件（通常在 `build/out` 目录）
-4. 设置烧录地址 `0x0`
-5. 点击开始烧录
-
-**详细教程**: https://blog.csdn.net/Boantong_/article/details/125781602
-
-**固件烧录视频**: https://www.bilibili.com/video/BV1xd4y1C74q/
-
----
 
 ### Windows WSL2 开发环境
 
