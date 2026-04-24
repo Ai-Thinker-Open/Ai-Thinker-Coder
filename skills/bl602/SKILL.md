@@ -112,42 +112,184 @@ static void gpio_write(uint8_t pin, uint8_t val) {
 
 **项目结构**: `applications/get-started/<project>/<project>/main.c`
 
-### Windows 开发环境
+### Windows 原生开发环境
 
 #### 1. 安装 VSCode
 
 下载: https://code.visualstudio.com/
 
-#### 2. 安装 MSYS2 (编译工具链)
+安装时务必勾选：
+- 添加到 PATH
+- 创建桌面快捷方式
+- 关联 .c/.cpp 文件
+
+推荐插件（C/C++ Extension Pack 一键安装）：
+- C/C++（Microsoft 官方）
+- CMake Tools
+- Serial Monitor（串口调试）
+- Remote - SSH（远程开发）
+
+#### 2. 安装 MSYS2 工具链
+
+下载: https://www.msys2.org/
+
+打开 **MSYS2 MINGW64** 终端，执行：
 
 ```bash
-# 下载 MSYS2
-# https://www.msys2.org/
+# 更新包数据库
+pacman -Sy
 
-# 安装后打开 MSYS2 MINGW64 终端，安装工具链
+# 安装编译工具链
 pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-make
 
-# 安装 Python
+# 安装 Python3（烧录工具需要）
 pacman -S python3 python3-pip
 
-# 安装 PySerial (用于串口)
+# 安装 PySerial（串口通信，用于烧录和调试）
 pip install pyserial
 ```
 
 #### 3. 获取 SDK
 
 ```bash
-# 克隆官方 SDK
+# 在 Windows 文件资源管理器中找一个合适的位置
+# 打开 MSYS2 MINGW64 终端，cd 到目标目录
+
 git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-WB2.git
-
-# 进入目录
 cd Ai-Thinker-WB2
-
-# 初始化子模块
 git submodule update --init --recursive
 ```
 
-### Linux (Ubuntu 20.04) / WSL 开发环境
+#### 4. 编译示例项目
+
+```bash
+cd applications/get-started/helloworld
+make -j8
+```
+
+**注意**: SDK 使用 Makefile 构建系统，直接在应用程序目录执行 `make -j8`。
+
+#### 5. 固件烧录（Windows）
+
+##### 烧录工具
+
+| 工具 | 下载 | 说明 |
+|-----|------|-----|
+| BL602 Flash Download Tool | [点击下载](https://aithinker-static.oss-cn-shenzhen.aliyuncs.com/docs/_media_old/bl602_flash_download_tool.zip) | 官方工具 |
+| 开发板专用工具(含GUI) | [点击下载](https://aithinker-static.oss-cn-shenzhen.aliyuncs.com/docs/_media_old/v1.7.4-release.zip) | 带图形界面 |
+
+##### 烧录步骤
+
+1. 将模组进入烧录模式：**BOOT 引脚拉低**，然后复位
+2. 打开烧录工具，选择对应串口（可在 Windows 设备管理器查看 COM 口）
+3. 选择编译生成的固件文件（通常在 `build/out` 目录）
+4. 设置烧录地址 `0x0`
+5. 点击开始烧录
+
+**详细教程**: https://blog.csdn.net/Boantong_/article/details/125781602
+
+**固件烧录视频**: https://www.bilibili.com/video/BV1xd4y1C74q/
+
+---
+
+### Windows WSL2 开发环境
+
+推荐使用 WSL2 进行开发，兼顾 Linux 构建环境和 Windows 调试便利性。
+
+#### 1. 安装 WSL2 + Ubuntu 20.04
+
+以**管理员身份**打开 PowerShell：
+
+```powershell
+wsl --install -d Ubuntu-20.04
+```
+
+重启电脑后首次启动会自动完成 Ubuntu 配置。
+
+#### 2. 在 WSL2 中配置开发环境
+
+```bash
+# 更新并安装基础工具
+sudo apt update
+sudo apt install -y build-essential git python3 python3-pip python3-dev wget sed
+
+# 安装 PySerial（烧录需要）
+pip3 install pyserial
+
+# 添加当前用户到 dialout 组（串口权限）
+sudo usermod -a -G dialout $USER
+newgrp dialout
+```
+
+#### 3. 获取 SDK
+
+```bash
+git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-WB2.git
+cd Ai-Thinker-WB2
+git submodule update --init --recursive
+```
+
+#### 4. 设置工具链权限
+
+```bash
+cd toolchain/riscv/Linux/
+bash chmod755.sh
+```
+
+#### 5. 编译
+
+```bash
+cd applications/get-started/helloworld
+make -j8
+```
+
+#### 6. WSL2 串口映射（USBIPD-WIN）
+
+Windows 11 的 WSL2 不支持自动串口映射，需要手动映射：
+
+**步骤1**：在 Windows 安装 USBIPD-WIN
+- 下载 [usbipd-win_5.2.0_x64.msi](https://aithinker-static.oss-cn-shenzhen.aliyuncs.com/docs/media/development/tools/usbipd-win_5.2.0_x64.msi)
+- 双击安装，重启电脑
+
+**步骤2**：在 PowerShell（管理员）中列出设备
+
+```powershell
+usbipd list
+```
+
+**步骤3**：绑定并附加到 WSL
+
+```powershell
+# 替换 <busid> 为实际总线ID
+usbipd bind --busid <busid>
+usbipd attach --wsl --busid <busid>
+```
+
+**步骤4**：在 WSL 中验证
+
+```bash
+ls /dev/ttyACM*
+```
+
+**断开串口**（在 PowerShell 管理员中）：
+
+```powershell
+usbipd detach --busid <busid>
+```
+
+#### 7. 烧录
+
+固件编译完成后，在 WSL 中使用 make 命令烧录：
+
+```bash
+make flash p=/dev/ttyACM0 b=921600
+```
+
+其中 `/dev/ttyACM0` 为串口设备名，`921600` 为波特率。
+
+**视频教程**: https://www.bilibili.com/video/BV1Rd4y117oA/
+
+### Linux (Ubuntu 20.04) 开发环境
 
 #### 1. 安装依赖
 
@@ -180,22 +322,6 @@ make -j8
 
 **注意**: SDK 使用 Makefile 构建系统，直接在应用程序目录执行 `make -j8`，不需要 Python 脚本配置。
 
-### WSL 开发环境
-
-推荐使用 WSL2 进行开发，串口映射参考：
-
-```powershell
-# 在 PowerShell 管理员模式
-usbipd list                          # 列出设备
-usbipd bind --busid <busid>          # 绑定
-usbipd attach --wsl --busid <busid> # 附加到 WSL
-```
-
-在 WSL 中验证：
-```bash
-ls /dev/ttyACM*
-```
-
 ---
 
 ## 固件烧录
@@ -205,7 +331,7 @@ ls /dev/ttyACM*
 | 工具 | 下载 | 说明 |
 |-----|------|-----|
 | BL602 Flash Download Tool | [点击下载](https://aithinker-static.oss-cn-shenzhen.aliyuncs.com/docs/_media_old/bl602_flash_download_tool.zip) | 官方工具 |
-| 开发板专用工具 | [点击下载](https://aithinker-static.oss-cn-shenzhen.aliyuncs.com/docs/_media_old/v1.7.4-release.zip) | 带 GUI |
+| 开发板专用工具(含GUI) | [点击下载](https://aithinker-static.oss-cn-shenzhen.aliyuncs.com/docs/_media_old/v1.7.4-release.zip) | 带图形界面 |
 
 ### 烧录步骤
 
