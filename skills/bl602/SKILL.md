@@ -307,11 +307,48 @@ static void gpio_write(uint8_t pin, uint8_t val) {
 
 ### 烧录步骤
 
-1. 将模组进入烧录模式（BOOT 引脚拉低，复位）
-2. 打开烧录工具，选择对应串口
-3. 选择固件文件
-4. 设置烧录地址 0x0
-5. 点击开始烧录
+**第一步：确认串口**
+
+烧录前先确认模组连接到了哪个串口：
+
+```bash
+# Linux/macOS - 查看当前串口设备
+ls /dev/ttyUSB*
+
+# macOS 额外查看
+ls /dev/tty.usbserial*
+```
+
+```powershell
+# Windows - 查看串口号
+# 方法1：设备管理器 → 端口（COM 和 LPT）
+# 方法2：命令行
+mode
+```
+
+常见的串口芯片驱动对应：
+| 芯片 | Windows 串口名 | Linux 设备 |
+|------|---------------|-----------|
+| CH340 | COM3/COM4 等 | /dev/ttyUSB0 |
+| CP2102 | COM5/COM6 等 | /dev/ttyUSB0 |
+| FTDI | COM10+ | /dev/ttyUSB0 |
+
+**第二步：进入烧录模式**
+
+将模组的 **BOOT 引脚拉低**，然后复位（重新上电或拉低 RST）。
+
+**第三步：烧录**
+
+```bash
+# 使用命令行烧录（Linux/macOS/MSYS2）
+# 将 /dev/ttyUSB0 替换为实际串口名
+make flash p=/dev/ttyUSB0 b=921600
+```
+
+烧录成功后，固件文件 `whole_flash_data.bin` 会在以下路径生成：
+```
+Ai-Thinker-WB2/tools/flash_tool/chips/bl602/img_create_iot/whole_flash_data.bin
+```
 
 **详细教程**: https://blog.csdn.net/Boantong_/article/details/125781602
 
