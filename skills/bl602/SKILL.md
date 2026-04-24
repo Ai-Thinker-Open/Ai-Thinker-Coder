@@ -86,6 +86,9 @@ uname -s
 在 MSYS2 MINGW64 终端中执行：
 
 ```bash
+# 配置阿里云镜像源（国内加速）
+echo 'Server = https://mirrors.aliyun.com/msys2/$repo' > /etc/pacman.d/mirrorlist
+
 # 更新包数据库
 pacman -Sy
 
@@ -98,6 +101,11 @@ pacman -S python3 python3-pip
 # 安装 PySerial（串口烧录用）
 pip install pyserial
 ```
+
+> **如果阿里云镜像访问失败**，可尝试腾讯云或华为云镜像：
+> ```bash
+> echo 'Server = https://mirrors.cloud.tencent.com/msys2/$repo' > /etc/pacman.d/mirrorlist
+> ```
 
 **验证安装**：
 
