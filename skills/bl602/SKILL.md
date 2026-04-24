@@ -35,7 +35,7 @@ metadata:
 - **不需要调用 `vTaskStartScheduler()`**，系统会在 `main()` 中自动启动调度器
 - `main()` 函数会执行初始化，然后进入主循环（裸机模式）或交由 RTOS 调度
 - **主循环如果没有任何业务逻辑，必须调用 `vTaskDelay` 让出 CPU**，否则任务无法切换，系统表现为死机
-- 正确的做法：`while(1) { 处理业务; vTaskDelay(pdMS_TO_TICKS(100)); }`
+- 正确的做法：`while(1) { 处理业务; pvPortDelay(pdMS_TO_TICKS(100)); }`
 
 **寄存器级编程**（当用户明确要求时）：
 - 直接操作 `*(volatile uint32_t *)addr` 访问外设寄存器
@@ -624,7 +624,7 @@ static void my_task(void *param)
         printf("Task running\r\n");
 
         // 必须调用延时让出 CPU，否则系统死机
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        pvPortDelay(pdMS_TO_TICKS(1000));
     }
 }
 
@@ -665,7 +665,7 @@ void app_main(void)
 
 ```c
 // 延时（推荐）
-vTaskDelay(pdMS_TO_TICKS(100));         // 延时 100ms
+pvPortDelay(pdMS_TO_TICKS(100));         // 延时 100ms
 
 // 获取当前 tick 数
 TickType_t now = xTaskGetTickCount();
@@ -850,7 +850,7 @@ void sht30_init(void)
 {
     uint8_t cmd[2] = {0x30, 0x93};  // 高精度模式
     i2c_master_write(I2C_ID_0, SHT30_ADDR, cmd, 2);
-    vTaskDelay(pdMS_TO_TICKS(20));
+    pvPortDelay(pdMS_TO_TICKS(20));
 }
 
 int sht30_read(float *temp, float *humidity)
@@ -858,7 +858,7 @@ int sht30_read(float *temp, float *humidity)
     uint8_t data[6];
     uint8_t cmd[2] = {0x24, 0x00};  // 读取命令
     i2c_master_write(I2C_ID_0, SHT30_ADDR, cmd, 2);
-    vTaskDelay(pdMS_TO_TICKS(15));
+    pvPortDelay(pdMS_TO_TICKS(15));
     i2c_master_read(I2C_URL, SHT30_ADDR, data, 6);
     
     // 解析数据
