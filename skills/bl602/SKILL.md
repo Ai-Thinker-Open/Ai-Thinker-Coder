@@ -331,7 +331,7 @@ AT+BLESEND=5,"12345"  // 发送数据
 
 ### AT 固件更新日志
 
-文档: `/home/seahi/workspase/vitpress_docs_resoure/docs/zh/wifi/wb2/fw_server.md`
+文档: `docs/zh/wifi/wb2/fw_server.md`（本 skill 仓库内文档路径）
 
 ---
 

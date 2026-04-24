@@ -110,7 +110,7 @@ make flash p=/dev/ttyUSB0 b=921600
 
 ## GPIO 寄存器级编程
 
-**SDK 路径**：`/home/seahi/workspase/Ai-Thinker-WB2`
+**SDK 路径**：`~/projects/Ai-Thinker-WB2`（示例路径，用户需替换为自己克隆的路径）
 
 **GPIO 基础地址**：
 - GLB_BASE = 0x40000000
