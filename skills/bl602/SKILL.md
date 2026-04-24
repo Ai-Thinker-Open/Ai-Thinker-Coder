@@ -31,6 +31,12 @@ metadata:
 - 业务逻辑循环：放在 FreeRTOS 任务中（`xTaskCreate`）
 - 延时：`vTaskDelay`（非 `HAL_Delay`）
 
+**BL602 FreeRTOS 特别说明**：
+- **不需要调用 `vTaskStartScheduler()`**，系统会在 `main()` 中自动启动调度器
+- `main()` 函数会执行初始化，然后进入主循环（裸机模式）或交由 RTOS 调度
+- **主循环如果没有任何业务逻辑，必须调用 `vTaskDelay` 让出 CPU**，否则任务无法切换，系统表现为死机
+- 正确的做法：`while(1) { 处理业务; vTaskDelay(pdMS_TO_TICKS(100)); }`
+
 **寄存器级编程**（当用户明确要求时）：
 - 直接操作 `*(volatile uint32_t *)addr` 访问外设寄存器
 - 所有时序和配置需自行控制
@@ -595,6 +601,93 @@ spi_init(&spi_config);
 uint8_t tx_data[] = {0x01, 0x02, 0x03};
 uint8_t rx_data[3];
 spi_master_transfer(SPI_ID_0, tx_data, rx_data, 3);
+```
+
+---
+
+## FreeRTOS 任务开发
+
+### 任务创建示例
+
+BL602 的 FreeRTOS 应用通常在 `main()` 中完成外设初始化后，创建业务任务。
+
+```c
+#include "FreeRTOS.h"
+#include "task.h"
+
+// 任务函数
+static void my_task(void *param)
+{
+    (void)param;
+    while (1) {
+        // 业务逻辑
+        printf("Task running\r\n");
+
+        // 必须调用延时让出 CPU，否则系统死机
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+void app_main(void)
+{
+    printf("System init\r\n");
+
+    // 创建任务（优先级 5，栈 512 字）
+    BaseType_t ret = xTaskCreate(
+        my_task,               // 任务函数
+        "my_task",             // 任务名称（仅供调试）
+        512,                   // 栈深度（字）
+        NULL,                  // 参数
+        5,                     // 优先级（1-15）
+        NULL                   // 任务句柄（不需要可填 NULL）
+    );
+
+    if (ret != pdPASS) {
+        printf("Task create failed\r\n");
+    }
+
+    // BL602 不需要手动调用 vTaskStartScheduler()
+    // 调度器已在系统初始化阶段自动启动
+}
+```
+
+### 关键要点
+
+| 要点 | 说明 |
+|-----|------|
+| **不调用 `vTaskStartScheduler()`** | 调度器由系统自动启动，`app_main()` 执行时调度器已在运行 |
+| **主循环必须延时** | 裸机主循环或空闲任务中若没有任何延时，系统无法调度其他任务，表现为死机 |
+| **使用 `vTaskDelay`** | 不可使用 `HAL_Delay`、`usleep` 等非 RTOS 延时 |
+| **`pdMS_TO_TICKS`** | 毫秒转 Tick 数，如 `pdMS_TO_TICKS(500)` = 500ms |
+| **栈深度单位** | FreeRTOS 栈深度以**字（4字节）**为单位，512 = 2048 字节 |
+
+### 常用 FreeRTOS API
+
+```c
+// 延时（推荐）
+vTaskDelay(pdMS_TO_TICKS(100));         // 延时 100ms
+
+// 获取当前 tick 数
+TickType_t now = xTaskGetTickCount();
+
+// 删除任务
+vTaskDelete(NULL);                     // 删除自己
+// vTaskDelete(task_handle);            // 删除指定任务
+
+// 挂起/恢复调度器（临界区）
+vTaskSuspendAll();                     // 挂起调度器
+// ... 临界区代码 ...
+xTaskResumeAll();                      // 恢复调度器
+
+// 消息队列
+QueueHandle_t q = xQueueCreate(10, sizeof(uint32_t));
+xQueueSend(q, &value, portMAX_DELAY);
+xQueueReceive(q, &value, portMAX_DELAY);
+
+// 二值信号量（用于中断同步）
+SemaphoreHandle_t sem = xSemaphoreCreateBinary();
+xSemaphoreGive(sem);
+xSemaphoreTake(sem, portMAX_DELAY);
 ```
 
 ---
