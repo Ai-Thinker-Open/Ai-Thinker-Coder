@@ -210,6 +210,8 @@ bash chmod755.sh
 
 ### 第四步：编译验证
 
+> **Windows 用户**：必须在「MSYS2 MINGW64」终端中执行编译，**不要使用 CMD、PowerShell 或普通的 MSYS2 终端**。
+
 ```bash
 cd applications/get-started/helloworld
 make -j8
