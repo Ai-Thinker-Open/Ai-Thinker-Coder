@@ -136,7 +136,7 @@ openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder-bl602
 /skill Ai-Thinker-Coder-bl602
 
 # 2. 克隆 SDK
-cd /home/seahi/workspase
+cd ~/projects
 git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-WB2.git
 cd Ai-Thinker-WB2
 git submodule update --init --recursive

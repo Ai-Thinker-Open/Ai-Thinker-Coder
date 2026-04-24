@@ -136,7 +136,7 @@ Displays product overview and links to sub-skills.
 /skill Ai-Thinker-Coder-bl602
 
 # 2. Clone SDK
-cd /home/seahi/workspase
+cd ~/projects
 git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-WB2.git
 cd Ai-Thinker-WB2
 git submodule update --init --recursive
