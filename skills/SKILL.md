@@ -1,6 +1,6 @@
 ---
 name: Ai-Thinker-Coder
-description: 安信可科技物联网模组开发助手 - 覆盖 WiFi、BLE、LoRa、Radar、NB-IoT、星闪等全系列模组的编程指南。子 skill 按芯片型号分组：BL602(Ai-WB2)、BL616/BL618(Ai-M61/M62)、ESP32、ESP8266 等。使用 /skill Ai-Thinker-Coder-<chip> 加载特定芯片开发指南，chip 名称如 Ai-Thinker-Coder-bl602。
+description: 安信可科技物联网模组开发助手 - 覆盖 WiFi、BLE、LoRa、Radar、NB-IoT、星闪等全系列模组的编程指南。子 skill 按芯片型号分组：BL602(Ai-WB2)、BL616/BL618(Ai-M61/M62)等。使用 /skill Ai-Thinker-Coder-<chip> 加载特定芯片开发指南，chip 名称如 Ai-Thinker-Coder-bl602。
 category: hardware
 tags:
   - 安信可
@@ -21,7 +21,7 @@ license: MIT-0
 metadata:
   hermes:
     tags: [WiFi, BLE, LoRa, Radar, NB-IoT, 物联网, IoT, 模组开发]
-    related_skills: [Ai-Thinker-Coder-bl602, Ai-Thinker-Coder-bl618, Ai-Thinker-Coder-esp32]
+    related_skills: [Ai-Thinker-Coder-bl602, Ai-Thinker-Coder-bl618, Ai-Thinker-Coder-lora]
 ---
 
 # 安信可科技 (Ai-Thinker) 物联网模组开发指南
@@ -43,7 +43,6 @@ metadata:
 | **Ai-M62** | BL616/BL618 | Ai-M62-12F/18F | Wi-Fi 6 + BLE 5.3 + Thread | Linux/Windows |
 | **BW/RTL87xx** | RTL8720/RTL8721 | BW-LP14 | 双频WiFi + BLE 5.0 | Linux |
 | **TG** | - | TG-01L | Wi-Fi (天猫精灵) | AT指令 |
-| **ESP 系列** | ESP8266/ESP32 | ESP-12F/ESP32-S3 | Wi-Fi + BLE | Arduino/ESP-IDF |
 | **LoRa** | - | Ra-01/RA-01H | LoRa/LoRaWAN | Arduino |
 | **Radar** | - | RD-01/03/04/6x | 10GHz/24GHz/60GHz | Arduino |
 
@@ -56,7 +55,6 @@ metadata:
 ```bash
 /skill Ai-Thinker-Coder-bl602    # Ai-WB2 系列 (BL602)
 /skill Ai-Thinker-Coder-bl618    # Ai-M61/M62 系列 (BL616/BL618) - 待发布
-/skill Ai-Thinker-Coder-esp32    # ESP32/ESP8266 系列 - 待发布
 /skill Ai-Thinker-Coder-lora     # LoRa 系列 - 待发布
 /skill Ai-Thinker-Coder-radar    # Radar 系列 - 待发布
 ```
