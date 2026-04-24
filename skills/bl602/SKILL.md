@@ -322,26 +322,24 @@ static void gpio_write(uint8_t pin, uint8_t val) {
 
 ### 烧录步骤
 
-**第一步：确认串口**
+**第一步：列出可用串口供用户选择**
 
-烧录前先确认模组连接到了哪个串口：
+烧录前先**主动列出**当前可用的串口，让用户确认模组连接到哪个端口：
 
 ```bash
-# Linux/macOS - 查看当前串口设备
-ls /dev/ttyUSB*
+# Linux - 列出所有串口设备
+ls -l /dev/ttyUSB* /dev/ttyACM* /dev/ttyS* 2>/dev/null
 
-# macOS 额外查看
-ls /dev/tty.usbserial*
+# macOS - 列出 USB 串口
+ls /dev/tty.usbserial* /dev/tty.usbmodem* 2>/dev/null
+
+# Windows - 列出 COM 端口
+mode | grep -i "com"
 ```
 
-```powershell
-# Windows - 查看串口号
-# 方法1：设备管理器 → 端口（COM 和 LPT）
-# 方法2：命令行
-mode
-```
+> **AI 应主动执行以上命令获取可用端口列表**，然后询问用户：「当前检测到以下串口，请确认模组连接的是哪一个？」
 
-常见的串口芯片驱动对应：
+常见的串口芯片对应：
 | 芯片 | Windows 串口名 | Linux 设备 |
 |------|---------------|-----------|
 | CH340 | COM3/COM4 等 | /dev/ttyUSB0 |
