@@ -94,7 +94,7 @@ git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git <skills-dir>/A
 openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder
 
 # 安装特定子 skill
-openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder/bl602
+openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder-bl602
 ```
 
 ## 使用方法
@@ -110,18 +110,18 @@ openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder/bl602
 ### 加载芯片专属 skill
 
 ```
-/skill Ai-Thinker-Coder/bl602    # Ai-WB2 系列 (BL602 芯片)
+/skill Ai-Thinker-Coder-bl602    # Ai-WB2 系列 (BL602 芯片)
 ```
 
 ### 可用子 skill
 
 | Skill | 芯片平台 | 产品系列 |
 |-------|---------|---------|
-| Ai-Thinker-Coder/bl602 | BL602 | Ai-WB2-01S/12F/32S |
-| Ai-Thinker-Coder/bl618 | BL616/BL618 | Ai-M61/M62 系列 |
-| Ai-Thinker-Coder/esp32 | ESP32/ESP8266 | ESP-12F/ESP32-S3 |
-| Ai-Thinker-Coder/lora | - | Ra-01/RA-01H LoRa |
-| Ai-Thinker-Coder/radar | - | RD-01/03/04 Radar |
+| Ai-Thinker-Coder-bl602 | BL602 | Ai-WB2-01S/12F/32S |
+| Ai-Thinker-Coder-bl618 | BL616/BL618 | Ai-M61/M62 系列 |
+| Ai-Thinker-Coder-esp32 | ESP32/ESP8266 | ESP-12F/ESP32-S3 |
+| Ai-Thinker-Coder-lora | - | Ra-01/RA-01H LoRa |
+| Ai-Thinker-Coder-radar | - | RD-01/03/04 Radar |
 
 ## 开发流程
 
@@ -134,7 +134,7 @@ openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder/bl602
 
 ```bash
 # 1. 加载 skill
-/skill Ai-Thinker-Coder/bl602
+/skill Ai-Thinker-Coder-bl602
 
 # 2. 克隆 SDK
 cd /home/seahi/workspase

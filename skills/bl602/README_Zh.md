@@ -1,4 +1,4 @@
-# Ai-Thinker-Coder/bl602
+# Ai-Thinker-Coder-bl602
 
 安信可 Ai-WB2 系列开发指南 (BL602 芯片平台)。
 
@@ -35,13 +35,13 @@ git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.codebuddy/s
 ### OpenClaw
 
 ```bash
-openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder/bl602
+openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder-bl602
 ```
 
 ## 使用方法
 
 ```
-/skill Ai-Thinker-Coder/bl602
+/skill Ai-Thinker-Coder-bl602
 ```
 
 ## 模组选型

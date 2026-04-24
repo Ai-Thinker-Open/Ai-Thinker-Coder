@@ -1,4 +1,4 @@
-# Ai-Thinker-Coder/bl602
+# Ai-Thinker-Coder-bl602
 
 Ai-WB2 series development guide based on BL602 chip.
 
@@ -35,13 +35,13 @@ git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git ~/.codebuddy/s
 ### OpenClaw
 
 ```bash
-openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder/bl602
+openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder-bl602
 ```
 
 ## Usage
 
 ```
-/skill Ai-Thinker-Coder/bl602
+/skill Ai-Thinker-Coder-bl602
 ```
 
 ## Module Selection

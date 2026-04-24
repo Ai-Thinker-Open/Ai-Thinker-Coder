@@ -94,7 +94,7 @@ git clone https://github.com/Ai-Thinker-Open/Ai-Thinker-Coder.git <skills-dir>/A
 openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder
 
 # Install specific sub-skill
-openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder/bl602
+openclaw skill install Ai-Thinker-Open/Ai-Thinker-Coder-bl602
 ```
 
 ## Usage
@@ -110,18 +110,18 @@ Displays product overview and links to sub-skills.
 ### Load Chip-Specific Skill
 
 ```
-/skill Ai-Thinker-Coder/bl602    # Ai-WB2 series (BL602 chip)
+/skill Ai-Thinker-Coder-bl602    # Ai-WB2 series (BL602 chip)
 ```
 
 ### Available Sub-Skills
 
 | Skill | Chip Platform | Product Series |
 |-------|-------------|----------------|
-| Ai-Thinker-Coder/bl602 | BL602 | Ai-WB2-01S/12F/32S |
-| Ai-Thinker-Coder/bl618 | BL616/BL618 | Ai-M61/M62 series |
-| Ai-Thinker-Coder/esp32 | ESP32/ESP8266 | ESP-12F/ESP32-S3 |
-| Ai-Thinker-Coder/lora | - | Ra-01/RA-01H LoRa |
-| Ai-Thinker-Coder/radar | - | RD-01/03/04 Radar |
+| Ai-Thinker-Coder-bl602 | BL602 | Ai-WB2-01S/12F/32S |
+| Ai-Thinker-Coder-bl618 | BL616/BL618 | Ai-M61/M62 series |
+| Ai-Thinker-Coder-esp32 | ESP32/ESP8266 | ESP-12F/ESP32-S3 |
+| Ai-Thinker-Coder-lora | - | Ra-01/RA-01H LoRa |
+| Ai-Thinker-Coder-radar | - | RD-01/03/04 Radar |
 
 ## Development Workflow
 
@@ -134,7 +134,7 @@ Displays product overview and links to sub-skills.
 
 ```bash
 # 1. Load the skill
-/skill Ai-Thinker-Coder/bl602
+/skill Ai-Thinker-Coder-bl602
 
 # 2. Clone SDK
 cd /home/seahi/workspase
