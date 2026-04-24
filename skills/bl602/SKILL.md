@@ -73,7 +73,17 @@ uname -s
 
 #### Windows MSYS2 环境
 
-**适用场景**：已安装 MSYS2，在 MSYS2 MINGW64 终端中操作。
+**适用场景**：Windows 原生开发，使用 MSYS2 提供编译工具链。
+
+**第一步：下载并安装 MSYS2**
+
+1. 下载 MSYS2：https://www.msys2.org/
+2. 运行安装程序，选择安装路径（建议 `C:\msys64`）
+3. 安装完成后，**打开「MSYS2 MINGW64」终端**（不要用 MSYS2 原生终端）
+
+**第二步：安装编译工具链**
+
+在 MSYS2 MINGW64 终端中执行：
 
 ```bash
 # 更新包数据库
