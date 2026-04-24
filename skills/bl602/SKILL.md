@@ -109,9 +109,9 @@ pip show pyserial            # 应显示 pyserial 信息
 
 > **报错则无法继续**，必须先解决工具链问题。
 
-#### Linux (Ubuntu 20.04 / WSL) 环境
+#### Linux (Ubuntu 20.04) 环境
 
-**适用场景**：原生 Ubuntu、WSL2、Debian 等 Linux 环境。
+**适用场景**：原生 Ubuntu、Debian 等 Linux 环境。
 
 ```bash
 # 更新软件源
@@ -136,16 +136,6 @@ pip3 show pyserial            # 应显示 pyserial 信息
 ```
 
 > **报错则无法继续**，必须先解决工具链问题。
->
-> **WSL2 用户注意**：Windows 11 不支持自动串口映射，需在 Windows PowerShell（管理员）中手动映射：
-> ```powershell
-> # 列出设备
-> usbipd list
-> # 绑定并附加到 WSL
-> usbipd bind --busid <busid>
-> usbipd attach --wsl --busid <busid>
-> ```
-> 然后在 WSL 中验证 `ls /dev/ttyACM*`。
 
 #### macOS 环境
 
@@ -164,6 +154,24 @@ gcc -v
 python3 --version
 pip3 show pyserial
 ```
+
+---
+
+**Windows 备选方案：已有 WSL2 的用户**
+
+如果 Windows 上已经安装了 WSL2，可以跳过 MSYS2，直接使用 WSL2 进行开发。WSL2 本质上就是 Linux 环境，请参考上方「Linux (Ubuntu 20.04) 环境」的安装步骤。
+
+> **WSL2 串口映射**：Windows 11 不支持自动串口映射，需在 Windows PowerShell（管理员）中手动映射：
+> ```powershell
+> # 列出设备
+> usbipd list
+> # 绑定并附加到 WSL
+> usbipd bind --busid <busid>
+> usbipd attach --wsl --busid <busid>
+> ```
+> 然后在 WSL 中验证 `ls /dev/ttyACM*`。
+
+---
 
 ### 第三步：克隆 SDK（所有平台通用）
 
