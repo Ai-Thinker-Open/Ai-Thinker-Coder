@@ -1,8 +1,135 @@
 # I2C API Reference
 
-> Source file: `components/platform/hosal/include/hosal_i2c.h`
+> Source file: `components/platform/hosal/include/hosal_i2c.h`  
+> Register Header: `components/platform/soc/bl602/bl602_std/.../Device/Bouffalo/BL602/Peripherals/i2c_reg.h`  
+> Base Address: `I2C_BASE = 0x4000A300`
 
-## Macro Definitions
+---
+
+## Register Overview
+
+| Offset | Register Name | Description |
+|---|---|---|
+| `0x00` | `I2C_CONFIG` | I2C enable, direction, deglitch, SCL sync, sub-address, slave addr, pkt len |
+| `0x04` | `I2C_INT_STATUS` | I2C interrupt status flags |
+| `0x08` | `I2C_FIFO_CONFIG` | FIFO configuration (RX/TX threshold, DMA enable) |
+| `0x0C` | `I2C_FIFO_STATUS` | FIFO status (RX/TX count, full/empty flags) |
+| `0x10` | `I2C_FIFO_WDATA` | FIFO write data |
+| `0x14` | `I2C_FIFO_RDATA` | FIFO read data |
+| `0x18` | `I2C_ADDR_CONFIG` | I2C slave address configuration |
+| `0x1C` | `I2C_MATCH_ADDR` | I2C address match configuration |
+
+---
+
+## Key Register Fields
+
+### `I2C_CONFIG` (offset `0x00`)
+
+| Field | Bits | R/W | Description |
+|---|---|---|---|
+| `I2C_CR_I2C_M_EN` | [0] | RW | I2C master enable |
+| `I2C_CR_I2C_PKT_DIR` | [1] | RW | 0=write (master to slave), 1=read (slave to master) |
+| `I2C_CR_I2C_DEG_EN` | [2] | RW | Deglitch enable |
+| `I2C_CR_I2C_SCL_SYNC_EN` | [3] | RW | SCL synchronization enable |
+| `I2C_CR_I2C_SUB_ADDR_EN` | [4] | RW | Sub-address (register address) enable |
+| `I2C_CR_I2C_SUB_ADDR_BC` | [6:5] | RW | Sub-address byte count (0–3 bytes) |
+| `I2C_CR_I2C_SLV_ADDR` | [14:8] | RW | Slave address (7-bit) |
+| `I2C_CR_I2C_PKT_LEN` | [23:16] | RW | Packet data byte count |
+
+### `I2C_INT_STATUS` (offset `0x04`)
+
+| Field | Bits | R/W | Description |
+|---|---|---|---|
+| `I2C_INT_RX_FULL` | [0] | RO | RX FIFO full |
+| `I2C_INT_TX_EMPTY` | [1] | RO | TX FIFO empty |
+| `I2C_INT_MATCH` | [2] | RO | Address match |
+| `I2C_INT_NACK` | [3] | RO | NACK received |
+| `I2C_INT_END` | [4] | RO | Transfer end |
+| `I2C_INT_ERR` | [5] | RO | Error (bus arbitration lost, NACK, timeout) |
+
+### `I2C_FIFO_WDATA` (offset `0x10`)
+
+Write data bytes here to send. Write `I2C_CR_I2C_PKT_LEN` bytes for a master transmit operation.
+
+### `I2C_FIFO_RDATA` (offset `0x14`)
+
+Read data bytes here after a master receive operation completes.
+
+---
+
+## Register-Level Programming Sequence
+
+### Master Send (write to slave)
+
+```c
+#define I2C_BASE  0x4000A300
+
+static inline void i2c_write_reg(uint32_t base, uint16_t reg_addr,
+                                 uint8_t reg_addr_len,
+                                 const uint8_t *data, uint8_t len)
+{
+    volatile uint32_t *cfg   = (volatile uint32_t *)(base + 0x00);
+    volatile uint32_t *sts   = (volatile uint32_t *)(base + 0x04);
+    volatile uint32_t *fifo  = (volatile uint32_t *)(base + 0x10);
+
+    // Wait for idle
+    while (*cfg & 1) { }
+
+    // Configure: master, enable, write direction, sub-addr bytes
+    uint32_t config = (1 << 0)   // I2C master enable
+                     | (0 << 1)   // write direction
+                     | (1 << 4)   // sub-addr enable
+                     | ((reg_addr_len - 1) << 5)  // sub-addr byte count
+                     | ((len & 0xFF) << 16);      // pkt len
+    *cfg = config;
+
+    // Write sub-address bytes first
+    for (int i = reg_addr_len - 1; i >= 0; i--) {
+        // MSB first
+    }
+
+    // Write data to TX FIFO
+    for (int i = 0; i < len; i++) {
+        *fifo = data[i];
+    }
+
+    // Wait for end
+    while (!(*sts & (1 << 4))) { }
+}
+```
+
+### Master Receive (read from slave)
+
+```c
+static inline void i2c_read_reg(uint32_t base, uint16_t reg_addr,
+                                 uint8_t reg_addr_len,
+                                 uint8_t *data, uint8_t len)
+{
+    volatile uint32_t *cfg   = (volatile uint32_t *)(base + 0x00);
+    volatile uint32_t *sts   = (volatile uint32_t *)(base + 0x04);
+    volatile uint32_t *fifo  = (volatile uint32_t *)(base + 0x14);
+
+    while (*cfg & 1) { }
+
+    // Configure: master, enable, read direction
+    uint32_t config = (1 << 0)   // master enable
+                     | (1 << 1)   // read direction
+                     | (1 << 4)   // sub-addr enable
+                     | ((reg_addr_len - 1) << 5)
+                     | ((len & 0xFF) << 16);
+    *cfg = config;
+
+    // Wait for end, then read RX FIFO
+    while (!(*sts & (1 << 4))) { }
+    for (int i = 0; i < len; i++) {
+        data[i] = *fifo;
+    }
+}
+```
+
+---
+
+## Usage Examples
 
 ```c
 #define HOSAL_WAIT_FOREVER 0xFFFFFFFFU  // Wait forever

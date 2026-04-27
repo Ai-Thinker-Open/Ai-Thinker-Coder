@@ -1,178 +1,229 @@
-# GPIO API Reference
+# GPIO API Reference (Register-Level)
 
-> Source file: `components/platform/hosal/include/hosal_gpio.h`
-
-## Type Definitions
-
-### `hosal_gpio_config_t` — GPIO Mode
-
-```c
-typedef enum {
-    ANALOG_MODE,               // Analog mode (used as function pin)
-    INPUT_PULL_UP,             // Input with pull-up (button connects to ground)
-    INPUT_PULL_DOWN,           // Input with pull-down (button connects to power)
-    INPUT_HIGH_IMPEDANCE,      // High impedance input (must be driven)
-    OUTPUT_PUSH_PULL,          // Push-pull output (LED, etc.)
-    OUTPUT_OPEN_DRAIN_NO_PULL, // Open-drain output (no pull-up)
-    OUTPUT_OPEN_DRAIN_PULL_UP, // Open-drain output (internal pull-up)
-    OUTPUT_OPEN_DRAIN_AF,      // Open-drain alternate function
-    OUTPUT_PUSH_PULL_AF,       // Push-pull alternate function
-} hosal_gpio_config_t;
-```
-
-### `hosal_gpio_irq_trigger_t` — Interrupt Trigger Type
-
-```c
-typedef enum {
-    HOSAL_IRQ_TRIG_NEG_PULSE,  // Falling edge pulse trigger
-    HOSAL_IRQ_TRIG_POS_PULSE,  // Rising edge pulse trigger
-    HOSAL_IRQ_TRIG_NEG_LEVEL,  // Falling edge level trigger (32k 3T)
-    HOSAL_IRQ_TRIG_POS_LEVEL,   // Rising edge level trigger (32k 3T)
-} hosal_gpio_irq_trigger_t;
-```
-
-### `hosal_gpio_irq_handler_t` — Interrupt Callback Function Type
-
-```c
-typedef void (*hosal_gpio_irq_handler_t)(void *arg);
-```
-
-### `hosal_gpio_dev_t` — GPIO Device Structure
-
-```c
-typedef struct {
-    uint8_t        port;         // GPIO port
-    hosal_gpio_config_t  config; // GPIO configuration mode
-    void          *priv;         // Private data
-} hosal_gpio_dev_t;
-```
-
-## Function Interface
-
-### `hosal_gpio_init`
-
-Initializes a GPIO pin.
-
-```c
-int hosal_gpio_init(hosal_gpio_dev_t *gpio);
-```
-
-| Parameter | Description |
-|-----------|-------------|
-| `gpio` | GPIO device structure pointer |
-
-**Return value**: `0` success, `EIO` failure
+> HOSAL Header: `components/platform/hosal/include/hosal_gpio.h`  
+> Register Header: `components/platform/soc/bl602/bl602_std/.../StdDriver/Inc/bl602_gpio.h`  
+> GLB Register Map: `Device/Bouffalo/BL602/Peripherals/glb_reg.h`  
+> GPIO pin count: 23 (GPIO 0–22)
 
 ---
 
-### `hosal_gpio_output_set`
+## Register Overview
 
-Sets GPIO output level.
+GPIO is part of the **GLB (Global Bus)** peripheral at `0x40000000`. There is **no separate GPIO peripheral base address** — all GPIO registers are embedded within the GLB register map.
 
-```c
-int hosal_gpio_output_set(hosal_gpio_dev_t *gpio, uint8_t value);
-```
+Each GPIO pin has one **32-bit configuration register** at `GLB_BASE + 0x100 + (pin × 4)`.
 
-| Parameter | Description |
-|-----------|-------------|
-| `gpio` | GPIO device |
-| `value` | `0` = output low, `>0` = output high |
-
-**Return value**: `0` success, `EIO` failure
-
----
-
-### `hosal_gpio_input_get`
-
-Reads GPIO input level.
-
-```c
-int hosal_gpio_input_get(hosal_gpio_dev_t *gpio, uint8_t *value);
-```
-
-| Parameter | Description |
-|-----------|-------------|
-| `gpio` | GPIO device |
-| `value` | Output parameter, stores the read level value |
-
-**Return value**: `0` success, `EIO` failure
+| GPIO Pin | Config Register | Address |
+|---|---|---|
+| GPIO 0 | `GLB_GPIO_CFGCTL0` | `0x40000100` |
+| GPIO 1 | `GLB_GPIO_CFGCTL1` | `0x40000104` |
+| GPIO 2 | `GLB_GPIO_CFGCTL2` | `0x40000108` |
+| ... | ... | ... |
+| GPIO 22 | `GLB_GPIO_CFGCTL22` | `0x40000158` |
 
 ---
 
-### `hosal_gpio_irq_set`
+## Register Map (GPIO Config Registers)
 
-Configures GPIO interrupt.
-
-```c
-int hosal_gpio_irq_set(hosal_gpio_dev_t *gpio,
-                        hosal_gpio_irq_trigger_t trigger,
-                        hosal_gpio_irq_handler_t handler,
-                        void *arg);
-```
-
-| Parameter | Description |
-|-----------|-------------|
-| `gpio` | GPIO device |
-| `trigger` | Trigger type |
-| `handler` | Interrupt callback function |
-| `arg` | Argument passed to the callback |
-
-**Return value**: `0` success, `EIO` failure
+| Offset | Register | Description |
+|---|---|---|
+| `0x100` + n×4 | `GLB_GPIO_CFGCTLn` | GPIO 0–22 configuration (n = pin number) |
+| `0x400` | `GPIO_INT_CTRL` | GPIO interrupt control (shared) |
+| `0x404`` | `GPIO_INT_STAT` | GPIO interrupt status |
+| `0x408` | `GPIO_INT_SET` | GPIO interrupt trigger set |
+| `0x40C` | `GPIO_INT_CLEAR` | GPIO interrupt clear |
 
 ---
 
-### `hosal_gpio_irq_mask`
+## Field Description
 
-Masks or enables GPIO interrupt.
+### `GLB_GPIO_CFGCTLn` (offset = `0x100 + n×4`, n = 0–22)
 
-```c
-int hosal_gpio_irq_mask(hosal_gpio_dev_t *gpio, uint8_t mask);
-```
+Each GPIO pin uses 16 bits in its configuration register:
 
-| Parameter | Description |
-|-----------|-------------|
-| `gpio` | GPIO device |
-| `mask` | `0` = enable interrupt, `1` = mask interrupt |
+| Field | Bits | Access | Description |
+|---|---|---|---|
+| `IE` | [0] | RW | Input enable (1=enable input path) |
+| `SMT` | [1] | RW | Schmitt trigger (1=enable) |
+| `DRV` | [3:2] | RW | Drive strength: 0=5mA, 1=10mA, 2=15mA, 3=20mA |
+| `PU` | [4] | RW | Pull-up enable |
+| `PD` | [5] | RW | Pull-down enable |
+| `FUNC_SEL` | [12:8] | RW | Pin function select (see pin function table) |
+| `REAL_FUNC_SEL` | [16:12] | RO | Actual function selected (hardware mirror) |
 
-**Return value**: `0` success, `EIO` failure
+> **Note**: Pull-up and pull-down should not both be enabled simultaneously. Use `PU=1,PD=0` for pull-up, `PU=0,PD=1` for pull-down, `PU=0,PD=0` for no pull.
 
 ---
 
-### `hosal_gpio_finalize`
+## Pin Function Selection (`FUNC_SEL` Encoding)
 
-Releases GPIO.
+| Value | Function |
+|---|---|
+| `0` | GPIO (software GPIO mode) |
+| `1` | SDIO |
+| `2` | SPI Flash |
+| `4` | SPI |
+| `6` | I2C |
+| `7` | UART |
+| `8` | PWM |
+| `9` | External PA |
+| `10` | Analog |
+| `11` | SWGPIO (software GPIO alternate) |
+| `14` | JTAG |
+
+---
+
+## Output Level Registers
+
+| Register | Address | Description |
+|---|---|---|
+| `GPIO_OUTPUT` | `0x40000180` | Output data register. Bit[n] = GPIO n output level |
+| `GPIO_OUTPUT_ENABLE` | `0x40000184` | Output enable. Bit[n]=1 enables output driver for GPIO n |
+| `GPIO_INPUT` | `0x40000188` | Input data register. Read-only, reflects actual pin state |
+
+---
+
+## Interrupt Registers
+
+### `GPIO_INT_CTRL` (0x40000400)
+
+| Field | Bits | Description |
+|---|---|---|
+| `INT_CTRL` | [0] | Global GPIO interrupt enable |
+
+### `GPIO_INT_STAT` (0x40000404)
+
+| Field | Bits | Description |
+|---|---|---|
+| `INT_STAT` | [22:0] | One bit per GPIO pin. 1=interrupt pending for that pin |
+
+### `GPIO_INT_SET` (0x40000408)
+
+Write 1 to set interrupt flag for a GPIO pin.
+
+### `GPIO_INT_CLEAR` (0x4000040C)
+
+Write 1 to clear interrupt flag for a GPIO pin.
+
+---
+
+## Bit-Level Access Macros
+
+The SDK defines standard bit manipulation macros in `bl602_glb.h`:
 
 ```c
-int hosal_gpio_finalize(hosal_gpio_dev_t *gpio);
+// Read-modify-write a field (non-destructive)
+reg = getreg32(addr);
+reg = (reg & ~FIELD_MSK) | (FIELD_VAL << FIELD_POS);
+putreg32(addr, reg);
+
+// Or use the mask/pos macros directly
+*(uint32_t *)addr = (*(uint32_t *)addr & ~GLB_REG_GPIO_0_FUNC_SEL_MSK)
+                    | (func << GLB_REG_GPIO_0_FUNC_SEL_POS);
 ```
 
-| Parameter | Description |
-|-----------|-------------|
-| `gpio` | GPIO device |
+---
 
-**Return value**: `0` success, `EIO` failure
+## Register-Level Programming Sequence
 
-## Usage Example
+### Configure GPIO as Output (e.g., GPIO 5, push-pull, 10mA)
 
 ```c
-#include "hal_gpio.h"
+#define GLB_BASE  0x40000000
+#define GPIO_REG(pin)  (*(volatile uint32_t *)(GLB_BASE + 0x100 + (pin) * 4))
+#define GPIO_OUT_EN    (*(volatile uint32_t *)(GLB_BASE + 0x184))
 
-hosal_gpio_dev_t led = {
-    .port = 0,
+// Step 1: Configure pin function = GPIO (FUNC_SEL = 0)
+GPIO_REG(5) = (0 << 8)   // FUNC_SEL = 0 (GPIO mode)
+             | (1 << 2)   // DRV = 1 (10mA)
+             | (0 << 1)   // SMT = 0
+             | (0 << 0);  // IE = 0 (output mode, disable input)
+
+// Step 2: Set output high (write to output register)
+*(volatile uint32_t *)(GLB_BASE + 0x180) |= (1 << 5);
+
+// Step 3: Enable output driver
+GPIO_OUT_EN |= (1 << 5);
+```
+
+### Configure GPIO as Input (e.g., GPIO 12, pull-up, with interrupt)
+
+```c
+#define GLB_BASE      0x40000000
+#define GPIO_REG(pin) (*(volatile uint32_t *)(GLB_BASE + 0x100 + (pin) * 4))
+#define GPIO_OUT_EN   (*(volatile uint32_t *)(GLB_BASE + 0x184))
+#define GPIO_INT_SET  (*(volatile uint32_t *)(GLB_BASE + 0x408))
+#define GPIO_INT_CTRL (*(volatile uint32_t *)(GLB_BASE + 0x400))
+
+// Configure GPIO 12 as input with pull-up
+GPIO_REG(12) = (0 << 8)   // FUNC_SEL = 0 (GPIO)
+             | (1 << 4)   // PU = 1 (pull-up enabled)
+             | (0 << 5)   // PD = 0
+             | (1 << 1)   // SMT = 1
+             | (1 << 0);  // IE = 1 (input enabled)
+
+// Disable output driver
+GPIO_OUT_EN &= ~(1 << 12);
+
+// Enable interrupt on GPIO 12
+GPIO_INT_SET = (1 << 12);
+GPIO_INT_CTRL |= 1;  // Global GPIO interrupt enable
+```
+
+### Toggle GPIO (toggle without read-modify-write)
+
+```c
+// Use XOR to toggle output state
+*(volatile uint32_t *)(GLB_BASE + 0x180) ^= (1 << 5);  // Toggle GPIO 5
+```
+
+### Read Input Level
+
+```c
+uint32_t level = (*(volatile uint32_t *)(GLB_BASE + 0x188)) & (1 << 12);
+// level != 0 means HIGH, level == 0 means LOW
+```
+
+---
+
+## HOSAL API (Higher-Level Abstraction)
+
+For application code, prefer the HOSAL API rather than direct register access.
+
+```c
+#include "hosal_gpio.h"
+
+// Initialize GPIO
+hosal_gpio_dev_t gpio5 = {
+    .port = 5,
     .config = OUTPUT_PUSH_PULL,
 };
+hosal_gpio_init(&gpio5);
 
-// Initialize as push-pull output
-hosal_gpio_init(&led);
+// Set output high
+hosal_gpio_output_set(&gpio5, 1);
 
-// Output high level (turn on LED)
-hosal_gpio_output_set(&led, 1);
+// Set output low
+hosal_gpio_output_set(&gpio5, 0);
 
-// Input mode + interrupt
-hosal_gpio_dev_t btn = {
-    .port = 1,
+// Initialize GPIO input with interrupt
+hosal_gpio_dev_t gpio12 = {
+    .port = 12,
     .config = INPUT_PULL_UP,
 };
-hosal_gpio_init(&btn);
-hosal_gpio_irq_set(&btn, HOSAL_IRQ_TRIG_NEG_PULSE, my_handler, NULL);
+hosal_gpio_init(&gpio12);
+hosal_gpio_irq_init(&gpio12, HOSAL_IRQ_TRIG_POS_EDGE, my_isr, NULL);
+
+// Read input
+uint32_t val;
+hosal_gpio_input_get(&gpio12, &val);
 ```
+
+---
+
+## Common Mistakes
+
+1. **Forgetting to disable output driver** when configuring as input — the pin may fight the external signal.
+2. **Both pull-up and pull-down enabled** — causes indeterminate state. Set `PU=0,PD=0` for high-impedance input.
+3. **Writing `FUNC_SEL=0` without clearing first** — FUNC_SEL is 4 bits; you must write the complete value, not OR in a field.
+4. **Output enable is in a separate register** (`0x184`) — setting the config register alone does not enable output. Write `GPIO_OUT_EN |= (1<<pin)`.
