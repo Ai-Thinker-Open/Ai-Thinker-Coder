@@ -857,6 +857,9 @@ ble_svc_gatt_add_service(service_uuid, att_db, sizeof(att_db));
 | [Flash](./references/flash.md) | Flash 分区读写、擦除 |
 | [Watchdog](./references/watchdog.md) | 看门狗初始化、喂狗 |
 | [RTC](./references/rtc.md) | RTC 时间设置/读取（DEC/BCD 格式） |
+| [DAC](./references/dac.md) | DAC 输出、电压值设置、DMA 模式 |
+| [Efuse](./references/efuse.md) | Efuse 一次性存储读写、MAC 地址读取 |
+| [RNG](./references/rng.md) | 随机数生成器初始化、数据填充 |
 
 ---
 
