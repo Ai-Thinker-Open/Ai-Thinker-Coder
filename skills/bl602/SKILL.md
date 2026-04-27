@@ -853,6 +853,7 @@ ble_svc_gatt_add_service(service_uuid, att_db, sizeof(att_db));
 | [DMA](./references/dma.md) | DMA 通道申请、启停、中断回调 |
 | [Timer](./references/timer.md) | 硬件定时器初始化、启动、停止 |
 | [PWM](./references/pwm.md) | PWM 输出、频率/占空比动态调节 |
+| [WS2812](./references/ws2812.md) | RGB LED 控制、SPI/IR 双驱动、HSV 颜色空间 |
 | [ADC](./references/adc.md) | ADC 采样、通道管理、连续采样 |
 | [DAC](./references/dac.md) | DAC 输出、电压值设置、DMA 模式 |
 | [Flash](./references/flash.md) | Flash 分区读写、擦除 |
