@@ -1,26 +1,26 @@
-# Wi-Fi API 参考（AP 模式）
+# Wi-Fi API Reference (AP Mode)
 
-> 来源文件：`components/network/wifi_manager/bl60x_wifi_driver/include/wifi_mgmr_ext.h`
+> Source file: `components/network/wifi_manager/bl60x_wifi_driver/include/wifi_mgmr_ext.h`
 
 ---
 
-## 使能与启动
+## Enable and Start
 
 ### `wifi_mgmr_ap_enable`
 
-使能 AP 模式，获取接口句柄。
+Enables AP mode and gets the interface handle.
 
 ```c
 wifi_interface_t wifi_mgmr_ap_enable(void);
 ```
 
-**返回值**：Wi-Fi 接口句柄
+**Return value**: Wi-Fi interface handle
 
 ---
 
 ### `wifi_mgmr_ap_stop`
 
-停止 AP。
+Stops the AP.
 
 ```c
 int wifi_mgmr_ap_stop(wifi_interface_t *interface);
@@ -30,61 +30,61 @@ int wifi_mgmr_ap_stop(wifi_interface_t *interface);
 
 ### `wifi_mgmr_ap_start`
 
-启动 AP 热点。
+Starts the AP hotspot.
 
 ```c
 int wifi_mgmr_ap_start(wifi_interface_t *interface,
-                        char *ssid,
-                        int hidden_ssid,
-                        char *passwd,
-                        int channel);
+                       char *ssid,
+                       int hidden_ssid,
+                       char *passwd,
+                       int channel);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `interface` | `wifi_mgmr_ap_enable` 返回的句柄 |
-| `ssid` | 热点名称 |
-| `hidden_ssid` | `1` = 隐藏 SSID，`0` = 广播 SSID |
-| `passwd` | 密码（NULL 表示开放网络） |
-| `channel` | 信道（1~13） |
+| Parameter | Description |
+|-----------|-------------|
+| `interface` | Handle returned by `wifi_mgmr_ap_enable` |
+| `ssid` | Hotspot name |
+| `hidden_ssid` | `1` = hidden SSID, `0` = broadcast SSID |
+| `passwd` | Password (NULL for open network) |
+| `channel` | Channel (1~13) |
 
 ---
 
 ### `wifi_mgmr_ap_start_adv`
 
-启动 AP（高级版，支持 DHCP 配置）。
+Starts the AP (advanced version, supports DHCP configuration).
 
 ```c
 int wifi_mgmr_ap_start_adv(wifi_interface_t *interface,
-                            char *ssid,
-                            int hidden_ssid,
-                            char *passwd,
-                            int channel,
-                            uint8_t use_dhcp);
+                           char *ssid,
+                           int hidden_ssid,
+                           char *passwd,
+                           int channel,
+                           uint8_t use_dhcp);
 ```
 
 ---
 
 ### `wifi_mgmr_ap_start_atcmd`
 
-通过 AT 命令方式启动 AP。
+Starts the AP via AT command.
 
 ```c
 int wifi_mgmr_ap_start_atcmd(wifi_interface_t *interface,
-                              char *ssid,
-                              int hidden_ssid,
-                              char *passwd,
-                              int channel,
-                              int max_sta_supported);
+                             char *ssid,
+                             int hidden_ssid,
+                             char *passwd,
+                             int channel,
+                             int max_sta_supported);
 ```
 
 ---
 
-## AP IP 配置
+## AP IP Configuration
 
 ### `wifi_mgmr_ap_ip_set`
 
-设置 AP IP 地址。
+Sets the AP IP address.
 
 ```c
 int wifi_mgmr_ap_ip_set(uint32_t ip, uint32_t gw, uint32_t mask);
@@ -94,7 +94,7 @@ int wifi_mgmr_ap_ip_set(uint32_t ip, uint32_t gw, uint32_t mask);
 
 ### `wifi_mgmr_ap_ip_get`
 
-获取 AP IP 地址。
+Gets the AP IP address.
 
 ```c
 int wifi_mgmr_ap_ip_get(uint32_t *ip, uint32_t *gw, uint32_t *mask);
@@ -104,7 +104,7 @@ int wifi_mgmr_ap_ip_get(uint32_t *ip, uint32_t *gw, uint32_t *mask);
 
 ### `wifi_mgmr_ap_mac_get`
 
-获取 AP MAC 地址。
+Gets the AP MAC address.
 
 ```c
 int wifi_mgmr_ap_mac_get(uint8_t mac[6]);
@@ -112,11 +112,11 @@ int wifi_mgmr_ap_mac_get(uint8_t mac[6]);
 
 ---
 
-## DHCP 服务器
+## DHCP Server
 
 ### `wifi_mgmr_ap_dhcp_enable`
 
-使能 AP 内置 DHCP 服务器。
+Enables the built-in AP DHCP server.
 
 ```c
 int wifi_mgmr_ap_dhcp_enable(void);
@@ -126,7 +126,7 @@ int wifi_mgmr_ap_dhcp_enable(void);
 
 ### `wifi_mgmr_ap_dhcp_disable`
 
-禁用 AP 内置 DHCP 服务器。
+Disables the built-in AP DHCP server.
 
 ```c
 int wifi_mgmr_ap_dhcp_disable(void);
@@ -136,7 +136,7 @@ int wifi_mgmr_ap_dhcp_disable(void);
 
 ### `wifi_mgmr_ap_dhcp_range_set`
 
-配置 DHCP 地址池范围。
+Configures the DHCP address pool range.
 
 ```c
 int wifi_mgmr_ap_dhcp_range_set(uint32_t ip, uint32_t mask, int start, int end);
@@ -146,7 +146,7 @@ int wifi_mgmr_ap_dhcp_range_set(uint32_t ip, uint32_t mask, int start, int end);
 
 ### `wifi_mgmr_ap_dhcp_range_get`
 
-获取 DHCP 地址池配置。
+Gets the DHCP address pool configuration.
 
 ```c
 int wifi_mgmr_ap_dhcp_range_get(uint32_t *ip, uint32_t *mask, int *start, int *end);
@@ -154,11 +154,11 @@ int wifi_mgmr_ap_dhcp_range_get(uint32_t *ip, uint32_t *mask, int *start, int *e
 
 ---
 
-## 已连接终端管理
+## Connected Station Management
 
 ### `wifi_mgmr_ap_sta_cnt_get`
 
-获取已连接的终端数量。
+Gets the number of connected stations.
 
 ```c
 int wifi_mgmr_ap_sta_cnt_get(uint8_t *sta_cnt);
@@ -168,7 +168,7 @@ int wifi_mgmr_ap_sta_cnt_get(uint8_t *sta_cnt);
 
 ### `wifi_mgmr_ap_sta_info_get`
 
-获取指定终端的信息。
+Gets information about a specified station.
 
 ```c
 int wifi_mgmr_ap_sta_info_get(struct wifi_sta_basic_info *sta_info, uint8_t idx);
@@ -178,7 +178,7 @@ int wifi_mgmr_ap_sta_info_get(struct wifi_sta_basic_info *sta_info, uint8_t idx)
 
 ### `wifi_mgmr_ap_sta_delete`
 
-踢出指定终端。
+Disconnects a specified station.
 
 ```c
 int wifi_mgmr_ap_sta_delete(uint8_t sta_idx);
@@ -188,7 +188,7 @@ int wifi_mgmr_ap_sta_delete(uint8_t sta_idx);
 
 ### `wifi_mgmr_ap_set_gateway`
 
-设置 AP 上行网关。
+Sets the AP upstream gateway.
 
 ```c
 int wifi_mgmr_ap_set_gateway(char *gateway);
@@ -196,11 +196,11 @@ int wifi_mgmr_ap_set_gateway(char *gateway);
 
 ---
 
-## 信道切换
+## Channel Switching
 
 ### `wifi_mgmr_ap_chan_switch`
 
-切换 AP 信道。
+Switches the AP channel.
 
 ```c
 int wifi_mgmr_ap_chan_switch(wifi_interface_t *interface, int channel, uint8_t cs_count);
@@ -208,11 +208,11 @@ int wifi_mgmr_ap_chan_switch(wifi_interface_t *interface, int channel, uint8_t c
 
 ---
 
-## 其他配置
+## Other Configuration
 
 ### `wifi_mgmr_conf_max_sta`
 
-设置最大连接终端数。
+Sets the maximum number of connected stations.
 
 ```c
 int wifi_mgmr_conf_max_sta(uint8_t max_sta_supported);
@@ -222,7 +222,7 @@ int wifi_mgmr_conf_max_sta(uint8_t max_sta_supported);
 
 ### `wifi_mgmr_beacon_interval_set`
 
-设置 Beacon 间隔。
+Sets the Beacon interval.
 
 ```c
 int wifi_mgmr_beacon_interval_set(uint16_t beacon_int);
@@ -230,33 +230,33 @@ int wifi_mgmr_beacon_interval_set(uint16_t beacon_int);
 
 ---
 
-## 使用示例
+## Usage Example
 
 ```c
 #include "wifi_mgmr_ext.h"
 
-// 使能 AP 模式
+// Enable AP mode
 wifi_interface_t ap_if = wifi_mgmr_ap_enable();
 
-// 设置 AP IP（必须先设置 IP 再启动 DHCP）
+// Set AP IP (must set IP before starting DHCP)
 wifi_mgmr_ap_ip_set(0xC0A80101, 0xC0A80101, 0xFFFFFF00); // 192.168.1.1
 
-// 启用 DHCP
+// Enable DHCP
 wifi_mgmr_ap_dhcp_enable();
 wifi_mgmr_ap_dhcp_range_set(0xC0A80101, 0xFFFFFF00, 100, 200);
 
-// 启动热点：SSID="BL602_AP", 信道 6, 密码 "12345678"
+// Start hotspot: SSID="BL602_AP", channel 6, password "12345678"
 int ret = wifi_mgmr_ap_start(ap_if, "BL602_AP", 0, "12345678", 6);
 if (ret == 0) {
     printf("AP started on channel 6\r\n");
 }
 
-// 查看已连接终端
+// Check connected stations
 uint8_t sta_cnt = 0;
 wifi_mgmr_ap_sta_cnt_get(&sta_cnt);
 printf("Connected stations: %d\r\n", sta_cnt);
 
-// 获取终端信息
+// Get station info
 struct wifi_sta_basic_info sta_info;
 for (int i = 0; i < sta_cnt; i++) {
     wifi_mgmr_ap_sta_info_get(&sta_info, i);
@@ -264,6 +264,6 @@ for (int i = 0; i < sta_cnt; i++) {
            i, sta_info.sta_mac[0], sta_info.sta_mac[1], sta_info.rssi);
 }
 
-// 停止 AP
+// Stop AP
 wifi_mgmr_ap_stop(&ap_if);
 ```

@@ -1,33 +1,33 @@
-# Wi-Fi API 参考（STA 模式）
+# Wi-Fi API Reference (STA Mode)
 
-> 来源文件：`components/network/wifi_manager/bl60x_wifi_driver/include/wifi_mgmr_ext.h`  
-> 另一文件：`components/network/wifi_manager/bl60x_wifi_driver/wifi_mgmr_api.h`
+> Source file: `components/network/wifi_manager/bl60x_wifi_driver/include/wifi_mgmr_ext.h`  
+> Another file: `components/network/wifi_manager/bl60x_wifi_driver/wifi_mgmr_api.h`
 
-> Wi-Fi 模块支持 Station（STA）和 Access Point（AP）两种模式。STA 模式下模块作为客户端连接路由器，AP 模式下模块作为热点供其他设备连接。
+> The Wi-Fi module supports two modes: Station (STA) and Access Point (AP). In STA mode, the module acts as a client to connect to a router; in AP mode, the module acts as a hotspot for other devices to connect.
 
 ---
 
-## 初始化与使能
+## Initialization and Enable
 
 ### `wifi_mgmr_drv_init`
 
-驱动初始化（系统启动时调用一次）。
+Driver initialization (called once at system startup).
 
 ```c
 int wifi_mgmr_drv_init(wifi_conf_t *conf);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `conf` | Wi-Fi 国家码和信道配置，见 `wifi_conf_t` |
+| Parameter | Description |
+|-----------|-------------|
+| `conf` | Wi-Fi country code and channel configuration, see `wifi_conf_t` |
 
-**返回值**：`0` 成功
+**Return value**: `0` on success
 
 ---
 
 ### `wifi_mgmr_init`
 
-Wi-Fi 管理器初始化。
+Wi-Fi manager initialization.
 
 ```c
 int wifi_mgmr_init(void);
@@ -37,19 +37,19 @@ int wifi_mgmr_init(void);
 
 ### `wifi_mgmr_sta_enable`
 
-使能 STA 模式，获取 Wi-Fi 接口句柄。
+Enables STA mode and gets the Wi-Fi interface handle.
 
 ```c
 wifi_interface_t wifi_mgmr_sta_enable(void);
 ```
 
-**返回值**：Wi-Fi 接口句柄（`wifi_interface_t`），用于后续连接操作
+**Return value**: Wi-Fi interface handle (`wifi_interface_t`), used for subsequent connection operations
 
 ---
 
 ### `wifi_mgmr_sta_disable`
 
-关闭 STA 模式。
+Disables STA mode.
 
 ```c
 int wifi_mgmr_sta_disable(wifi_interface_t *interface);
@@ -57,52 +57,52 @@ int wifi_mgmr_sta_disable(wifi_interface_t *interface);
 
 ---
 
-## 连接操作
+## Connection Operations
 
 ### `wifi_mgmr_sta_connect`
 
-连接 Wi-Fi 热点（基础版本）。
+Connects to a Wi-Fi hotspot (basic version).
 
 ```c
 int wifi_mgmr_sta_connect(wifi_interface_t *wifi_interface,
-                           char *ssid,
-                           char *psk,
-                           char *pmk,
-                           uint8_t *mac,
-                           uint8_t band,
-                           uint8_t chan_id);
+                          char *ssid,
+                          char *psk,
+                          char *pmk,
+                          uint8_t *mac,
+                          uint8_t band,
+                          uint8_t chan_id);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `wifi_interface` | `wifi_mgmr_sta_enable` 返回的句柄 |
-| `ssid` | 热点名称 |
-| `psk` | 密码（可为 NULL 表示开放网络） |
-| `pmk` | PSK 密钥（可为 NULL，自动计算） |
-| `mac` | 目标 AP 的 MAC 地址（可为 NULL） |
-| `band` | 频段（0 = 2.4G） |
-| `chan_id` | 信道号（0 = 自动） |
+| Parameter | Description |
+|-----------|-------------|
+| `wifi_interface` | Handle returned by `wifi_mgmr_sta_enable` |
+| `ssid` | Hotspot name |
+| `psk` | Password (can be NULL for open network) |
+| `pmk` | PSK key (can be NULL, auto-calculated) |
+| `mac` | Target AP MAC address (can be NULL) |
+| `band` | Frequency band (0 = 2.4G) |
+| `chan_id` | Channel number (0 = auto) |
 
-**返回值**：`0` 成功
+**Return value**: `0` on success
 
 ---
 
 ### `wifi_mgmr_sta_connect_ext`
 
-连接热点（扩展版本，支持高级参数）。
+Connects to a hotspot (extended version, supports advanced parameters).
 
 ```c
 int wifi_mgmr_sta_connect_ext(wifi_interface_t *wifi_interface,
-                                char *ssid,
-                                char *passphr,
-                                const ap_connect_adv_t *conn_adv_param);
+                              char *ssid,
+                              char *passphr,
+                              const ap_connect_adv_t *conn_adv_param);
 ```
 
 ---
 
 ### `wifi_mgmr_sta_disconnect`
 
-断开 Wi-Fi 连接。
+Disconnects from Wi-Fi.
 
 ```c
 int wifi_mgmr_sta_disconnect(void);
@@ -110,11 +110,11 @@ int wifi_mgmr_sta_disconnect(void);
 
 ---
 
-## 自动重连
+## Auto Reconnect
 
 ### `wifi_mgmr_sta_autoconnect_enable`
 
-使能自动重连。
+Enables auto reconnect.
 
 ```c
 int wifi_mgmr_sta_autoconnect_enable(void);
@@ -124,7 +124,7 @@ int wifi_mgmr_sta_autoconnect_enable(void);
 
 ### `wifi_mgmr_sta_autoconnect_disable`
 
-禁用自动重连。
+Disables auto reconnect.
 
 ```c
 int wifi_mgmr_sta_autoconnect_disable(void);
@@ -134,7 +134,7 @@ int wifi_mgmr_sta_autoconnect_disable(void);
 
 ### `wifi_mgmr_sta_autoconnect_set`
 
-配置自动重连间隔和次数。
+Configures auto reconnect interval and retry count.
 
 ```c
 int wifi_mgmr_sta_autoconnect_set(int interval_second, int repeat_count);
@@ -142,22 +142,22 @@ int wifi_mgmr_sta_autoconnect_set(int interval_second, int repeat_count);
 
 ---
 
-## IP 地址
+## IP Address
 
 ### `wifi_mgmr_sta_ip_set`
 
-设置 STA IP 地址（手动模式）。
+Sets the STA IP address (manual mode).
 
 ```c
 int wifi_mgmr_sta_ip_set(uint32_t ip, uint32_t mask, uint32_t gw,
-                          uint32_t dns1, uint32_t dns2);
+                         uint32_t dns1, uint32_t dns2);
 ```
 
 ---
 
 ### `wifi_mgmr_sta_ip_get`
 
-获取 STA 当前 IP 地址。
+Gets the STA current IP address.
 
 ```c
 int wifi_mgmr_sta_ip_get(uint32_t *ip, uint32_t *gw, uint32_t *mask);
@@ -167,7 +167,7 @@ int wifi_mgmr_sta_ip_get(uint32_t *ip, uint32_t *gw, uint32_t *mask);
 
 ### `wifi_mgmr_sta_ip_unset`
 
-清除 STA IP（恢复 DHCP）。
+Clears the STA IP (restores DHCP).
 
 ```c
 int wifi_mgmr_sta_ip_unset(void);
@@ -177,7 +177,7 @@ int wifi_mgmr_sta_ip_unset(void);
 
 ### `wifi_mgmr_sta_netif_get`
 
-获取 STA netif 接口（用于 LwIP 栈）。
+Gets the STA netif interface (for LwIP stack).
 
 ```c
 struct netif *wifi_mgmr_sta_netif_get(void);
@@ -185,35 +185,35 @@ struct netif *wifi_mgmr_sta_netif_get(void);
 
 ---
 
-## 状态与信息
+## Status and Information
 
 ### `wifi_mgmr_state_get`
 
-获取 Wi-Fi 连接状态。
+Gets the Wi-Fi connection state.
 
 ```c
 int wifi_mgmr_state_get(int *state);
 ```
 
-> 状态枚举：`WIFI_STATE_IDLE`、`WIFI_STATE_CONNECTING`、`WIFI_STATE_CONNECTED_IP_GOT`、`WIFI_STATE_DISCONNECT` 等
+> State enum: `WIFI_STATE_IDLE`, `WIFI_STATE_CONNECTING`, `WIFI_STATE_CONNECTED_IP_GOT`, `WIFI_STATE_DISCONNECT`, etc.
 
 ---
 
 ### `wifi_mgmr_rssi_get`
 
-获取当前信号强度。
+Gets the current signal strength.
 
 ```c
 int wifi_mgmr_rssi_get(int *rssi);
 ```
 
-> 返回值：负数 dBm 值，如 `-65` 表示 -65dBm
+> Return value: Negative dBm value, e.g., `-65` means -65dBm
 
 ---
 
 ### `wifi_mgmr_channel_get`
 
-获取当前信道。
+Gets the current channel.
 
 ```c
 int wifi_mgmr_channel_get(int *channel);
@@ -223,7 +223,7 @@ int wifi_mgmr_channel_get(int *channel);
 
 ### `wifi_mgmr_sta_mac_get`
 
-获取 STA MAC 地址。
+Gets the STA MAC address.
 
 ```c
 int wifi_mgmr_sta_mac_get(uint8_t mac[6]);
@@ -233,19 +233,19 @@ int wifi_mgmr_sta_mac_get(uint8_t mac[6]);
 
 ### `wifi_mgmr_set_country_code`
 
-设置国家码（影响可用信道）。
+Sets the country code (affects available channels).
 
 ```c
 int wifi_mgmr_set_country_code(char *country_code);
 ```
 
-> 示例：`wifi_mgmr_set_country_code("CN")`
+> Example: `wifi_mgmr_set_country_code("CN")`
 
 ---
 
 ### `wifi_mgmr_get_country_code`
 
-获取当前国家码。
+Gets the current country code.
 
 ```c
 int wifi_mgmr_get_country_code(char *country_code);
@@ -253,43 +253,43 @@ int wifi_mgmr_get_country_code(char *country_code);
 
 ---
 
-## 扫描
+## Scanning
 
 ### `wifi_mgmr_scan`
 
-扫描可用热点。
+Scans for available hotspots.
 
 ```c
 int wifi_mgmr_scan(void *data, scan_complete_cb_t cb);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `data` | 用户私有数据，传递给回调 |
-| `cb` | 扫描完成回调 `scan_complete_cb_t` |
+| Parameter | Description |
+|-----------|-------------|
+| `data` | User private data, passed to the callback |
+| `cb` | Scan complete callback `scan_complete_cb_t` |
 
 ---
 
 ### `wifi_mgmr_scan_adv`
 
-高级扫描（指定信道、SSID 等）。
+Advanced scan (specify channel, SSID, etc.).
 
 ```c
 int wifi_mgmr_scan_adv(void *data,
-                        scan_complete_cb_t cb,
-                        uint16_t *channels,
-                        uint16_t channel_num,
-                        const uint8_t bssid[6],
-                        const char *ssid,
-                        uint8_t scan_mode,
-                        uint32_t duration_scan);
+                       scan_complete_cb_t cb,
+                       uint16_t *channels,
+                       uint16_t channel_num,
+                       const uint8_t bssid[6],
+                       const char *ssid,
+                       uint8_t scan_mode,
+                       uint32_t duration_scan);
 ```
 
 ---
 
 ### `wifi_mgmr_all_ap_scan`
 
-获取所有扫描结果。
+Gets all scan results.
 
 ```c
 int wifi_mgmr_all_ap_scan(wifi_mgmr_ap_item_t **ap_ary, uint32_t *num);
@@ -299,7 +299,7 @@ int wifi_mgmr_all_ap_scan(wifi_mgmr_ap_item_t **ap_ary, uint32_t *num);
 
 ### `wifi_mgmr_cli_scanlist`
 
-打印扫描列表到日志。
+Prints the scan list to the log.
 
 ```c
 int wifi_mgmr_cli_scanlist(void);
@@ -307,23 +307,23 @@ int wifi_mgmr_cli_scanlist(void);
 
 ---
 
-## 功耗管理
+## Power Management
 
 ### `wifi_mgmr_sta_ps_enter`
 
-进入低功耗模式。
+Enters low power mode.
 
 ```c
 int wifi_mgmr_sta_ps_enter(uint32_t ps_level);
 ```
 
-> `ps_level`：`PS_MODE_OFF`（关闭）、`PS_MODE_ON`（普通）、`PS_MODE_ON_DYN`（动态）
+> `ps_level`: `PS_MODE_OFF` (off), `PS_MODE_ON` (normal), `PS_MODE_ON_DYN` (dynamic)
 
 ---
 
 ### `wifi_mgmr_sta_ps_exit`
 
-退出低功耗模式。
+Exits low power mode.
 
 ```c
 int wifi_mgmr_sta_ps_exit(void);
@@ -333,7 +333,7 @@ int wifi_mgmr_sta_ps_exit(void);
 
 ### `wifi_mgmr_set_wifi_active_time`
 
-设置活跃时间。
+Sets the active time.
 
 ```c
 int wifi_mgmr_set_wifi_active_time(uint32_t ms);
@@ -343,7 +343,7 @@ int wifi_mgmr_set_wifi_active_time(uint32_t ms);
 
 ### `wifi_mgmr_set_listen_interval`
 
-设置监听间隔。
+Sets the listen interval.
 
 ```c
 int wifi_mgmr_set_listen_interval(uint16_t itv);
@@ -351,12 +351,12 @@ int wifi_mgmr_set_listen_interval(uint16_t itv);
 
 ---
 
-## 使用示例
+## Usage Example
 
 ```c
 #include "wifi_mgmr_ext.h"
 
-// Wi-Fi 初始化
+// Wi-Fi initialization
 wifi_conf_t conf = {
     .country_code = "CN",
     .channel_nums = 0,
@@ -364,28 +364,28 @@ wifi_conf_t conf = {
 wifi_mgmr_drv_init(&conf);
 wifi_mgmr_init();
 
-// 使能 STA 模式
+// Enable STA mode
 wifi_interface_t wifi_if = wifi_mgmr_sta_enable();
 
-// 连接热点（密码为空表示开放网络）
+// Connect to hotspot (password NULL means open network)
 int ret = wifi_mgmr_sta_connect(wifi_if, "MySSID", "password", NULL, NULL, 0, 0);
 if (ret == 0) {
     printf("Connecting...\r\n");
 }
 
-// 获取连接状态
+// Get connection state
 int state;
 wifi_mgmr_state_get(&state);
 printf("Wi-Fi state: %d\r\n", state);
 
-// 获取信号强度
+// Get signal strength
 int rssi;
 wifi_mgmr_rssi_get(&rssi);
 printf("RSSI: %d dBm\r\n", rssi);
 
-// 断开连接
+// Disconnect
 wifi_mgmr_sta_disconnect();
 
-// 关闭 STA
+// Disable STA
 wifi_mgmr_sta_disable(&wifi_if);
 ```

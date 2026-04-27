@@ -1,24 +1,24 @@
-# MQTT API 参考
+# MQTT API Reference
 
-> 来源文件：`components/network/axk_protocol_stack/axk_mqtt/include/mqtt_client.h`  
-> BL602 内置完整 MQTT 客户端，支持 MQTT over TCP/SSL/WebSocket，支持 QoS 0/1/2、LWT 遗嘱消息、自动重连。
+> Source file: `components/network/axk_protocol_stack/axk_mqtt/include/mqtt_client.h`  
+> BL602 built-in full MQTT client, supports MQTT over TCP/SSL/WebSocket, QoS 0/1/2, LWT, auto-reconnect.
 
 ---
 
-## 概述
+## Overview
 
-MQTT 协议栈基于 axk-mqtt，支持以下传输方式：
+The MQTT protocol stack is based on axk-mqtt, supporting the following transport methods:
 
-| 传输类型 | scheme | 说明 |
-|---------|--------|------|
-| MQTT over TCP | `mqtt://` | 普通 TCP 连接 |
-| MQTT over SSL | `mqtts://` | TLS 加密连接 |
-| MQTT over WS | `ws://` | WebSocket 明文 |
+| Transport Type | scheme | Description |
+|----------------|--------|-------------|
+| MQTT over TCP | `mqtt://` | Plain TCP connection |
+| MQTT over SSL | `mqtts://` | TLS encrypted connection |
+| MQTT over WS | `ws://` | WebSocket plain text |
 | MQTT over WSS | `wss://` | WebSocket TLS |
 
 ---
 
-## 头文件
+## Header Files
 
 ```c
 #include "mqtt_client.h"
@@ -26,133 +26,133 @@ MQTT 协议栈基于 axk-mqtt，支持以下传输方式：
 
 ---
 
-## 事件类型
+## Event Types
 
 ### `axk_mqtt_event_id_t`
 
-MQTT 事件枚举，在事件回调中区分处理：
+MQTT event enumeration, used to distinguish handling in event callbacks:
 
 ```c
 typedef enum {
     MQTT_EVENT_ANY = -1,
-    MQTT_EVENT_ERROR = 0,          // 错误事件
-    MQTT_EVENT_CONNECTED,          // 连接成功
-    MQTT_EVENT_DISCONNECTED,       // 连接断开
-    MQTT_EVENT_SUBSCRIBED,        // 订阅成功
-    MQTT_EVENT_UNSUBSCRIBED,      // 取消订阅成功
-    MQTT_EVENT_PUBLISHED,         // 发布成功
-    MQTT_EVENT_DATA,              // 收到消息数据
-    MQTT_EVENT_BEFORE_CONNECT,    // 连接前事件
-    MQTT_EVENT_DELETED,           // 消息被删除（超时报错）
+    MQTT_EVENT_ERROR = 0,          // Error event
+    MQTT_EVENT_CONNECTED,          // Connection successful
+    MQTT_EVENT_DISCONNECTED,       // Connection disconnected
+    MQTT_EVENT_SUBSCRIBED,         // Subscribe successful
+    MQTT_EVENT_UNSUBSCRIBED,       // Unsubscribe successful
+    MQTT_EVENT_PUBLISHED,          // Publish successful
+    MQTT_EVENT_DATA,               // Received message data
+    MQTT_EVENT_BEFORE_CONNECT,     // Pre-connection event
+    MQTT_EVENT_DELETED,            // Message deleted (timeout error)
 } axk_mqtt_event_id_t;
 ```
 
 ---
 
-## 事件结构
+## Event Structures
 
 ### `axk_mqtt_event_t`
 
-事件回调中携带的上下文信息：
+Context information carried in event callbacks:
 
 ```c
 typedef struct {
-    axk_mqtt_event_id_t event_id;       // 事件类型
-    axk_mqtt_client_handle_t client;   // MQTT 客户端句柄
-    void *user_context;                 // 用户上下文
-    char *data;                         // 消息数据
-    int data_len;                       // 数据长度
-    int total_data_len;                 // 总长度（长消息分片）
-    int current_data_offset;            // 当前数据偏移
-    char *topic;                        // 消息主题
-    int topic_len;                      // 主题长度
-    int msg_id;                         // 消息 ID
-    int session_present;                // 会话保持标志
-    axk_mqtt_error_codes_t *error_handle; // 错误信息
-    bool retain;                        // 保留消息标志
-    int qos;                            // QoS 等级
-    bool dup;                           // 重复标志
+    axk_mqtt_event_id_t event_id;       // Event type
+    axk_mqtt_client_handle_t client;   // MQTT client handle
+    void *user_context;                 // User context
+    char *data;                         // Message data
+    int data_len;                       // Data length
+    int total_data_len;                 // Total length (for long message fragmentation)
+    int current_data_offset;            // Current data offset
+    char *topic;                        // Message topic
+    int topic_len;                      // Topic length
+    int msg_id;                         // Message ID
+    int session_present;                // Session persistence flag
+    axk_mqtt_error_codes_t *error_handle; // Error information
+    bool retain;                        // Retain message flag
+    int qos;                            // QoS level
+    bool dup;                           // Duplicate flag
 } axk_mqtt_event_t;
 ```
 
-### 连接错误码
+### Connection Error Codes
 
 ```c
 typedef enum {
-    MQTT_CONNECTION_ACCEPTED = 0,                   // 连接成功
-    MQTT_CONNECTION_REFUSE_PROTOCOL,                // 协议错误
-    MQTT_CONNECTION_REFUSE_ID_REJECTED,             // ID 被拒绝
-    MQTT_CONNECTION_REFUSE_SERVER_UNAVAILABLE,      // 服务器不可用
-    MQTT_CONNECTION_REFUSE_BAD_USERNAME,           // 用户名错误
-    MQTT_CONNECTION_REFUSE_NOT_AUTHORIZED          // 密码错误
+    MQTT_CONNECTION_ACCEPTED = 0,                   // Connection successful
+    MQTT_CONNECTION_REFUSE_PROTOCOL,                // Protocol error
+    MQTT_CONNECTION_REFUSE_ID_REJECTED,             // ID rejected
+    MQTT_CONNECTION_REFUSE_SERVER_UNAVAILABLE,      // Server unavailable
+    MQTT_CONNECTION_REFUSE_BAD_USERNAME,            // Bad username
+    MQTT_CONNECTION_REFUSE_NOT_AUTHORIZED           // Bad password
 } axk_mqtt_connect_return_code_t;
 ```
 
 ---
 
-## 客户端配置
+## Client Configuration
 
 ### `axk_mqtt_client_config_t`
 
 ```c
 typedef struct {
-    mqtt_event_callback_t event_handle;      // 事件回调函数
-    const char *host;                        // MQTT 服务器域名/IP
-    const char *uri;                         // 完整 URI（覆盖 host/port）
-    uint32_t port;                           // 服务器端口
-    const char *client_id;                   // 客户端 ID（默认 BL602_XXXXXX）
-    const char *username;                   // 用户名
-    const char *password;                   // 密码
-    const char *lwt_topic;                 // 遗嘱主题
-    const char *lwt_msg;                   // 遗嘱消息
-    int lwt_qos;                            // 遗嘱 QoS
-    int lwt_retain;                         // 遗嘱保留
-    int disable_clean_session;               // 禁用清会话（1=保持会话）
-    int keepalive;                          // 保活间隔（秒，默认 120）
-    bool disable_auto_reconnect;            // 禁用自动重连
-    void *user_context;                     // 用户上下文
-    int task_prio;                          // MQTT 任务优先级（默认 5）
-    int task_stack;                         // 任务栈大小（默认 6144）
-    int buffer_size;                        // 缓冲区大小（默认 1024）
-    const char *cert_pem;                   // 服务器 CA 证书（PEM）
-    size_t cert_len;                        // 证书长度
-    const char *client_cert_pem;            // 客户端证书（双向认证）
+    mqtt_event_callback_t event_handle;      // Event callback function
+    const char *host;                        // MQTT server domain/IP
+    const char *uri;                         // Full URI (overrides host/port)
+    uint32_t port;                           // Server port
+    const char *client_id;                   // Client ID (default BL602_XXXXXX)
+    const char *username;                    // Username
+    const char *password;                    // Password
+    const char *lwt_topic;                  // Last Will topic
+    const char *lwt_msg;                    // Last Will message
+    int lwt_qos;                            // Last Will QoS
+    int lwt_retain;                         // Last Will retain
+    int disable_clean_session;              // Disable clean session (1=keep session)
+    int keepalive;                          // Keepalive interval (seconds, default 120)
+    bool disable_auto_reconnect;            // Disable auto-reconnect
+    void *user_context;                     // User context
+    int task_prio;                          // MQTT task priority (default 5)
+    int task_stack;                         // Task stack size (default 6144)
+    int buffer_size;                        // Buffer size (default 1024)
+    const char *cert_pem;                   // Server CA certificate (PEM)
+    size_t cert_len;                        // Certificate length
+    const char *client_cert_pem;            // Client certificate (two-way auth)
     size_t client_cert_len;
-    const char *client_key_pem;            // 客户端私钥
+    const char *client_key_pem;            // Client private key
     size_t client_key_len;
-    axk_mqtt_transport_t transport;         // 传输类型（TCP/SSL/WS/WSS）
-    int reconnect_timeout_ms;               // 重连超时（默认 10s）
-    const char **alpn_protos;              // ALPN 协议列表
-    axk_mqtt_protocol_ver_t protocol_ver;  // MQTT 版本（3.1/3.1.1）
-    bool skip_cert_common_name_check;       // 跳过 CN 验证
-    bool disable_keepalive;                 // 禁用保活
-    const char *path;                      // WebSocket 路径
+    axk_mqtt_transport_t transport;         // Transport type (TCP/SSL/WS/WSS)
+    int reconnect_timeout_ms;               // Reconnect timeout (default 10s)
+    const char **alpn_protos;              // ALPN protocol list
+    axk_mqtt_protocol_ver_t protocol_ver;  // MQTT version (3.1/3.1.1)
+    bool skip_cert_common_name_check;        // Skip CN verification
+    bool disable_keepalive;                 // Disable keepalive
+    const char *path;                      // WebSocket path
 } axk_mqtt_client_config_t;
 ```
 
 ---
 
-## 函数接口
+## Function Interface
 
 ### `axk_mqtt_client_init`
 
-创建并初始化 MQTT 客户端。
+Create and initialize an MQTT client.
 
 ```c
 axk_mqtt_client_handle_t axk_mqtt_client_init(const axk_mqtt_client_config_t *config);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `config` | MQTT 配置结构体指针 |
+| Parameter | Description |
+|-----------|-------------|
+| `config` | Pointer to MQTT configuration structure |
 
-**返回值**：成功返回客户端句柄，失败返回 NULL
+**Return value**: Returns client handle on success, NULL on failure
 
 ---
 
 ### `axk_mqtt_client_start`
 
-启动 MQTT 客户端（发起连接）。
+Start the MQTT client (initiate connection).
 
 ```c
 axk_err_t axk_mqtt_client_start(axk_mqtt_client_handle_t client);
@@ -162,7 +162,7 @@ axk_err_t axk_mqtt_client_start(axk_mqtt_client_handle_t client);
 
 ### `axk_mqtt_client_reconnect`
 
-强制重连。
+Force reconnect.
 
 ```c
 axk_err_t axk_mqtt_client_reconnect(axk_mqtt_client_handle_t client);
@@ -172,7 +172,7 @@ axk_err_t axk_mqtt_client_reconnect(axk_mqtt_client_handle_t client);
 
 ### `axk_mqtt_client_disconnect`
 
-主动断开连接。
+Actively disconnect.
 
 ```c
 axk_err_t axk_mqtt_client_disconnect(axk_mqtt_client_handle_t client);
@@ -182,7 +182,7 @@ axk_err_t axk_mqtt_client_disconnect(axk_mqtt_client_handle_t client);
 
 ### `axk_mqtt_client_stop`
 
-停止 MQTT 任务。
+Stop the MQTT task.
 
 ```c
 axk_err_t axk_mqtt_client_stop(axk_mqtt_client_handle_t client);
@@ -192,25 +192,25 @@ axk_err_t axk_mqtt_client_stop(axk_mqtt_client_handle_t client);
 
 ### `axk_mqtt_client_subscribe`
 
-订阅主题。
+Subscribe to a topic.
 
 ```c
 int axk_mqtt_client_subscribe(axk_mqtt_client_handle_t client,
                               const char *topic, int qos);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `topic` | 订阅的主题（支持通配符 `+` `#`） |
-| `qos` | QoS 等级（0/1/2） |
+| Parameter | Description |
+|-----------|-------------|
+| `topic` | Topic to subscribe to (supports wildcards `+` `#`) |
+| `qos` | QoS level (0/1/2) |
 
-**返回值**：成功返回消息 ID，失败返回 -1
+**Return value**: Returns message ID on success, -1 on failure
 
 ---
 
 ### `axk_mqtt_client_unsubscribe`
 
-取消订阅。
+Unsubscribe.
 
 ```c
 int axk_mqtt_client_unsubscribe(axk_mqtt_client_handle_t client,
@@ -221,7 +221,7 @@ int axk_mqtt_client_unsubscribe(axk_mqtt_client_handle_t client,
 
 ### `axk_mqtt_client_publish`
 
-发布消息。
+Publish a message.
 
 ```c
 int axk_mqtt_client_publish(axk_mqtt_client_handle_t client,
@@ -230,21 +230,21 @@ int axk_mqtt_client_publish(axk_mqtt_client_handle_t client,
                              int qos, int retain);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `topic` | 发布的主题 |
-| `data` | 消息载荷 |
-| `len` | 载荷长度（0=自动计算） |
-| `qos` | QoS 等级（0/1/2） |
-| `retain` | 保留标志 |
+| Parameter | Description |
+|-----------|-------------|
+| `topic` | Topic to publish to |
+| `data` | Message payload |
+| `len` | Payload length (0=auto calculate) |
+| `qos` | QoS level (0/1/2) |
+| `retain` | Retain flag |
 
-**返回值**：成功返回消息 ID，失败返回 -1
+**Return value**: Returns message ID on success, -1 on failure
 
 ---
 
 ### `axk_mqtt_client_enqueue`
 
-非阻塞发布（放入队列）。
+Non-blocking publish (put into queue).
 
 ```c
 int axk_mqtt_client_enqueue(axk_mqtt_client_handle_t client,
@@ -258,7 +258,7 @@ int axk_mqtt_client_enqueue(axk_mqtt_client_handle_t client,
 
 ### `axk_mqtt_client_destroy`
 
-销毁客户端，释放资源。
+Destroy the client and release resources.
 
 ```c
 axk_err_t axk_mqtt_client_destroy(axk_mqtt_client_handle_t client);
@@ -268,7 +268,7 @@ axk_err_t axk_mqtt_client_destroy(axk_mqtt_client_handle_t client);
 
 ### `axk_mqtt_set_config`
 
-更新客户端配置。
+Update client configuration.
 
 ```c
 axk_err_t axk_mqtt_set_config(axk_mqtt_client_handle_t client,
@@ -279,7 +279,7 @@ axk_err_t axk_mqtt_set_config(axk_mqtt_client_handle_t client,
 
 ### `axk_mqtt_client_register_event`
 
-注册事件处理器（替代回调方式）。
+Register event handler (alternative to callback method).
 
 ```c
 axk_err_t axk_mqtt_client_register_event(axk_mqtt_client_handle_t client,
@@ -290,9 +290,9 @@ axk_err_t axk_mqtt_client_register_event(axk_mqtt_client_handle_t client,
 
 ---
 
-## 使用示例
+## Usage Examples
 
-### 基本 MQTT 连接（QoS 0）
+### Basic MQTT Connection (QoS 0)
 
 ```c
 #include "mqtt_client.h"
@@ -311,9 +311,9 @@ static void mqtt_event_handler(void *handler_args,
     switch (event->event_id) {
     case MQTT_EVENT_CONNECTED:
         printf("MQTT connected\r\n");
-        // 订阅主题
+        // Subscribe to topic
         axk_mqtt_client_subscribe(event->client, sub_topic, 0);
-        // 发布在线消息
+        // Publish online message
         axk_mqtt_client_publish(event->client, pub_topic,
                                 "online", 6, 0, 1);
         break;
@@ -340,7 +340,7 @@ static void mqtt_event_handler(void *handler_args,
 
 void mqtt_app_start(void)
 {
-    // 配置 MQTT 客户端
+    // Configure MQTT client
     axk_mqtt_client_config_t config = {
         .uri = mqtt_uri,
         .event_handle = mqtt_event_handler,
@@ -348,7 +348,7 @@ void mqtt_app_start(void)
         .disable_auto_reconnect = false,
     };
 
-    // 初始化并启动
+    // Initialize and start
     axk_mqtt_client_handle_t client = axk_mqtt_client_init(&config);
     if (client) {
         axk_mqtt_client_start(client);
@@ -356,15 +356,15 @@ void mqtt_app_start(void)
 }
 ```
 
-### MQTT over SSL（双向认证）
+### MQTT over SSL (Two-Way Authentication)
 
 ```c
 axk_mqtt_client_config_t ssl_config = {
     .uri = "mqtts://your-mqtt-server.com:8883",
     .event_handle = mqtt_event_handler,
-    .cert_pem = ca_cert_pem,          // 服务器 CA 证书
-    .client_cert_pem = client_cert,   // 客户端证书
-    .client_key_pem = client_key,     // 客户端私钥
+    .cert_pem = ca_cert_pem,          // Server CA certificate
+    .client_cert_pem = client_cert,   // Client certificate
+    .client_key_pem = client_key,     // Client private key
     .skip_cert_common_name_check = false,
 };
 
@@ -387,7 +387,7 @@ axk_mqtt_client_start(ws_client);
 
 ---
 
-## 传输类型
+## Transport Types
 
 ```c
 typedef enum {
@@ -399,12 +399,12 @@ typedef enum {
 } axk_mqtt_transport_t;
 ```
 
-## MQTT 版本
+## MQTT Versions
 
 ```c
 typedef enum {
     MQTT_PROTOCOL_UNDEFINED = 0,
     MQTT_PROTOCOL_V_3_1,      // MQTT 3.1
-    MQTT_PROTOCOL_V_3_1_1     // MQTT 3.1.1（默认）
+    MQTT_PROTOCOL_V_3_1_1     // MQTT 3.1.1 (default)
 } axk_mqtt_protocol_ver_t;
 ```

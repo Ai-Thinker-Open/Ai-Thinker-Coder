@@ -1,29 +1,29 @@
-# Flash API 参考
+# Flash API Reference
 
-> 来源文件：`components/platform/hosal/include/hosal_flash.h`
+> Source file: `components/platform/hosal/include/hosal_flash.h`
 
-## 宏定义
+## Macro Definitions
 
 ```c
-#define HOSAL_FLASH_FLAG_ADDR_0     0       // 使用分区表地址 0
-#define HOSAL_FLASH_FLAG_ADDR_1     (1<<0)  // 使用分区表地址 1
-#define HOSAL_FLASH_FLAG_BUSADDR    (1<<1)   // 使用总线物理地址
+#define HOSAL_FLASH_FLAG_ADDR_0     0       // Use partition table address 0
+#define HOSAL_FLASH_FLAG_ADDR_1     (1<<0)  // Use partition table address 1
+#define HOSAL_FLASH_FLAG_BUSADDR    (1<<1)   // Use bus physical address
 ```
 
-## 类型定义
+## Type Definitions
 
-### `hosal_logic_partition_t` — Flash 分区信息结构
+### `hosal_logic_partition_t` — Flash Partition Information Structure
 
 ```c
 typedef struct {
-    const char  *partition_description; // 分区名称
-    uint32_t     partition_start_addr; // 分区起始地址
-    uint32_t     partition_length;     // 分区长度（字节）
-    uint32_t     partition_options;    // 选项
+    const char  *partition_description; // Partition name
+    uint32_t     partition_start_addr; // Partition start address
+    uint32_t     partition_length;      // Partition length (bytes)
+    uint32_t     partition_options;     // Options
 } hosal_logic_partition_t;
 ```
 
-### `hosal_flash_dev_t` — Flash 设备句柄
+### `hosal_flash_dev_t` — Flash Device Handle
 
 ```c
 typedef struct hosal_flash_dev {
@@ -31,48 +31,48 @@ typedef struct hosal_flash_dev {
 } hosal_flash_dev_t;
 ```
 
-> 通过 `hosal_flash_open()` 获取，不允许直接访问内部成员。
+> Obtained via `hosal_flash_open()`. Do not access internal members directly.
 
-## 函数接口
+## Function Interface
 
 ### `hosal_flash_open`
 
-打开一个 Flash 分区，获取设备句柄。
+Opens a Flash partition and obtains a device handle.
 
 ```c
 hosal_flash_dev_t *hosal_flash_open(const char *name, unsigned int flags);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `name` | 分区名称字符串，如 `"app"`、`"wifi"`、`"boot"` 等 |
-| `flags` | 地址标志：`HOSAL_FLASH_FLAG_ADDR_0`、`HOSAL_FLASH_FLAG_ADDR_1`、`HOSAL_FLASH_FLAG_BUSADDR` |
+| Parameter | Description |
+|-----------|-------------|
+| `name` | Partition name string, such as `"app"`, `"wifi"`, `"boot"`, etc. |
+| `flags` | Address flags: `HOSAL_FLASH_FLAG_ADDR_0`, `HOSAL_FLASH_FLAG_ADDR_1`, `HOSAL_FLASH_FLAG_BUSADDR` |
 
-**返回值**：成功返回设备句柄，失败返回 `NULL`
+**Return value**: Returns device handle on success, `NULL` on failure
 
-> 具体分区表定义在 SDK 的 `partition.csv` 文件中。
+> The specific partition table definition is in the SDK's `partition.csv` file.
 
 ---
 
 ### `hosal_flash_info_get`
 
-获取分区信息。
+Gets partition information.
 
 ```c
 int hosal_flash_info_get(hosal_flash_dev_t *p_dev,
                          hosal_logic_partition_t *partition);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `p_dev` | `hosal_flash_open` 返回的设备句柄 |
-| `partition` | 输出参数，存储分区信息 |
+| Parameter | Description |
+|-----------|-------------|
+| `p_dev` | Device handle returned by `hosal_flash_open` |
+| `partition` | Output parameter, stores partition information |
 
 ---
 
 ### `hosal_flash_erase`
 
-擦除分区。
+Erases a partition.
 
 ```c
 int hosal_flash_erase(hosal_flash_dev_t *p_dev,
@@ -80,19 +80,19 @@ int hosal_flash_erase(hosal_flash_dev_t *p_dev,
                        uint32_t size);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `p_dev` | 设备句柄 |
-| `off_set` | 分区内偏移（字节） |
-| `size` | 擦除大小（字节） |
+| Parameter | Description |
+|-----------|-------------|
+| `p_dev` | Device handle |
+| `off_set` | Offset within partition (bytes) |
+| `size` | Size to erase (bytes) |
 
-> 擦除按扇区进行，`size` 会被对齐到扇区边界。
+> Erasing is performed by sector. `size` will be aligned to sector boundaries.
 
 ---
 
 ### `hosal_flash_write`
 
-写入 Flash（不自动擦除）。
+Writes to Flash (does not auto-erase).
 
 ```c
 int hosal_flash_write(hosal_flash_dev_t *p_dev,
@@ -101,20 +101,20 @@ int hosal_flash_write(hosal_flash_dev_t *p_dev,
                       uint32_t in_buf_size);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `p_dev` | 设备句柄 |
-| `off_set` | 输入输出参数：写入起始位置，返回最后未写入地址 |
-| `in_buf` | 数据缓冲区 |
-| `in_buf_size` | 写入字节数 |
+| Parameter | Description |
+|-----------|-------------|
+| `p_dev` | Device handle |
+| `off_set` | Input/output parameter: write start position, returns last unwritten address |
+| `in_buf` | Data buffer |
+| `in_buf_size` | Number of bytes to write |
 
-> 写入前必须确保目标区域已为 `0xFF`，否则数据出错。推荐使用 `hosal_flash_erase_write`。
+> Target area must be `0xFF` before writing, otherwise data will be corrupted. It is recommended to use `hosal_flash_erase_write`.
 
 ---
 
 ### `hosal_flash_erase_write`
 
-擦除并写入（常用）。
+Erases and writes (common usage).
 
 ```c
 int hosal_flash_erase_write(hosal_flash_dev_t *p_dev,
@@ -123,15 +123,15 @@ int hosal_flash_erase_write(hosal_flash_dev_t *p_dev,
                             uint32_t in_buf_size);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `off_set` | 输入输出参数：起始位置，返回最后未写入地址 |
+| Parameter | Description |
+|-----------|-------------|
+| `off_set` | Input/output parameter: start position, returns last unwritten address |
 
 ---
 
 ### `hosal_flash_read`
 
-读取 Flash。
+Reads Flash.
 
 ```c
 int hosal_flash_read(hosal_flash_dev_t *p_dev,
@@ -144,7 +144,7 @@ int hosal_flash_read(hosal_flash_dev_t *p_dev,
 
 ### `hosal_flash_raw_read`
 
-直接读取 Flash 物理地址。
+Directly reads Flash physical address.
 
 ```c
 int hosal_flash_raw_read(void *buffer, uint32_t address, uint32_t length);
@@ -154,7 +154,7 @@ int hosal_flash_raw_read(void *buffer, uint32_t address, uint32_t length);
 
 ### `hosal_flash_raw_write`
 
-直接写入 Flash 物理地址（需先擦除）。
+Directly writes to Flash physical address (requires prior erase).
 
 ```c
 int hosal_flash_raw_write(void *buffer, uint32_t address, uint32_t length);
@@ -164,7 +164,7 @@ int hosal_flash_raw_write(void *buffer, uint32_t address, uint32_t length);
 
 ### `hosal_flash_raw_erase`
 
-直接擦除 Flash 物理地址。
+Directly erases Flash physical address.
 
 ```c
 int hosal_flash_raw_erase(uint32_t start_addr, uint32_t length);
@@ -174,13 +174,13 @@ int hosal_flash_raw_erase(uint32_t start_addr, uint32_t length);
 
 ### `hosal_flash_close`
 
-关闭 Flash 分区，释放设备句柄。
+Closes Flash partition and releases device handle.
 
 ```c
 int hosal_flash_close(hosal_flash_dev_t *p_dev);
 ```
 
-## 使用示例
+## Usage Example
 
 ```c
 #include "hal_flash.h"
@@ -188,20 +188,20 @@ int hosal_flash_close(hosal_flash_dev_t *p_dev);
 #define FLASH_ADDR  0x1A0000
 #define FLASH_SIZE  0x1000
 
-// 打开 app 分区
+// Open app partition
 hosal_flash_dev_t *flash = hosal_flash_open("app", HOSAL_FLASH_FLAG_ADDR_0);
 if (flash == NULL) {
     printf("Flash open failed\r\n");
     return;
 }
 
-// 读取分区信息
+// Read partition info
 hosal_logic_partition_t info;
 hosal_flash_info_get(flash, &info);
 printf("Partition: start=0x%x, size=0x%x\r\n",
        info.partition_start_addr, info.partition_length);
 
-// 擦除 + 写入（安全方式）
+// Erase + write (safe method)
 uint8_t data[256] = {0x12, 0x34, 0x56, 0x78};
 uint32_t offset = 0;
 int ret = hosal_flash_erase_write(flash, &offset, data, sizeof(data));
@@ -209,11 +209,11 @@ if (ret != 0) {
     printf("Write failed\r\n");
 }
 
-// 读取
+// Read
 uint8_t read_buf[256];
 offset = 0;
 hosal_flash_read(flash, &offset, read_buf, sizeof(read_buf));
 
-// 关闭
+// Close
 hosal_flash_close(flash);
 ```

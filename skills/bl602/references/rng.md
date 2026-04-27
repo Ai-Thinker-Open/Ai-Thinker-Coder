@@ -1,47 +1,47 @@
-# RNG API 参考
+# RNG API Reference
 
-> 来源文件：`components/platform/hosal/include/hosal_rng.h`
+> Source file: `components/platform/hosal/include/hosal_rng.h`
 
-## 函数接口
+## Function Interface
 
 ### `hosal_rng_init`
 
-初始化随机数生成器。
+Initialize the random number generator.
 
 ```c
 int hosal_rng_init(void);
 ```
 
-**返回值**：`0` 成功，其他失败
+**Return value**: `0` success, others failure
 
-> 调用 `hosal_random_num_read` 前必须先调用此函数进行初始化。
+> This function must be called before `hosal_random_num_read`.
 
 ---
 
 ### `hosal_random_num_read`
 
-读取随机数填充缓冲区。
+Read random numbers to fill the buffer.
 
 ```c
 int hosal_random_num_read(void *buf, uint32_t bytes);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `buf` | 有效内存缓冲区，随机数将填充到此内存 |
-| `bytes` | 缓冲区长度（字节） |
+| Parameter | Description |
+|-----------|-------------|
+| `buf` | Valid memory buffer, random numbers will be filled into this memory |
+| `bytes` | Buffer length (bytes) |
 
-**返回值**：`0` 成功，其他失败
+**Return value**: `0` success, others failure
 
-## 使用示例
+## Usage Example
 
 ```c
 #include "hal_rng.h"
 
-// 初始化 RNG（通常在系统初始化时调用一次）
+// Initialize RNG (usually called once during system initialization)
 hosal_rng_init();
 
-// 读取 8 字节随机数
+// Read 8 bytes of random numbers
 uint8_t random_bytes[8];
 int ret = hosal_random_num_read(random_bytes, 8);
 if (ret == 0) {
@@ -50,16 +50,16 @@ if (ret == 0) {
            random_bytes[4], random_bytes[5], random_bytes[6], random_bytes[7]);
 }
 
-// 生成随机数用于密钥、随机延迟、跳频等场景
+// Generate random numbers for keys, random delays, frequency hopping, etc.
 uint32_t random_val;
 hosal_random_num_read(&random_val, sizeof(random_val));
 ```
 
-## 应用场景
+## Application Scenarios
 
-| 场景 | 说明 |
-|------|------|
-| 密钥生成 | 加密通信的会话密钥 |
-| 随机延迟 | 避免无线通信冲突的随机退避时间 |
-| MAC 地址 | 生成随机 MAC 地址用于测试 |
-| 跳频种子 | 跳频通信的伪随机序列种子 |
+| Scenario | Description |
+|----------|-------------|
+| Key generation | Session keys for encrypted communication |
+| Random delay | Random backoff time to avoid wireless communication conflicts |
+| MAC address | Generate random MAC address for testing |
+| Frequency hopping seed | Pseudo-random sequence seed for frequency hopping communication |

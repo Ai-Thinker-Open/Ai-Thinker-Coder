@@ -1,13 +1,13 @@
-# BLE GAP/GATT API 参考
+# BLE GAP/GATT API Reference
 
-> 来源文件：`components/network/ble/blestack/src/host/hci_core.h` 等  
-> BL602 使用开源 blestack 实现 BLE 5.0 Host 协议栈（GAP 和 GATT 层）。
+> Source files: `components/network/ble/blestack/src/host/hci_core.h` etc.  
+> BL602 uses the open-source blestack to implement BLE 5.0 Host protocol stack (GAP and GATT layers).
 
 ---
 
-## 概述
+## Overview
 
-BLE 协议栈分层：
+BLE protocol stack layers:
 
 ```
 ┌──────────────────────────────────────┐
@@ -27,48 +27,48 @@ BLE 协议栈分层：
 
 ---
 
-## GAP — 广播与连接
+## GAP — Broadcasting and Connection
 
-### 广播参数
+### Advertising Parameters
 
 ```c
 struct bt_le_adv_param {
-    uint8_t id;          // 广播集 ID (BT_ID_DEFAULT = 0)
-    uint8_t sid;         // 广播集 ID
-    uint8_t freq;        // 广播信道 (BT_GAP_SCAN_FAST_INTERVAL = 0x0060)
-    uint16_t interval_min;  // 最小广播间隔 (slots)
-    uint16_t interval_max;  // 最大广播间隔 (slots)
-    uint8_t  type;          // 广播类型
-    uint8_t  chan_map;      // 信道 map
-    uint8_t  filter_policy; // 广播过滤策略
-    uint8_t  tier;          // 广播功率等级
+    uint8_t id;          // Advertising set ID (BT_ID_DEFAULT = 0)
+    uint8_t sid;         // Advertising set ID
+    uint8_t freq;        // Advertising channel (BT_GAP_SCAN_FAST_INTERVAL = 0x0060)
+    uint16_t interval_min;  // Minimum advertising interval (slots)
+    uint16_t interval_max;  // Maximum advertising interval (slots)
+    uint8_t  type;          // Advertising type
+    uint8_t  chan_map;      // Channel map
+    uint8_t  filter_policy; // Advertising filter policy
+    uint8_t  tier;          // Advertising power level
 };
 ```
 
-**广播类型**（`type`）：
+**Advertising types** (`type`):
 
-| 值 | 广播类型 | 说明 |
-|----|---------|------|
-| `BT_GAP_ADV_TYPE_ADV_IND` | 可连接广播 | 最常用 |
-| `BT_GAP_ADV_TYPE_ADV_DIRECT_IND` | 定向广播 | 快速连接指定设备 |
-| `BT_GAP_ADV_TYPE_ADV_SCAN_IND` | 可扫描广播 | 允许扫描请求 |
-| `BT_GAP_ADV_TYPE_ADV_NONCONN_IND` | 不可连接广播 | 仅广播数据 |
+| Value | Advertising Type | Description |
+|-------|------------------|-------------|
+| `BT_GAP_ADV_TYPE_ADV_IND` | Connectable advertising | Most commonly used |
+| `BT_GAP_ADV_TYPE_ADV_DIRECT_IND` | Directed advertising | Fast connection to specific device |
+| `BT_GAP_ADV_TYPE_ADV_SCAN_IND` | Scannable advertising | Allows scan requests |
+| `BT_GAP_ADV_TYPE_ADV_NONCONN_IND` | Non-connectable advertising | Data broadcast only |
 
 ### `bt_enable`
 
-初始化 BLE 协议栈。
+Initialize the BLE protocol stack.
 
 ```c
 int bt_enable(void);
 ```
 
-> 调用其他 BLE API 前必须先调用此函数。
+> This function must be called before using any other BLE API.
 
 ---
 
 ### `bt_le_adv_start`
 
-开始广播。
+Start advertising.
 
 ```c
 int bt_le_adv_start(const struct bt_le_adv_param *param,
@@ -78,19 +78,19 @@ int bt_le_adv_start(const struct bt_le_adv_param *param,
                      size_t scan_rsp_len);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `param` | 广播参数 |
-| `ad` | 广播数据（AD Structure） |
-| `ad_len` | 广播数据数量 |
-| `scan_rsp` | 扫描响应数据（可为空） |
-| `scan_rsp_len` | 扫描响应数据数量 |
+| Parameter | Description |
+|-----------|-------------|
+| `param` | Advertising parameters |
+| `ad` | Advertising data (AD Structure) |
+| `ad_len` | Number of advertising data entries |
+| `scan_rsp` | Scan response data (can be NULL) |
+| `scan_rsp_len` | Number of scan response data entries |
 
 ---
 
 ### `bt_le_adv_stop`
 
-停止广播。
+Stop advertising.
 
 ```c
 int bt_le_adv_stop(void);
@@ -100,7 +100,7 @@ int bt_le_adv_stop(void);
 
 ### `bt_le_scan_start`
 
-开始扫描。
+Start scanning.
 
 ```c
 int bt_le_scan_start(uint8_t scan_type,
@@ -111,7 +111,7 @@ int bt_le_scan_start(uint8_t scan_type,
 
 ### `bt_le_scan_stop`
 
-停止扫描。
+Stop scanning.
 
 ```c
 int bt_le_scan_stop(void);
@@ -119,13 +119,13 @@ int bt_le_scan_stop(void);
 
 ---
 
-## GATT — 属性协议
+## GATT — Generic Attribute Profile
 
-### 通用属性
+### Common Attributes
 
 ### `bt_gatt_service_register`
 
-注册 GATT Service。
+Register a GATT Service.
 
 ```c
 uint8_t bt_gatt_service_register(const struct bt_gatt_service *svc);
@@ -135,7 +135,7 @@ uint8_t bt_gatt_service_register(const struct bt_gatt_service *svc);
 
 ### `bt_gatt_notify`
 
-向客户端发送通知（无需响应）。
+Send a notification to the client (no response required).
 
 ```c
 int bt_gatt_notify(struct bt_conn *conn,
@@ -148,7 +148,7 @@ int bt_gatt_notify(struct bt_conn *conn,
 
 ### `bt_gatt_indicate`
 
-向客户端发送指示（需要确认）。
+Send an indication to the client (acknowledgment required).
 
 ```c
 int bt_gatt_indicate(struct bt_conn *conn,
@@ -161,7 +161,7 @@ int bt_gatt_indicate(struct bt_conn *conn,
 
 ### `bt_gatt_read`
 
-读取属性值。
+Read an attribute value.
 
 ```c
 ssize_t bt_gatt_read(struct bt_conn *conn,
@@ -176,7 +176,7 @@ ssize_t bt_gatt_read(struct bt_conn *conn,
 
 ### `bt_gatt_write`
 
-写入属性值（带响应）。
+Write an attribute value (with response).
 
 ```c
 int bt_gatt_write(struct bt_conn *conn,
@@ -192,7 +192,7 @@ int bt_gatt_write(struct bt_conn *conn,
 
 ### `bt_gatt_write_without_response`
 
-写入属性值（无响应）。
+Write an attribute value (no response).
 
 ```c
 uint8_t bt_gatt_write_without_response(struct bt_conn *conn,
@@ -204,11 +204,11 @@ uint8_t bt_gatt_write_without_response(struct bt_conn *conn,
 
 ---
 
-## 连接管理
+## Connection Management
 
 ### `bt_conn_connect`
 
-建立 BLE 连接。
+Establish a BLE connection.
 
 ```c
 struct bt_conn *bt_conn_connect(const struct bt_conn_info *info);
@@ -218,7 +218,7 @@ struct bt_conn *bt_conn_connect(const struct bt_conn_info *info);
 
 ### `bt_conn_disconnect`
 
-断开连接。
+Disconnect.
 
 ```c
 int bt_conn_disconnect(struct bt_conn *conn, uint8_t reason);
@@ -228,7 +228,7 @@ int bt_conn_disconnect(struct bt_conn *conn, uint8_t reason);
 
 ### `bt_conn_get_info`
 
-获取连接信息。
+Get connection information.
 
 ```c
 int bt_conn_get_info(const struct bt_conn *conn, struct bt_conn_info *info);
@@ -236,9 +236,9 @@ int bt_conn_get_info(const struct bt_conn *conn, struct bt_conn_info *info);
 
 ---
 
-## 使用示例
+## Usage Examples
 
-### BLE 广播（从机）
+### BLE Advertising (Peripheral)
 
 ```c
 #include "bluetooth.h"
@@ -266,7 +266,7 @@ int ble_adv_start(void)
 }
 ```
 
-### GATT 服务注册
+### GATT Service Registration
 
 ```c
 static ssize_t read_temp(struct bt_conn *conn,
@@ -291,7 +291,7 @@ static struct bt_gatt_service sensor_svc =
 bt_gatt_service_register(&sensor_svc);
 ```
 
-### 发送通知
+### Sending Notifications
 
 ```c
 extern struct bt_conn *conn;
@@ -300,7 +300,7 @@ static void notify_callback(struct bt_conn *conn,
                             struct bt_gatt_attr *attr,
                             void *context)
 {
-    // 值变化时通知客户端
+    // Notify client when value changes
     uint8_t data = get_sensor_value();
     bt_gatt_notify(conn, attr, &data, sizeof(data));
 }

@@ -1,31 +1,31 @@
-# SmartConfig / AirKiss 配网 API 参考
+# SmartConfig / AirKiss Network Provisioning API Reference
 
-> 来源文件：`components/network/smartconfig_airkiss/smartconfig.h`  
-> SmartConfig 是乐鑫/安信可的 Wi-Fi 一键配网协议，AirKiss 是微信的配网协议。BL602 支持这两种方式通过广播包传输 SSID/密码。
+> Source file: `components/network/smartconfig_airkiss/smartconfig.h`  
+> SmartConfig is a Wi-Fi one-click provisioning protocol from Espressif/Ai-Thinker, and AirKiss is the provisioning protocol from WeChat. BL602 supports both methods to transmit SSID/password via broadcast packets.
 
 ---
 
-## 概述
+## Overview
 
-配网流程：
+Provisioning flow:
 
 ```
-手机 APP (UDP广播) ──▶ BL602 监听信道1-13 ──▶ 解析 SSID/密码 ──▶ 连接热点
+Mobile APP (UDP broadcast) ──▶ BL602 listening on channels 1-13 ──▶ Parse SSID/password ──▶ Connect to hotspot
                               ↑
-                         sniffer模式
+                         sniffer mode
 ```
 
-**配网原理**：手机 APP 在 UDP 9999 端口发送包含 SSID/密码编码的广播包，BL602 通过 sniffer 模式抓取空口报文并解码。
+**Provisioning principle**: The mobile APP sends broadcast packets containing encoded SSID/password on UDP port 9999, and BL602 captures and decodes the over-the-air packets in sniffer mode.
 
 ---
 
-## 类型定义
+## Type Definitions
 
-### `libwifi_frame` — 原始帧结构
+### `libwifi_frame` — Raw Frame Structure
 
 ```c
 struct libwifi_frame {
-    struct libwifi_frame_ctrl frame_control;  // 帧控制
+    struct libwifi_frame_ctrl frame_control;  // Frame control
     uint16_t duration;
     uint8_t  addr1[6];   // BSSID / Destination
     uint8_t  addr2[6];   // Source
@@ -34,60 +34,60 @@ struct libwifi_frame {
 } __attribute__((packed));
 ```
 
-### `libwifi_frame_ctrl` — 帧控制字段
+### `libwifi_frame_ctrl` — Frame Control Field
 
 ```c
 struct libwifi_frame_ctrl {
-    unsigned int version : 2;   // 协议版本
-    unsigned int type : 2;      // 帧类型
-    unsigned int subtype : 4;   // 帧子类型
+    unsigned int version : 2;   // Protocol version
+    unsigned int type : 2;      // Frame type
+    unsigned int subtype : 4;   // Frame subtype
     struct libwifi_frame_ctrl_flags flags;
 };
 ```
 
 ---
 
-## 函数接口
+## Function API
 
 ### `wifi_smartconfig_v1_start`
 
-启动 SmartConfig v1 配网。
+Start SmartConfig v1 provisioning.
 
 ```c
 int wifi_smartconfig_v1_start(void);
 ```
 
-**返回值**：`0` 成功，其他失败
+**Return value**: `0` success, others failure
 
-> 调用后 BL602 进入 sniffer 模式，监听所有信道，等待手机 APP 发送配网数据。
+> After calling, BL602 enters sniffer mode, listens on all channels, and waits for the mobile APP to send provisioning data.
 
 ---
 
 ### `wifi_smartconfig_v1_stop`
 
-停止 SmartConfig 配网。
+Stop SmartConfig provisioning.
 
 ```c
 int wifi_smartconfig_v1_stop(void);
 ```
 
-**返回值**：`0` 成功，其他失败
+**Return value**: `0` success, others failure
 
-> 配网成功后必须调用此函数恢复正常 Wi-Fi 模式。
+> This function must be called after successful provisioning to restore normal Wi-Fi mode.
 
 ---
 
-## 使用示例
+## Usage Example
 
 ```c
 #include "smartconfig.h"
 
-// 配网任务
+// Provisioning task
 static void smartconfig_task(void *arg)
 {
     printf("SmartConfig started, waiting for SSID...\r\n");
 
-    // 启动配网
+    // Start provisioning
     int ret = wifi_smartconfig_v1_start();
     if (ret != 0) {
         printf("SmartConfig start failed: %d\r\n", ret);
@@ -95,10 +95,10 @@ static void smartconfig_task(void *arg)
         return;
     }
 
-    // 等待配网成功（通常由 Wi-Fi 连接事件触发）
-    // 实际项目中应在 Wi-Fi 连接回调中判断配网结果
+    // Wait for provisioning success (usually triggered by Wi-Fi connection event)
+    // In real projects, judge provisioning result in Wi-Fi connection callback
 
-    // 停止配网
+    // Stop provisioning
     wifi_smartconfig_v1_stop();
     printf("SmartConfig stopped\r\n");
 
@@ -107,22 +107,22 @@ static void smartconfig_task(void *arg)
 
 void app_main(void)
 {
-    // 系统初始化...
+    // System initialization...
 
-    // 创建配网任务（高优先级）
+    // Create provisioning task (high priority)
     xTaskCreate(smartconfig_task, "smartconfig", 4096, NULL, 5, NULL);
 }
 ```
 
-## 配网步骤（APP 端）
+## Provisioning Steps (APP Side)
 
-手机 APP 配网步骤（参考）：
+Mobile APP provisioning steps (for reference):
 
-1. 手机连接目标 Wi-Fi（用于发送广播）
-2. APP 编码 SSID/密码到 UDP 数据包
-3. APP 在每个信道上发送 UDP 广播包（9999 端口）
-4. BL602 sniffer 模式接收并解码
-5. BL602 连接目标热点
-6. 上报连接结果（MQTT/TCP）
+1. Mobile phone connects to target Wi-Fi (used for sending broadcast)
+2. APP encodes SSID/password into UDP data packet
+3. APP sends UDP broadcast packets on each channel (port 9999)
+4. BL602 sniffer mode receives and decodes
+5. BL602 connects to target hotspot
+6. Report connection result (MQTT/TCP)
 
-> **注意**：SmartConfig 依赖明文广播，安全性较低。生产环境建议使用 BLUFI（BLE 加密通道）配网。
+> **Note**: SmartConfig relies on plaintext broadcast, which has low security. For production environments, BLUFI (BLE encrypted channel) provisioning is recommended.

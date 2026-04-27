@@ -1,20 +1,20 @@
-# EasyFlash KV 存储 API 参考
+# EasyFlash KV Storage API Reference
 
-> 来源文件：`components/stage/easyflash4/inc/easyflash.h`  
-> 基于 Flash 的键值对存储系统，支持 ENV 环境变量、日志和 IAP 升级。
-
----
-
-## 概述
-
-EasyFlash 是一个 Flash 存储管理库，提供三种功能：
-- **ENV**：键值对存储（类似 NVS），掉电不丢失
-- **LOG**：循环日志存储
-- **IAP**：应用原地升级
+> Source file: `components/stage/easyflash4/inc/easyflash.h`  
+> Flash-based key-value storage system, supports ENV environment variables, logs, and IAP upgrade.
 
 ---
 
-## 头文件
+## Overview
+
+EasyFlash is a Flash storage management library providing three features:
+- **ENV**: Key-value storage (similar to NVS), persists across power cycles
+- **LOG**: Circular log storage
+- **IAP**: In-application programming upgrade
+
+---
+
+## Header File
 
 ```c
 #include "easyflash.h"
@@ -22,11 +22,11 @@ EasyFlash 是一个 Flash 存储管理库，提供三种功能：
 
 ---
 
-## 类型定义
+## Type Definitions
 
 ### `EfErrCode`
 
-错误码类型：
+Error code type:
 
 ```c
 typedef enum {
@@ -35,13 +35,13 @@ typedef enum {
     EF_NO_INIT = 2,
     EF_READ_ERR = 3,
     EF_WRITE_ERR = 4,
-    /* ... 更多错误码 */
+    /* ... more error codes */
 } EfErrCode;
 ```
 
 ### `env_node_obj_t`
 
-ENV 节点对象句柄：
+ENV node object handle:
 
 ```c
 typedef struct _env_node_obj {
@@ -55,47 +55,47 @@ typedef struct _env_node_obj {
 
 ---
 
-## 初始化
+## Initialization
 
 ### `easyflash_init`
 
-初始化 EasyFlash（自动加载 ENV）。
+Initialize EasyFlash (automatically loads ENV).
 
 ```c
 EfErrCode easyflash_init(void);
 ```
 
-**返回值**：0=成功
+**Return value**: 0=success
 
 ---
 
-## ENV 存储（键值对）
+## ENV Storage (Key-Value)
 
-ENV 功能需开启 `EF_USING_ENV`。
+ENV feature requires `EF_USING_ENV` to be enabled.
 
 ### `ef_get_env_blob`
 
-读取 ENV 值（二进制安全）：
+Read ENV value (binary-safe):
 
 ```c
 size_t ef_get_env_blob(const char *key, void *value_buf,
                        size_t buf_len, size_t *saved_value_len);
 ```
 
-| 参数 | 说明 |
+| Parameter | Description |
 |------|------|
-| `key` | 键名 |
-| `value_buf` | 接收缓冲区 |
-| `buf_len` | 缓冲区大小 |
-| `saved_value_len` | 实际存储的长度（输出） |
+| `key` | Key name |
+| `value_buf` | Receive buffer |
+| `buf_len` | Buffer size |
+| `saved_value_len` | Actual stored length (output) |
 
-**返回值**：0=键不存在，>0=读取的字节数
+**Return value**: 0=key does not exist, >0=number of bytes read
 
 ---
 
 ### `ef_set_env_blob`
 
-写入 ENV 值（二进制安全）：
+Write ENV value (binary-safe):
 
 ```c
 EfErrCode ef_set_env_blob(const char *key, const void *value_buf, size_t buf_len);
@@ -105,19 +105,19 @@ EfErrCode ef_set_env_blob(const char *key, const void *value_buf, size_t buf_len
 
 ### `ef_get_env`
 
-读取 ENV 字符串值：
+Read ENV string value:
 
 ```c
 char *ef_get_env(const char *key);
 ```
 
-**返回值**：字符串指针，不存在返回 NULL
+**Return value**: String pointer, returns NULL if not found
 
 ---
 
 ### `ef_set_env`
 
-设置 ENV 字符串值：
+Set ENV string value:
 
 ```c
 EfErrCode ef_set_env(const char *key, const char *value);
@@ -127,7 +127,7 @@ EfErrCode ef_set_env(const char *key, const char *value);
 
 ### `ef_del_env`
 
-删除 ENV：
+Delete ENV:
 
 ```c
 EfErrCode ef_del_env(const char *key);
@@ -137,19 +137,19 @@ EfErrCode ef_del_env(const char *key);
 
 ### `ef_save_env`
 
-将内存中的 ENV 写入 Flash：
+Write ENV from memory to Flash:
 
 ```c
 EfErrCode ef_save_env(void);
 ```
 
-> `ef_set_env` 默认只写内存，需手动调用 `ef_save_env` 持久化。
+> `ef_set_env` writes to memory only by default; you must manually call `ef_save_env` to persist.
 
 ---
 
 ### `ef_set_and_save_env`
 
-设置并立即保存：
+Set and immediately save:
 
 ```c
 EfErrCode ef_set_and_save_env(const char *key, const char *value);
@@ -159,7 +159,7 @@ EfErrCode ef_set_and_save_env(const char *key, const char *value);
 
 ### `ef_print_env`
 
-打印所有 ENV（调试用）：
+Print all ENV (for debugging):
 
 ```c
 void ef_print_env(void);
@@ -169,7 +169,7 @@ void ef_print_env(void);
 
 ### `ef_env_set_default`
 
-恢复默认 ENV：
+Restore default ENV:
 
 ```c
 EfErrCode ef_env_set_default(void);
@@ -177,13 +177,13 @@ EfErrCode ef_env_set_default(void);
 
 ---
 
-## 日志功能
+## Log Feature
 
-LOG 功能需开启 `EF_USING_LOG`。
+LOG feature requires `EF_USING_LOG` to be enabled.
 
 ### `ef_log_write`
 
-写入日志：
+Write log:
 
 ```c
 EfErrCode ef_log_write(const uint32_t *log, size_t size);
@@ -193,7 +193,7 @@ EfErrCode ef_log_write(const uint32_t *log, size_t size);
 
 ### `ef_log_read`
 
-读取日志：
+Read log:
 
 ```c
 EfErrCode ef_log_read(size_t index, uint32_t *log, size_t size);
@@ -203,7 +203,7 @@ EfErrCode ef_log_read(size_t index, uint32_t *log, size_t size);
 
 ### `ef_log_clean`
 
-清除所有日志：
+Clear all logs:
 
 ```c
 EfErrCode ef_log_clean(void);
@@ -213,7 +213,7 @@ EfErrCode ef_log_clean(void);
 
 ### `ef_log_get_used_size`
 
-获取已用日志空间：
+Get used log space:
 
 ```c
 size_t ef_log_get_used_size(void);
@@ -221,11 +221,11 @@ size_t ef_log_get_used_size(void);
 
 ---
 
-## 工具函数
+## Utility Functions
 
 ### `ef_calc_crc32`
 
-计算 CRC32：
+Calculate CRC32:
 
 ```c
 uint32_t ef_calc_crc32(uint32_t crc, const void *buf, size_t size);
@@ -233,9 +233,9 @@ uint32_t ef_calc_crc32(uint32_t crc, const void *buf, size_t size);
 
 ---
 
-## 使用示例
+## Usage Examples
 
-### 基本 ENV 操作
+### Basic ENV Operations
 
 ```c
 #include "easyflash.h"
@@ -244,27 +244,27 @@ void env_demo(void)
 {
     easyflash_init();
 
-    // 写入字符串
+    // Write string
     ef_set_env("device_name", "WB2-001");
     ef_set_env("interval", "5000");
     ef_save_env();
 
-    // 读取字符串
+    // Read string
     char *name = ef_get_env("device_name");
     if (name) {
         printf("Device: %s\r\n", name);
     }
 
-    // 写入二进制数据
+    // Write binary data
     uint8_t config[4] = {0x01, 0x02, 0x03, 0x04};
     ef_set_env_blob("config", config, sizeof(config));
 }
 ```
 
-### ENV 批量操作
+### ENV Bulk Operations
 
 ```c
-// 带回调的打印（遍历所有 ENV）
+// Print with callback (iterate through all ENV)
 void my_print_cb(env_node_obj_t *env, void *arg1, void *arg2)
 {
     (void)arg1; (void)arg2;

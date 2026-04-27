@@ -1,13 +1,13 @@
-# CLI 命令行接口 API 参考
+# CLI Command Line Interface API Reference
 
-> 来源文件：`components/stage/cli/cli/include/cli.h`  
-> 轻量级命令行接口，支持静态/动态命令注册、历史记录、自动补全（部分配置）。
+> Source file: `components/stage/cli/cli/include/cli.h`  
+> Lightweight command-line interface, supports static/dynamic command registration, history, and auto-completion (partial configuration).
 
 ---
 
-## 概述
+## Overview
 
-CLI 是 BL602 的命令行调试工具，通过 `aos_cli_register_command` 注册命令后，可在串口终端输入命令执行对应函数。支持静态命令（编译时确定）和动态命令（运行时添加/移除）。
+CLI is the command-line debugging tool for BL602. After registering commands via `aos_cli_register_command`, you can type commands in a serial terminal to execute the corresponding functions. Supports static commands (determined at compile time) and dynamic commands (added/removed at runtime).
 
 ```
 > help
@@ -17,7 +17,7 @@ Command executed with result: 0
 
 ---
 
-## 头文件
+## Header File
 
 ```c
 #include "cli.h"
@@ -25,16 +25,16 @@ Command executed with result: 0
 
 ---
 
-## 类型定义
+## Type Definitions
 
 ### `cli_command`
 
-注册命令的结构体，每个命令包含名称、帮助文本和函数指针：
+Structure for registering a command; each command contains a name, help text, and a function pointer:
 
 ```c
 struct cli_command {
-    const char *name;      // 命令名，如 "reboot"
-    const char *help;      // 帮助文本，如 "Reboot the device"
+    const char *name;      // Command name, e.g., "reboot"
+    const char *help;      // Help text, e.g., "Reboot the device"
 
     void (*function)(char *pcWriteBuffer, int xWriteBufferLen,
                      int argc, char **argv);
@@ -43,68 +43,68 @@ struct cli_command {
 
 ---
 
-## 函数接口
+## Function API
 
 ### `aos_cli_init`
 
-初始化 CLI（创建任务）。
+Initialize CLI (creates a task).
 
 ```c
 int aos_cli_init(int use_thread);
 ```
 
-| 参数 | 说明 |
+| Parameter | Description |
 |------|------|
-| `use_thread` | 1=创建独立任务，0=同步模式 |
+| `use_thread` | 1=create independent task, 0=synchronous mode |
 
-**返回值**：0=成功
+**Return value**: 0=success
 
 ---
 
 ### `aos_cli_register_command`
 
-注册单个命令。
+Register a single command.
 
 ```c
 int aos_cli_register_command(const struct cli_command *command);
 ```
 
-**返回值**：0=成功
+**Return value**: 0=success
 
 ---
 
 ### `aos_cli_register_commands`
 
-批量注册命令。
+Register multiple commands in bulk.
 
 ```c
 int aos_cli_register_commands(const struct cli_command *commands, int num_commands);
 ```
 
-| 参数 | 说明 |
+| Parameter | Description |
 |------|------|
-| `commands` | 命令数组 |
-| `num_commands` | 命令数量 |
+| `commands` | Command array |
+| `num_commands` | Number of commands |
 
-**返回值**：0=成功
+**Return value**: 0=success
 
 ---
 
 ### `aos_cli_unregister_command`
 
-注销单个命令。
+Unregister a single command.
 
 ```c
 int aos_cli_unregister_command(const struct cli_command *command);
 ```
 
-**返回值**：0=成功
+**Return value**: 0=success
 
 ---
 
 ### `aos_cli_unregister_commands`
 
-批量注销命令。
+Unregister multiple commands in bulk.
 
 ```c
 int aos_cli_unregister_commands(const struct cli_command *commands, int num_commands);
@@ -114,7 +114,7 @@ int aos_cli_unregister_commands(const struct cli_command *commands, int num_comm
 
 ### `aos_cli_stop`
 
-停止 CLI 任务并清理。
+Stop CLI task and clean up.
 
 ```c
 int aos_cli_stop(void);
@@ -124,11 +124,11 @@ int aos_cli_stop(void);
 
 ### `aos_cli_printf`
 
-CLI 专用打印（输出到命令行缓冲区）。
+CLI-specific print function (outputs to command-line buffer).
 
 ```c
 int aos_cli_printf(const char *buff, ...);
-// 或通过宏 cmd_printf
+// or via the cmd_printf macro
 cmd_printf("Result: %d\r\n", value);
 ```
 
@@ -136,7 +136,7 @@ cmd_printf("Result: %d\r\n", value);
 
 ### `aos_cli_task_create`
 
-创建 CLI 任务（可独立调用）。
+Create CLI task (can be called independently).
 
 ```c
 int aos_cli_task_create(void);
@@ -146,7 +146,7 @@ int aos_cli_task_create(void);
 
 ### `aos_cli_task_get`
 
-获取 CLI 任务句柄。
+Get CLI task handle.
 
 ```c
 void *aos_cli_task_get(void);
@@ -156,7 +156,7 @@ void *aos_cli_task_get(void);
 
 ### `aos_cli_input_direct`
 
-直接向 CLI 输入数据（旁路串口，用于自动化测试）。
+Feed data directly to CLI (bypass serial port, used for automated testing).
 
 ```c
 void aos_cli_input_direct(char *buffer, int count);
@@ -164,23 +164,23 @@ void aos_cli_input_direct(char *buffer, int count);
 
 ---
 
-## 宏说明
+## Macro Description
 
 ### `cmd_printf`
 
-CLI 内专用打印宏（自动写入输出缓冲区）：
+CLI-specific print macro (automatically writes to output buffer):
 
 ```c
 cmd_printf("Value=%d\r\n", value);
 ```
 
-> 与普通 `printf` 不同，`cmd_printf` 将数据写入 CLI 输出缓冲区，适合在命令回调函数中使用。
+> Unlike regular `printf`, `cmd_printf` writes data to the CLI output buffer, making it suitable for use in command callback functions.
 
 ---
 
-## 使用示例
+## Usage Examples
 
-### 定义并注册命令
+### Define and Register a Command
 
 ```c
 #include "cli.h"
@@ -195,7 +195,7 @@ static void my_cmd_handler(char *pcWriteBuffer, int xWriteBufferLen,
     cmd_printf("arg1 = %s\r\n", argv[1]);
 }
 
-// 定义静态命令
+// Define a static command
 static const struct cli_command my_commands[] = {
     {
         .name = "mycmd",
@@ -204,11 +204,11 @@ static const struct cli_command my_commands[] = {
     },
 };
 
-// 注册命令
+// Register the command
 aos_cli_register_commands(my_commands, 1);
 ```
 
-### 带参数解析的命令
+### Command with Argument Parsing
 
 ```c
 static void set_led_handler(char *pcWriteBuffer, int xWriteBufferLen,
@@ -240,12 +240,12 @@ static const struct cli_command led_commands[] = {
 aos_cli_register_command(&led_commands[0]);
 ```
 
-### 静态命令属性
+### Static Command Attribute
 
-定义在特定段中的命令可被自动注册（无需手动调用注册函数）：
+Commands defined in a specific section can be auto-registered (no need to manually call the registration function):
 
 ```c
-// 编译时自动放入 .static_cli_cmds 段
+// Automatically placed in .static_cli_cmds section at compile time
 static const struct cli_command hello_cmd
     __attribute__((used, section(".static_cli_cmds"))) = {
     .name = "hello",

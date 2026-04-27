@@ -1,17 +1,17 @@
-# LwIP Socket API 参考
+# LwIP Socket API Reference
 
-> 来源文件：`components/network/lwip/src/include/lwip/sockets.h`  
-> LwIP 是轻量级 TCP/IP 协议栈，BL602 使用它提供标准 BSD Socket 接口。
-
----
-
-## 概述
-
-LwIP Socket API 兼容标准 POSIX socket 接口，支持 TCP、UDP、RAW IP 多种协议。BL602 默认配置支持 TCP/UDP，不支持 ICMP（ping 通过 `netutils/ping` 实现）。
+> Source file: `components/network/lwip/src/include/lwip/sockets.h`  
+> LwIP is a lightweight TCP/IP protocol stack. BL602 uses it to provide a standard BSD Socket interface.
 
 ---
 
-## 常用头文件
+## Overview
+
+The LwIP Socket API is compatible with the standard POSIX socket interface, supporting TCP, UDP, and RAW IP protocols. BL602 default configuration supports TCP/UDP, but does not support ICMP (ping is implemented via `netutils/ping`).
+
+---
+
+## Common Header Files
 
 ```c
 #include <lwip/sockets.h>
@@ -21,29 +21,29 @@ LwIP Socket API 兼容标准 POSIX socket 接口，支持 TCP、UDP、RAW IP 多
 
 ---
 
-## Socket 创建与销毁
+## Socket Creation and Destruction
 
 ### `socket`
 
-创建 socket。
+Creates a socket.
 
 ```c
 int socket(int domain, int type, int protocol);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `domain` | `AF_INET`（IPv4） |
-| `type` | `SOCK_STREAM`（TCP）、`SOCK_DGRAM`（UDP）、`SOCK_RAW`（RAW） |
-| `protocol` | `0`（自动选择） |
+| Parameter | Description |
+|-----------|-------------|
+| `domain` | `AF_INET` (IPv4) |
+| `type` | `SOCK_STREAM` (TCP), `SOCK_DGRAM` (UDP), `SOCK_RAW` (RAW) |
+| `protocol` | `0` (auto-select) |
 
-**返回值**：成功返回 socket 描述符，失败返回 `-1`
+**Return value**: Returns socket descriptor on success, `-1` on failure
 
 ---
 
 ### `close`
 
-关闭 socket。
+Closes a socket.
 
 ```c
 int close(int s);
@@ -51,11 +51,11 @@ int close(int s);
 
 ---
 
-## 地址绑定
+## Address Binding
 
 ### `bind`
 
-绑定 IP 地址和端口。
+Binds an IP address and port.
 
 ```c
 int bind(int s, const struct sockaddr *name, socklen_t namelen);
@@ -63,11 +63,11 @@ int bind(int s, const struct sockaddr *name, socklen_t namelen);
 
 ---
 
-## TCP 连接
+## TCP Connections
 
 ### `connect`
 
-连接远程服务器（TCP）。
+Connects to a remote server (TCP).
 
 ```c
 int connect(int s, const struct sockaddr *name, socklen_t namelen);
@@ -77,7 +77,7 @@ int connect(int s, const struct sockaddr *name, socklen_t namelen);
 
 ### `listen`
 
-监听端口（TCP 服务器）。
+Listens on a port (TCP server).
 
 ```c
 int listen(int s, int backlog);
@@ -87,7 +87,7 @@ int listen(int s, int backlog);
 
 ### `accept`
 
-接受客户端连接。
+Accepts a client connection.
 
 ```c
 int accept(int s, struct sockaddr *addr, socklen_t *addrlen);
@@ -95,11 +95,11 @@ int accept(int s, struct sockaddr *addr, socklen_t *addrlen);
 
 ---
 
-## 数据收发
+## Data Transmission
 
 ### `send`
 
-发送数据（TCP）。
+Sends data (TCP).
 
 ```c
 int send(int s, const void *data, size_t size, int flags);
@@ -109,19 +109,19 @@ int send(int s, const void *data, size_t size, int flags);
 
 ### `recv`
 
-接收数据（TCP）。
+Receives data (TCP).
 
 ```c
 int recv(int s, void *mem, size_t len, int flags);
 ```
 
-**返回值**：成功返回字节数，`0` 表示对端关闭，`-1` 表示错误
+**Return value**: Returns number of bytes on success, `0` means peer closed, `-1` means error
 
 ---
 
 ### `sendto`
 
-发送数据（UDP）。
+Sends data (UDP).
 
 ```c
 int sendto(int s, const void *data, size_t size, int flags,
@@ -132,7 +132,7 @@ int sendto(int s, const void *data, size_t size, int flags,
 
 ### `recvfrom`
 
-接收数据（UDP，可获取发送方地址）。
+Receives data (UDP, can obtain sender address).
 
 ```c
 int recvfrom(int s, void *mem, size_t len, int flags,
@@ -141,11 +141,11 @@ int recvfrom(int s, void *mem, size_t len, int flags,
 
 ---
 
-## 读写
+## Read/Write
 
 ### `read`
 
-读取数据（TCP/UDP）。
+Reads data (TCP/UDP).
 
 ```c
 int read(int s, void *buf, size_t len);
@@ -155,7 +155,7 @@ int read(int s, void *buf, size_t len);
 
 ### `write`
 
-写入数据（TCP/UDP）。
+Writes data (TCP/UDP).
 
 ```c
 int write(int s, const void *buf, size_t len);
@@ -163,43 +163,43 @@ int write(int s, const void *buf, size_t len);
 
 ---
 
-## 关闭连接
+## Connection Shutdown
 
 ### `shutdown`
 
-关闭读写通道。
+Closes read/write channels.
 
 ```c
 int shutdown(int s, int how);
 ```
 
-| `how` | 说明 |
-|-------|------|
-| `0` | 关闭读通道 |
-| `1` | 关闭写通道 |
-| `2` | 关闭读写通道 |
+| `how` | Description |
+|-------|-------------|
+| `0` | Close read channel |
+| `1` | Close write channel |
+| `2` | Close both read and write channels |
 
 ---
 
-## 地址转换
+## Address Conversion
 
 ### `inet_pton`
 
-将字符串 IP 转换为二进制格式。
+Converts string IP to binary format.
 
 ```c
 int inet_pton(int af, const char *src, void *dst);
 ```
 
-| `af` | 说明 |
-|------|------|
+| `af` | Description |
+|------|-------------|
 | `AF_INET` | IPv4 |
 
 ---
 
 ### `inet_ntop`
 
-将二进制 IP 转换为字符串格式。
+Converts binary IP to string format.
 
 ```c
 const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
@@ -207,46 +207,46 @@ const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
 
 ---
 
-## 域名解析
+## Domain Name Resolution
 
 ### `gethostbyname`
 
-通过域名获取 IP 地址。
+Gets IP address from domain name.
 
 ```c
 struct hostent *gethostbyname(const char *name);
 ```
 
-**返回值**：`struct hostent *`，成功后 `h_addr_list[0]` 为 IP 地址
+**Return value**: `struct hostent *`, after success `h_addr_list[0]` is the IP address
 
 ---
 
-## 选项设置
+## Option Settings
 
 ### `setsockopt`
 
-设置 socket 选项。
+Sets socket options.
 
 ```c
 int setsockopt(int s, int level, int optname, const void *optval, socklen_t optlen);
 ```
 
-常用选项：
+Common options:
 
-| level | optname | 说明 |
-|-------|---------|------|
-| `SOL_SOCKET` | `SO_KEEPALIVE` | TCP 保活 |
-| `SOL_SOCKET` | `SO_RCVTIMEO` | 接收超时 |
-| `SOL_SOCKET` | `SO_SNDTIMEO` | 发送超时 |
-| `IPPROTO_TCP` | `TCP_NODELAY` | 禁用 Nagle 算法 |
+| level | optname | Description |
+|-------|---------|-------------|
+| `SOL_SOCKET` | `SO_KEEPALIVE` | TCP keep-alive |
+| `SOL_SOCKET` | `SO_RCVTIMEO` | Receive timeout |
+| `SOL_SOCKET` | `SO_SNDTIMEO` | Send timeout |
+| `IPPROTO_TCP` | `TCP_NODELAY` | Disable Nagle algorithm |
 
 ---
 
-## select 多路复用
+## select Multiplexing
 
 ### `select`
 
-监控多个 socket 的可读/可写状态。
+Monitors multiple sockets for read/write status.
 
 ```c
 int select(int nfds, fd_set *readfds, fd_set *writefds,
@@ -255,7 +255,7 @@ int select(int nfds, fd_set *readfds, fd_set *writefds,
 
 ---
 
-## 使用示例
+## Usage Examples
 
 ### TCP Client
 
@@ -275,11 +275,11 @@ if (connect(sock, (struct sockaddr *)&server, sizeof(server)) < 0) {
     return -1;
 }
 
-// 发送数据
+// Send data
 const char *msg = "Hello\r\n";
 send(sock, msg, strlen(msg), 0);
 
-// 接收响应
+// Receive response
 char buf[256];
 int len = recv(sock, buf, sizeof(buf) - 1, 0);
 if (len > 0) {
@@ -311,7 +311,7 @@ while (1) {
     char buf[256];
     int n = recv(client_sock, buf, sizeof(buf), 0);
     if (n > 0) {
-        send(client_sock, buf, n, 0); // echo 回去
+        send(client_sock, buf, n, 0); // Echo back
     }
     close(client_sock);
 }

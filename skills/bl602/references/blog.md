@@ -1,22 +1,22 @@
-# Blog 日志系统 API 参考
+# Blog Logging System API Reference
 
-> 来源文件：`components/stage/blog/blog.h`  
-> BL602 日志框架，支持组件级/文件级/私有日志分区控制，带十六进制 dump 和彩色输出。
+> Source file: `components/stage/blog/blog.h`  
+> BL602 logging framework, supports component-level/file-level/private log partition control, with hex dump and color output.
 
 ---
 
-## 概述
+## Overview
 
-Blog 是 BL602 的日志系统，核心是一组 C 宏，编译时通过 `__attribute__((section))` 将日志级别信息放到独立段，支持组件级和文件级动态日志开关。
+Blog is the logging system for BL602. The core is a set of C macros that use `__attribute__((section))` at compile time to place log level information in separate sections, supporting component-level and file-level dynamic log switching.
 
 ```
 blog_info("Hello %s", "world");
-// 输出: INFO (100)[main.c:  42] Hello world
+// Output: INFO (100)[main.c:  42] Hello world
 ```
 
 ---
 
-## 头文件
+## Header File
 
 ```c
 #include "blog.h"
@@ -24,68 +24,68 @@ blog_info("Hello %s", "world");
 
 ---
 
-## 日志级别宏
+## Log Level Macros
 
-### 组件级日志（按组件名开关）
+### Component-Level Logs (switch by component name)
 
-| 宏 | 说明 | 示例输出 |
-|----|------|---------|
-| `blog_debug("msg")` | 调试级别 | `DEBUG (tick)[file:  42] msg` |
-| `blog_info("msg")` | 信息级别 | `INFO (tick)[file:  42] msg` |
-| `blog_warn("msg")` | 警告级别 | `WARN (tick)[file:  42] msg` |
-| `blog_error("msg")` | 错误级别 | `ERROR (tick)[file:  42] msg` |
-| `blog_assert(expr)` | 断言（失败死机） | `assert, file:42` |
+| Macro | Description | Example Output |
+|-------|-------------|----------------|
+| `blog_debug("msg")` | Debug level | `DEBUG (tick)[file:  42] msg` |
+| `blog_info("msg")` | Info level | `INFO (tick)[file:  42] msg` |
+| `blog_warn("msg")` | Warning level | `WARN (tick)[file:  42] msg` |
+| `blog_error("msg")` | Error level | `ERROR (tick)[file:  42] msg` |
+| `blog_assert(expr)` | Assert (fails and halts) | `assert, file:42` |
 
-### Raw 格式（无彩色前缀）
+### Raw Format (no color prefix)
 
-| 宏 | 说明 |
-|----|------|
-| `blog_debug_raw("msg")` | Raw 调试 |
-| `blog_info_raw("msg")` | Raw 信息 |
-| `blog_warn_raw("msg")` | Raw 警告 |
-| `blog_error_raw("msg")` | Raw 错误 |
+| Macro | Description |
+|-------|-------------|
+| `blog_debug_raw("msg")` | Raw debug |
+| `blog_info_raw("msg")` | Raw info |
+| `blog_warn_raw("msg")` | Raw warning |
+| `blog_error_raw("msg")` | Raw error |
 
-### 私有分区日志（可按模块名精细控制）
+### Private Partition Logs (fine-grained control by module name)
 
-| 宏 | 说明 |
-|----|------|
-| `blog_debug_user(name, "msg")` | 私有调试 |
-| `blog_info_user(name, "msg")` | 私有信息 |
-| `blog_warn_user(name, "msg")` | 私有警告 |
-| `blog_error_user(name, "msg")` | 私有错误 |
+| Macro | Description |
+|-------|-------------|
+| `blog_debug_user(name, "msg")` | Private debug |
+| `blog_info_user(name, "msg")` | Private info |
+| `blog_warn_user(name, "msg")` | Private warning |
+| `blog_error_user(name, "msg")` | Private error |
 
-Raw 版本：`blog_debug_user_raw` / `blog_info_user_raw` / `blog_warn_user_raw` / `blog_error_user_raw`
+Raw versions: `blog_debug_user_raw` / `blog_info_user_raw` / `blog_warn_user_raw` / `blog_error_user_raw`
 
 ### Hex Dump
 
-| 宏 | 说明 |
-|----|------|
-| `blog_debug_hexdump(name, buf, size)` | Hex dump 调试 |
-| `blog_info_hexdump(name, buf, size)` | Hex dump 信息 |
-| `blog_warn_hexdump(name, buf, size)` | Hex dump 警告 |
-| `blog_error_hexdump(name, buf, size)` | Hex dump 错误 |
+| Macro | Description |
+|-------|-------------|
+| `blog_debug_hexdump(name, buf, size)` | Hex dump debug |
+| `blog_info_hexdump(name, buf, size)` | Hex dump info |
+| `blog_warn_hexdump(name, buf, size)` | Hex dump warning |
+| `blog_error_hexdump(name, buf, size)` | Hex dump error |
 
 ---
 
-## 私有分区声明
+## Private Partition Declaration
 
-在使用 `blog_xxx_user` 系列宏前，需要声明私有分区：
+Before using `blog_xxx_user` series macros, you need to declare a private partition:
 
 ```c
 BLOG_DECLARE(my_module);
 ```
 
-该宏展开为两个弱符号定义（可被覆盖）：
-- `blog_level_t _fsymp_level_my_module` （日志级别）
-- `const blog_info_t _fsymp_info_my_module` （模块信息）
+This macro expands to two weak symbol definitions (can be overridden):
+- `blog_level_t _fsymp_level_my_module` (log level)
+- `const blog_info_t _fsymp_info_my_module` (module info)
 
 ---
 
-## 函数接口
+## Function API
 
 ### `blog_init`
 
-初始化日志系统。在系统启动时调用。
+Initialize the logging system. Call during system startup.
 
 ```c
 void blog_init(void);
@@ -95,24 +95,24 @@ void blog_init(void);
 
 ### `blog_set_level_log_component`
 
-运行时动态设置组件/文件的日志级别。
+Dynamically set log level for component/file at runtime.
 
 ```c
 int blog_set_level_log_component(char *level, char *component_name);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `level` | 日志级别字符串：`DEBUG` `INFO` `WARN` `ERROR` |
-| `component_name` | 组件名或文件名 |
+| Parameter | Description |
+|-----------|-------------|
+| `level` | Log level string: `DEBUG` `INFO` `WARN` `ERROR` |
+| `component_name` | Component name or file name |
 
-**返回值**：0=成功
+**Return value**: 0=success
 
 ---
 
 ### `blog_hexdump_out`
 
-底层十六进制输出函数（被 Hex Dump 宏调用）。
+Low-level hex output function (called by Hex Dump macros).
 
 ```c
 void blog_hexdump_out(const char *name, uint8_t width, uint8_t *buf, uint16_t size);
@@ -120,9 +120,9 @@ void blog_hexdump_out(const char *name, uint8_t width, uint8_t *buf, uint16_t si
 
 ---
 
-## 使用示例
+## Usage Examples
 
-### 基本日志
+### Basic Logging
 
 ```c
 #include "blog.h"
@@ -137,13 +137,13 @@ void my_task(void *param)
 }
 ```
 
-### 私有分区日志
+### Private Partition Logging
 
 ```c
-// 在文件开头声明私有分区
+// Declare private partition at the beginning of the file
 BLOG_DECLARE(my_driver);
 
-// 使用私有日志
+// Use private logging
 void driver_init(void)
 {
     blog_info_user(my_driver, "Driver init");
@@ -156,13 +156,13 @@ void driver_init(void)
 ```c
 uint8_t packet[] = {0x01, 0x02, 0x03, 0x04};
 blog_info_hexdump("packet", packet, sizeof(packet));
-// 输出类似:
+// Output similar to:
 // INFO (100)[main.c:  42] packet: 01 02 03 04
 ```
 
-### 运行时调整日志级别
+### Runtime Log Level Adjustment
 
 ```c
-// 禁用 DEBUG 输出（节省日志开销）
+// Disable DEBUG output (save log overhead)
 blog_set_level_log_component("INFO", "my_driver");
 ```

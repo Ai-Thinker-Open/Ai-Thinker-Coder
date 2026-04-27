@@ -1,20 +1,20 @@
-# 系统时间 API 参考
+# System Time API Reference
 
-> 来源文件：`components/sys/bltime/include/bl_sys_time.h`  
-> 系统时间管理，基于 RTC 硬件，支持 NTP 同步和时间获取。
-
----
-
-## 概述
-
-`bl_sys_time` 提供系统级时间管理，基于 RTC 实现，支持：
-- 获取当前 Epoch 时间（秒）
-- 更新系统时间（从 NTP 或其他时间源）
-- NTP 自动同步
+> Source file: `components/sys/bltime/include/bl_sys_time.h`  
+> System time management based on RTC hardware, supports NTP synchronization and time retrieval.
 
 ---
 
-## 头文件
+## Overview
+
+`bl_sys_time` provides system-level time management based on RTC, supporting:
+- Get current Epoch time (seconds)
+- Update system time (from NTP or other time sources)
+- Automatic NTP synchronization
+
+---
+
+## Header File
 
 ```c
 #include "bl_sys_time.h"
@@ -22,41 +22,41 @@
 
 ---
 
-## 函数接口
+## Function API
 
 ### `bl_sys_time_get`
 
-获取当前系统时间（Epoch 秒）。
+Get current system time (Epoch seconds).
 
 ```c
 int bl_sys_time_get(uint64_t *epoch);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `epoch` | 输出的 Epoch 时间（秒） |
+| Parameter | Description |
+|-----------|-------------|
+| `epoch` | Output Epoch time in seconds |
 
-**返回值**：0=成功，-1=失败
+**Return value**: 0=success, -1=failure
 
 ---
 
 ### `bl_sys_time_update`
 
-手动更新系统时间。
+Manually update system time.
 
 ```c
 void bl_sys_time_update(uint64_t epoch);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `epoch` | 新的 Epoch 时间（秒） |
+| Parameter | Description |
+|-----------|-------------|
+| `epoch` | New Epoch time in seconds |
 
 ---
 
 ### `bl_sys_time_cli_init`
 
-初始化时间 CLI 命令（可通过 CLI 设置/查询时间）。
+Initialize time CLI commands (can set/query time via CLI).
 
 ```c
 int bl_sys_time_cli_init(void);
@@ -66,7 +66,7 @@ int bl_sys_time_cli_init(void);
 
 ### `bl_sys_time_sync_init`
 
-初始化 NTP 自动同步。
+Initialize automatic NTP synchronization.
 
 ```c
 void bl_sys_time_sync_init(void);
@@ -76,35 +76,35 @@ void bl_sys_time_sync_init(void);
 
 ### `bl_sys_time_sync`
 
-手动触发一次 NTP 同步。
+Manually trigger an NTP synchronization.
 
 ```c
 uint32_t bl_sys_time_sync(void);
 ```
 
-**返回值**：同步后的系统时间（Epoch 秒）
+**Return value**: System time after synchronization (Epoch seconds)
 
 ---
 
 ### `bl_sys_time_sync_state`
 
-获取时间同步状态。
+Get time synchronization status.
 
 ```c
 int bl_sys_time_sync_state(uint32_t *xTicksToJump);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `xTicksToJump` | 输出上次的跳跃 Tick 数 |
+| Parameter | Description |
+|-----------|-------------|
+| `xTicksToJump` | Output the last tick jump count |
 
-**返回值**：同步状态
+**Return value**: Synchronization status
 
 ---
 
-## 使用示例
+## Usage Examples
 
-### 基本时间获取
+### Basic Time Retrieval
 
 ```c
 #include "bl_sys_time.h"
@@ -114,7 +114,7 @@ void print_current_time(void)
     uint64_t epoch;
     if (bl_sys_time_get(&epoch) == 0) {
         printf("Epoch: %llu\r\n", epoch);
-        // 转换为可读格式
+        // Convert to human-readable format
         time_t t = (time_t)epoch;
         struct tm *tm_info = localtime(&t);
         printf("Time: %s", asctime(tm_info));
@@ -122,15 +122,15 @@ void print_current_time(void)
 }
 ```
 
-### 初始化 NTP 同步
+### Initialize NTP Synchronization
 
 ```c
 void time_init(void)
 {
-    // 初始化 NTP 自动同步
+    // Initialize automatic NTP synchronization
     bl_sys_time_sync_init();
 
-    // 等待首次同步
+    // Wait for first synchronization
     vTaskDelay(pdMS_TO_TICKS(3000));
 
     uint64_t now;

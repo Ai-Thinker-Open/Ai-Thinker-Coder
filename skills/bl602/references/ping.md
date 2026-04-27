@@ -1,17 +1,17 @@
-# Ping (ICMP) API 参考
+# Ping (ICMP) API Reference
 
-> 来源文件：`components/network/netutils/include/ping.h`  
-> lwIP 内置 ICMP ping 工具，用于网络诊断。
-
----
-
-## 概述
-
-Ping 工具基于 lwIP 的 ICMP 实现，可用于检测设备与目标主机的网络连通性和往返延迟（RTT）。
+> Source file: `components/network/netutils/include/ping.h`  
+> lwIP built-in ICMP ping utility for network diagnostics.
 
 ---
 
-## 头文件
+## Overview
+
+The Ping utility is based on lwIP's ICMP implementation, used to check network connectivity and round-trip delay (RTT) between the device and the target host.
+
+---
+
+## Header Files
 
 ```c
 #include "ping.h"
@@ -19,19 +19,19 @@ Ping 工具基于 lwIP 的 ICMP 实现，可用于检测设备与目标主机的
 
 ---
 
-## 类型定义
+## Type Definitions
 
 ### `ping_option`
 
-Ping 选项配置：
+Ping options configuration:
 
 ```c
 typedef struct {
-    uint32_t count;        // Ping 次数（0=无限）
-    uint32_t interval;     // 间隔（秒）
-    uint32_t timeout;      // 超时（秒）
-    uint32_t data_size;   // 数据载荷大小（字节）
-    ip_addr_t target;      // 目标 IP 地址
+    uint32_t count;        // Ping count (0=infinite)
+    uint32_t interval;      // Interval (seconds)
+    uint32_t timeout;       // Timeout (seconds)
+    uint32_t data_size;    // Data payload size (bytes)
+    ip_addr_t target;       // Target IP address
 } ping_option_t;
 ```
 
@@ -39,26 +39,26 @@ typedef struct {
 
 ### `ping_result`
 
-Ping 结果：
+Ping result:
 
 ```c
 typedef struct {
-    uint32_t total_count;       // 总发送数
-    uint32_t total_success;     // 成功响应数
-    uint32_t total_fail;        // 失败数
-    uint32_t avg_time;          // 平均 RTT（ms）
-    uint32_t min_time;          // 最小 RTT（ms）
-    uint32_t max_time;          // 最大 RTT（ms）
+    uint32_t total_count;       // Total sent count
+    uint32_t total_success;     // Successful responses
+    uint32_t total_fail;        // Failed count
+    uint32_t avg_time;          // Average RTT (ms)
+    uint32_t min_time;          // Minimum RTT (ms)
+    uint32_t max_time;          // Maximum RTT (ms)
 } ping_result_t;
 ```
 
 ---
 
-## 函数接口
+## Function Interface
 
 ### `ping_init`
 
-初始化 Ping 模块。
+Initialize the Ping module.
 
 ```c
 int ping_init(void);
@@ -68,23 +68,23 @@ int ping_init(void);
 
 ### `ping_send`
 
-发送一次 Ping 请求。
+Send a single Ping request.
 
 ```c
 int ping_send(const char *host);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `host` | 目标主机（域名或 IP） |
+| Parameter | Description |
+|-----------|-------------|
+| `host` | Target host (domain name or IP) |
 
-**返回值**：0=发送成功
+**Return value**: 0=send successful
 
 ---
 
 ### `ping_raw_send`
 
-发送原始 ICMP Ping（需手动设置目标 IP）。
+Send raw ICMP Ping (need to manually set target IP).
 
 ```c
 int ping_raw_send(ip_addr_t *addr);
@@ -94,7 +94,7 @@ int ping_raw_send(ip_addr_t *addr);
 
 ### `ping_set_option`
 
-设置 Ping 选项。
+Set Ping options.
 
 ```c
 int ping_set_option(ping_option_t *option);
@@ -104,7 +104,7 @@ int ping_set_option(ping_option_t *option);
 
 ### `ping_get_result`
 
-获取 Ping 统计结果。
+Get Ping statistics result.
 
 ```c
 int ping_get_result(ping_result_t *result);
@@ -114,7 +114,7 @@ int ping_get_result(ping_result_t *result);
 
 ### `ping_register_result_callback`
 
-注册结果回调（每次收到响应时调用）。
+Register result callback (called each time a response is received).
 
 ```c
 int ping_register_result_callback(void (*callback)(void *arg));
@@ -122,9 +122,9 @@ int ping_register_result_callback(void (*callback)(void *arg));
 
 ---
 
-## 使用示例
+## Usage Examples
 
-### 简单 Ping
+### Simple Ping
 
 ```c
 #include "ping.h"
@@ -133,7 +133,7 @@ void ping_test(void)
 {
     ping_init();
 
-    // Ping 3次
+    // Ping 3 times
     for (int i = 0; i < 3; i++) {
         int ret = ping_send("192.168.1.1");
         if (ret == 0) {
@@ -146,7 +146,7 @@ void ping_test(void)
 }
 ```
 
-### 带统计的 Ping
+### Ping with Statistics
 
 ```c
 void ping_with_stats(const char *target)
@@ -163,7 +163,7 @@ void ping_with_stats(const char *target)
 
     ping_send(target);
 
-    // 等待所有响应
+    // Wait for all responses
     vTaskDelay(pdMS_TO_TICKS(6000));
 
     ping_result_t result;

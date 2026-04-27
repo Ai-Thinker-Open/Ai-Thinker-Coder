@@ -1,19 +1,19 @@
-# HTTPS API 参考（简明版）
+# HTTPS API Reference (Concise Version)
 
-> 来源文件：`components/network/https/include/https.h`  
-> BL602 简化的 HTTPS 客户端接口，基于 TLS 连接提供加密 TCP 数据收发。
-
----
-
-## 概述
-
-`https.h` 提供了一套简化版 HTTPS 接口，内部封装了 TLS 连接过程，适合快速实现 HTTPS 请求场景。相比完整的 axk_tls API，本接口更易用但功能有限。
-
-**注意**：对于复杂 HTTPS 场景（如自定义 HTTP 头、证书验证），建议使用 `axk_tls.h` 或 `http_client.h`。
+> Source file: `components/network/https/include/https.h`  
+> BL602 simplified HTTPS client interface, providing encrypted TCP data transmission based on TLS connections.
 
 ---
 
-## 头文件
+## Overview
+
+`https.h` provides a simplified HTTPS interface that internally wraps the TLS connection process, suitable for quickly implementing HTTPS request scenarios. Compared to the full axk_tls API, this interface is easier to use but has limited functionality.
+
+**Note**: For complex HTTPS scenarios (such as custom HTTP headers, certificate verification), it is recommended to use `axk_tls.h` or `http_client.h`.
+
+---
+
+## Header File
 
 ```c
 #include "https.h"
@@ -21,51 +21,51 @@
 
 ---
 
-## 函数接口
+## Function Interface
 
 ### `blTcpSslConnect`
 
-建立加密 TCP 连接。
+Establishes an encrypted TCP connection.
 
 ```c
 int32_t blTcpSslConnect(const char *dst, uint16_t port);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `dst` | 目标服务器地址（域名或 IP） |
-| `port` | 端口号 |
+| Parameter | Description |
+|-----------|-------------|
+| `dst` | Target server address (domain name or IP) |
+| `port` | Port number |
 
-| 返回值 | 说明 |
-|--------|------|
-| >0 | 成功，返回 socket 描述符 |
-| `BL_TCP_CREATE_CONNECT_ERR` | 连接创建失败 |
-| `BL_TCP_ARG_INVALID` | 参数无效（dst 为空） |
+| Return Value | Description |
+|--------------|-------------|
+| >0 | Success, returns socket descriptor |
+| `BL_TCP_CREATE_CONNECT_ERR` | Connection creation failed |
+| `BL_TCP_ARG_INVALID` | Invalid parameter (dst is NULL) |
 
-> 返回 socket 后需通过 `blTcpSslState()` 判断 TLS 握手是否完成
+> After returning the socket, use `blTcpSslState()` to check if TLS handshake is complete.
 
 ---
 
 ### `blTcpSslState`
 
-查询加密连接状态。
+Queries the encrypted connection state.
 
 ```c
 int32_t blTcpSslState(int32_t fd);
 ```
 
-| 返回值 | 说明 |
-|--------|------|
-| `BL_TCP_STATE_CONNECTED` | TLS 握手完成，可收发数据 |
-| `BL_TCP_STATE_CONNECTING` | 握手进行中 |
-| `BL_TCP_STATE_FAILED` | 连接失败 |
-| 其他 | 错误码 |
+| Return Value | Description |
+|--------------|-------------|
+| `BL_TCP_STATE_CONNECTED` | TLS handshake complete, can send/receive data |
+| `BL_TCP_STATE_CONNECTING` | Handshake in progress |
+| `BL_TCP_STATE_FAILED` | Connection failed |
+| Others | Error code |
 
 ---
 
 ### `blTcpSslDisconnect`
 
-断开加密连接。
+Disconnects the encrypted connection.
 
 ```c
 void blTcpSslDisconnect(int32_t fd);
@@ -75,68 +75,68 @@ void blTcpSslDisconnect(int32_t fd);
 
 ### `blTcpSslSend`
 
-发送加密数据（非阻塞）。
+Sends encrypted data (non-blocking).
 
 ```c
 int32_t blTcpSslSend(int32_t fd, const uint8_t *buf, uint16_t len);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `fd` | `blTcpSslConnect` 返回的 socket |
-| `buf` | 发送数据缓冲区 |
-| `len` | 数据长度（范围 0~512） |
+| Parameter | Description |
+|-----------|-------------|
+| `fd` | Socket returned by `blTcpSslConnect` |
+| `buf` | Send data buffer |
+| `len` | Data length (range 0~512) |
 
-| 返回值 | 说明 |
-|--------|------|
-| >=0 | 实际发送字节数 |
-| 错误码 | 发送失败 |
+| Return Value | Description |
+|--------------|-------------|
+| >=0 | Actual bytes sent |
+| Error code | Send failed |
 
 ---
 
 ### `blTcpSslRead`
 
-读取加密数据（非阻塞）。
+Reads encrypted data (non-blocking).
 
 ```c
 int32_t blTcpSslRead(int32_t fd, uint8_t *buf, uint16_t len);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `fd` | `blTcpSslConnect` 返回的 socket |
-| `buf` | 接收数据缓冲区 |
-| `len` | 缓冲区最大长度（范围 0~512） |
+| Parameter | Description |
+|-----------|-------------|
+| `fd` | Socket returned by `blTcpSslConnect` |
+| `buf` | Receive data buffer |
+| `len` | Maximum buffer length (range 0~512) |
 
-| 返回值 | 说明 |
-|--------|------|
-| >=0 | 实际读取字节数 |
-| 错误码 | 读取失败 |
+| Return Value | Description |
+|--------------|-------------|
+| >=0 | Actual bytes read |
+| Error code | Read failed |
 
 ---
 
-## 使用示例
+## Usage Examples
 
-### 简单 HTTPS GET
+### Simple HTTPS GET
 
 ```c
 #include "https.h"
 
 void https_get_example(void)
 {
-    // 建立 HTTPS 连接
+    // Establish HTTPS connection
     int32_t fd = blTcpSslConnect("www.example.com", 443);
     if (fd < 0) {
         printf("Connect failed: %ld\r\n", fd);
         return;
     }
 
-    // 等待 TLS 握手完成
+    // Wait for TLS handshake to complete
     while (blTcpSslState(fd) == BL_TCP_STATE_CONNECTING) {
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 
-    // 发送 HTTP 请求
+    // Send HTTP request
     const char *request =
         "GET / HTTP/1.1\r\n"
         "Host: www.example.com\r\n"
@@ -152,7 +152,7 @@ void https_get_example(void)
         return;
     }
 
-    // 读取响应
+    // Read response
     uint8_t buf[512];
     int32_t len;
     while ((len = blTcpSslRead(fd, buf, sizeof(buf))) > 0) {
@@ -163,7 +163,7 @@ void https_get_example(void)
 }
 ```
 
-### 带超时检测
+### With Timeout Detection
 
 ```c
 int32_t wait_for_ssl_connected(int32_t fd, uint32_t timeout_ms)
@@ -171,7 +171,7 @@ int32_t wait_for_ssl_connected(int32_t fd, uint32_t timeout_ms)
     uint32_t start = xTaskGetTickCount();
     while (blTcpSslState(fd) == BL_TCP_STATE_CONNECTING) {
         if ((xTaskGetTickCount() - start) * portTICK_PERIOD_MS > timeout_ms) {
-            return -1; // 超时
+            return -1; // Timeout
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
@@ -181,24 +181,24 @@ int32_t wait_for_ssl_connected(int32_t fd, uint32_t timeout_ms)
 
 ---
 
-## 错误码参考
+## Error Code Reference
 
-| 错误码 | 说明 |
-|--------|------|
-| `BL_TCP_ARG_INVALID` | 参数无效 |
-| `BL_TCP_CREATE_CONNECT_ERR` | 创建连接失败 |
-| `BL_TCP_STATE_CONNECTED` | 已连接 |
-| `BL_TCP_STATE_CONNECTING` | 连接中 |
-| `BL_TCP_STATE_FAILED` | 连接失败 |
+| Error Code | Description |
+|------------|-------------|
+| `BL_TCP_ARG_INVALID` | Invalid parameter |
+| `BL_TCP_CREATE_CONNECT_ERR` | Failed to create connection |
+| `BL_TCP_STATE_CONNECTED` | Connected |
+| `BL_TCP_STATE_CONNECTING` | Connecting |
+| `BL_TCP_STATE_FAILED` | Connection failed |
 
 ---
 
-## 与 axk_tls 的区别
+## Differences from axk_tls
 
-| 特性 | `https.h` | `axk_tls.h` |
-|------|-----------|-------------|
-| API 复杂度 | 简单 | 复杂 |
-| 非阻塞模式 | 支持 | 支持 |
-| 证书配置 | 有限 | 完整（CA/客户端证书/PSK） |
-| 错误处理 | 简化 | 详细 |
-| 适用场景 | 简单 HTTPS 请求 | 双向认证、PSK 等 |
+| Feature | `https.h` | `axk_tls.h` |
+|---------|------------|-------------|
+| API complexity | Simple | Complex |
+| Non-blocking mode | Supported | Supported |
+| Certificate configuration | Limited | Full (CA/client certificates/PSK) |
+| Error handling | Simplified | Detailed |
+| Use case | Simple HTTPS requests | Mutual authentication, PSK, etc. |

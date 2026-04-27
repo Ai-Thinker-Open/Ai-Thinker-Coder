@@ -1,22 +1,22 @@
-# Flash 分区管理 (BL_MTD) API 参考
+# Flash Partition Management (BL_MTD) API Reference
 
-> 来源文件：`components/sys/blmtd/include/bl_mtd.h`  
-> 统一管理 Flash 分区（PSM、FW、media 等）的读写擦除。
-
----
-
-## 概述
-
-BL_MTD（Memory Technology Device）是 Flash 分区抽象层，封装了对 Flash 各分区的统一访问接口，提供 open/read/write/erase 语义。
-
-预定义分区名称：
-- `BL_MTD_PARTITION_NAME_PSM` — PSM 持久化存储区
-- `BL_MTD_PARTITION_NAME_FW_DEFAULT` — 固件区
-- `BL_MTD_PARTITION_NAME_ROMFS` — ROMFS 多媒体区
+> Source file: `components/sys/blmtd/include/bl_mtd.h`  
+> Unified management of read/write/erase operations for Flash partitions (PSM, FW, media, etc.).
 
 ---
 
-## 头文件
+## Overview
+
+BL_MTD (Memory Technology Device) is a Flash partition abstraction layer that encapsulates unified access interfaces for Flash partitions, providing open/read/write/erase semantics.
+
+Predefined partition names:
+- `BL_MTD_PARTITION_NAME_PSM` — PSM persistent storage area
+- `BL_MTD_PARTITION_NAME_FW_DEFAULT` — Firmware area
+- `BL_MTD_PARTITION_NAME_ROMFS` — ROMFS multimedia area
+
+---
+
+## Header File
 
 ```c
 #include "bl_mtd.h"
@@ -24,11 +24,11 @@ BL_MTD（Memory Technology Device）是 Flash 分区抽象层，封装了对 Fla
 
 ---
 
-## 类型定义
+## Type Definitions
 
 ### `bl_mtd_handle_t`
 
-分区操作句柄：
+Partition operation handle:
 
 ```c
 typedef void *bl_mtd_handle_t;
@@ -36,54 +36,54 @@ typedef void *bl_mtd_handle_t;
 
 ### `bl_mtd_info_t`
 
-分区信息结构体：
+Partition information structure:
 
 ```c
 typedef struct {
-    char name[16];         // 分区名称
-    unsigned int offset;   // Flash 偏移地址
-    unsigned int size;     // 分区大小（字节）
-    void *xip_addr;        // XIP 映射地址（只读）
+    char name[16];         // Partition name
+    unsigned int offset;   // Flash offset address
+    unsigned int size;     // Partition size in bytes
+    void *xip_addr;        // XIP mapped address (read-only)
 } bl_mtd_info_t;
 ```
 
 ---
 
-## 宏
+## Macros
 
-### 打开标志
+### Open Flags
 
 ```c
-#define BL_MTD_OPEN_FLAG_NONE     (0)       // 普通打开
-#define BL_MTD_OPEN_FLAG_BACKUP   (1 << 0)  // 打开备份分区
-#define BL_MTD_OPEN_FLAG_BUSADDR  (1 << 1)  // 使用总线地址（不用 XIP）
+#define BL_MTD_OPEN_FLAG_NONE     (0)       // Normal open
+#define BL_MTD_OPEN_FLAG_BACKUP   (1 << 0)  // Open backup partition
+#define BL_MTD_OPEN_FLAG_BUSADDR  (1 << 1)  // Use bus address (bypass XIP)
 ```
 
 ---
 
-## 函数接口
+## Function API
 
 ### `bl_mtd_open`
 
-打开分区。
+Open a partition.
 
 ```c
 int bl_mtd_open(const char *name, bl_mtd_handle_t *handle, unsigned int flags);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `name` | 分区名称 |
-| `handle` | 输出句柄 |
-| `flags` | 打开标志 |
+| Parameter | Description |
+|-----------|-------------|
+| `name` | Partition name |
+| `handle` | Output handle |
+| `flags` | Open flags |
 
-**返回值**：0=成功
+**Return value**: 0=success
 
 ---
 
 ### `bl_mtd_close`
 
-关闭分区。
+Close a partition.
 
 ```c
 int bl_mtd_close(bl_mtd_handle_t handle);
@@ -93,7 +93,7 @@ int bl_mtd_close(bl_mtd_handle_t handle);
 
 ### `bl_mtd_info`
 
-获取分区信息。
+Get partition information.
 
 ```c
 int bl_mtd_info(bl_mtd_handle_t handle, bl_mtd_info_t *info);
@@ -103,23 +103,23 @@ int bl_mtd_info(bl_mtd_handle_t handle, bl_mtd_info_t *info);
 
 ### `bl_mtd_erase`
 
-擦除指定地址范围。
+Erase a specified address range.
 
 ```c
 int bl_mtd_erase(bl_mtd_handle_t handle, unsigned int addr,
                  unsigned int size);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `addr` | 分区内偏移（从 0 开始） |
-| `size` | 擦除大小 |
+| Parameter | Description |
+|-----------|-------------|
+| `addr` | Offset within partition (starting from 0) |
+| `size` | Erase size |
 
 ---
 
 ### `bl_mtd_erase_all`
 
-擦除整个分区。
+Erase the entire partition.
 
 ```c
 int bl_mtd_erase_all(bl_mtd_handle_t handle);
@@ -129,7 +129,7 @@ int bl_mtd_erase_all(bl_mtd_handle_t handle);
 
 ### `bl_mtd_write`
 
-写入数据（自动擦除）。
+Write data (automatic erase).
 
 ```c
 int bl_mtd_write(bl_mtd_handle_t handle, unsigned int addr,
@@ -140,7 +140,7 @@ int bl_mtd_write(bl_mtd_handle_t handle, unsigned int addr,
 
 ### `bl_mtd_read`
 
-读取数据。
+Read data.
 
 ```c
 int bl_mtd_read(bl_mtd_handle_t handle, unsigned int addr,
@@ -151,7 +151,7 @@ int bl_mtd_read(bl_mtd_handle_t handle, unsigned int addr,
 
 ### `bl_mtd_size`
 
-获取分区大小。
+Get partition size.
 
 ```c
 int bl_mtd_size(bl_mtd_handle_t handle, unsigned int *size);
@@ -159,9 +159,9 @@ int bl_mtd_size(bl_mtd_handle_t handle, unsigned int *size);
 
 ---
 
-## 使用示例
+## Usage Examples
 
-### 读取 PSM 分区
+### Reading PSM Partition
 
 ```c
 #include "bl_mtd.h"
@@ -188,7 +188,7 @@ int read_psm_calibration(void)
 }
 ```
 
-### 读写固件配置区
+### Read/Write Firmware Configuration Area
 
 ```c
 int save_config(uint8_t *config, size_t len)
@@ -197,7 +197,7 @@ int save_config(uint8_t *config, size_t len)
     int ret = bl_mtd_open("FW", &handle, BL_MTD_OPEN_FLAG_NONE);
     if (ret != 0) return -1;
 
-    // 擦除后写入
+    // Erase before writing
     ret = bl_mtd_erase(handle, 0, len);
     if (ret == 0) {
         ret = bl_mtd_write(handle, 0, len, config);

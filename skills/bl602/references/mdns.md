@@ -1,41 +1,41 @@
-# mDNS 响应器 API 参考
+# mDNS Responder API Reference
 
-> 来源文件：`components/network/lwip_mdns/mdns_server.h`  
-> 多播 DNS（mDNS）响应器，支持本地网络服务发现。
-
----
-
-## 概述
-
-mDNS 用于在无 DNS 服务器的局域网中发现服务和设备。通过 mDNS，设备可通过 `hostname.local` 域名互相发现，无需配置中心服务器。
+> Source file: `components/network/lwip_mdns/mdns_server.h`  
+> Multicast DNS (mDNS) responder, supports local network service discovery.
 
 ---
 
-## 头文件
+## Overview
+
+mDNS is used to discover services and devices on a local area network without a DNS server. Through mDNS, devices can discover each other via `hostname.local` domain names without requiring a centralized configuration server.
+
+---
+
+## Header Files
 
 ```c
 #include "lwip/apps/mdns_opts.h"
 #include "lwip/netif.h"
 ```
 
-> 需在 `lwipopts.h` 中开启 `LWIP_MDNS_RESPONDER=1`。
+> Requires `LWIP_MDNS_RESPONDER=1` to be enabled in `lwipopts.h`.
 
 ---
 
-## 类型定义
+## Type Definitions
 
 ### `mdns_name_result_cb_t`
 
-名称探测结果回调：
+Name probing result callback:
 
 ```c
 typedef void (*mdns_name_result_cb_t)(struct netif *netif, u8_t result);
-// result: MDNS_PROBING_CONFLICT(0) 或 MDNS_PROBING_SUCCESSFUL(1)
+// result: MDNS_PROBING_CONFLICT(0) or MDNS_PROBING_SUCCESSFUL(1)
 ```
 
 ### `service_get_txt_fn_t`
 
-服务 TXT 记录回调：
+Service TXT record callback:
 
 ```c
 typedef void (*service_get_txt_fn_t)(struct mdns_service *service, void *txt_userdata);
@@ -43,11 +43,11 @@ typedef void (*service_get_txt_fn_t)(struct mdns_service *service, void *txt_use
 
 ---
 
-## 函数接口
+## Function Interface
 
 ### `mdns_resp_init`
 
-初始化 mDNS 响应器。
+Initialize the mDNS responder.
 
 ```c
 void mdns_resp_init(void);
@@ -57,7 +57,7 @@ void mdns_resp_init(void);
 
 ### `mdns_resp_deinit`
 
-反初始化 mDNS。
+Deinitialize mDNS.
 
 ```c
 void mdns_resp_deinit(void);
@@ -67,7 +67,7 @@ void mdns_resp_deinit(void);
 
 ### `mdns_resp_register_name_result_cb`
 
-注册名称冲突检测回调。
+Register name conflict detection callback.
 
 ```c
 void mdns_resp_register_name_result_cb(mdns_name_result_cb_t cb);
@@ -77,23 +77,23 @@ void mdns_resp_register_name_result_cb(mdns_name_result_cb_t cb);
 
 ### `mdns_resp_add_netif`
 
-为网络接口注册主机名。
+Register a hostname for a network interface.
 
 ```c
 err_t mdns_resp_add_netif(struct netif *netif, const char *hostname, u32_t dns_ttl);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `netif` | 网络接口 |
-| `hostname` | 主机名（如 `"my-device"`） |
-| `dns_ttl` | DNS 记录 TTL（秒） |
+| Parameter | Description |
+|-----------|-------------|
+| `netif` | Network interface |
+| `hostname` | Hostname (e.g., `"my-device"`) |
+| `dns_ttl` | DNS record TTL (seconds) |
 
 ---
 
 ### `mdns_resp_remove_netif`
 
-从接口移除 mDNS。
+Remove mDNS from an interface.
 
 ```c
 err_t mdns_resp_remove_netif(struct netif *netif);
@@ -103,7 +103,7 @@ err_t mdns_resp_remove_netif(struct netif *netif);
 
 ### `mdns_resp_rename_netif`
 
-修改接口的主机名。
+Change the hostname of an interface.
 
 ```c
 err_t mdns_resp_rename_netif(struct netif *netif, const char *hostname);
@@ -113,7 +113,7 @@ err_t mdns_resp_rename_netif(struct netif *netif, const char *hostname);
 
 ### `mdns_resp_add_service`
 
-注册 mDNS 服务。
+Register an mDNS service.
 
 ```c
 s8_t mdns_resp_add_service(struct netif *netif,
@@ -126,24 +126,24 @@ s8_t mdns_resp_add_service(struct netif *netif,
                            void *txt_userdata);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `netif` | 网络接口 |
-| `name` | 服务实例名（如 `"My HTTP Server"`） |
-| `service` | 服务类型（如 `"_http"`） |
-| `proto` | 协议：`MDNS_SD_PROTO_TCP` 或 `MDNS_SD_PROTO_UDP` |
-| `port` | 服务端口 |
+| Parameter | Description |
+|-----------|-------------|
+| `netif` | Network interface |
+| `name` | Service instance name (e.g., `"My HTTP Server"`) |
+| `service` | Service type (e.g., `"_http"`) |
+| `proto` | Protocol: `MDNS_SD_PROTO_TCP` or `MDNS_SD_PROTO_UDP` |
+| `port` | Service port |
 | `dns_ttl` | TTL |
-| `txt_fn` | TXT 记录回调（可 NULL） |
-| `txt_userdata` | 传递给回调的用户数据 |
+| `txt_fn` | TXT record callback (can be NULL) |
+| `txt_userdata` | User data passed to callback |
 
-**返回值**：>=0=服务槽号（用于删除/修改），<0=失败
+**Return value**: >=0=service slot number (for deletion/modification), <0=failure
 
 ---
 
 ### `mdns_resp_del_service`
 
-删除已注册服务。
+Delete a registered service.
 
 ```c
 err_t mdns_resp_del_service(struct netif *netif, s8_t slot);
@@ -153,7 +153,7 @@ err_t mdns_resp_del_service(struct netif *netif, s8_t slot);
 
 ### `mdns_resp_rename_service`
 
-修改服务实例名。
+Change the service instance name.
 
 ```c
 err_t mdns_resp_rename_service(struct netif *netif, s8_t slot, const char *name);
@@ -163,7 +163,7 @@ err_t mdns_resp_rename_service(struct netif *netif, s8_t slot, const char *name)
 
 ### `mdns_resp_add_service_txtitem`
 
-向服务添加 TXT 记录项。
+Add a TXT record entry to a service.
 
 ```c
 err_t mdns_resp_add_service_txtitem(struct mdns_service *service,
@@ -174,7 +174,7 @@ err_t mdns_resp_add_service_txtitem(struct mdns_service *service,
 
 ### `mdns_responder_start`
 
-启动 mDNS 响应器。
+Start the mDNS responder.
 
 ```c
 int mdns_responder_start(struct netif *netif);
@@ -184,7 +184,7 @@ int mdns_responder_start(struct netif *netif);
 
 ### `mdns_responder_stop`
 
-停止 mDNS 响应器。
+Stop the mDNS responder.
 
 ```c
 int mdns_responder_stop(struct netif *netif);
@@ -194,7 +194,7 @@ int mdns_responder_stop(struct netif *netif);
 
 ### `mdns_resp_restart`
 
-重启 mDNS 响应（触发重新探测）。
+Restart the mDNS responder (triggers re-probing).
 
 ```c
 void mdns_resp_restart(struct netif *netif);
@@ -204,7 +204,7 @@ void mdns_resp_restart(struct netif *netif);
 
 ### `mdns_resp_announce`
 
-主动广播（通知网络设置变化）。
+Broadcast proactively (notify the network of setting changes).
 
 ```c
 void mdns_resp_announce(struct netif *netif);
@@ -212,9 +212,9 @@ void mdns_resp_announce(struct netif *netif);
 
 ---
 
-## 使用示例
+## Usage Examples
 
-### 基本 HTTP 服务注册
+### Basic HTTP Service Registration
 
 ```c
 #include "lwip/apps/mdns_opts.h"
@@ -231,10 +231,10 @@ void mdns_http_example(struct netif *netif)
 {
     mdns_resp_init();
 
-    // 注册设备名
+    // Register device name
     mdns_resp_add_netif(netif, "my-wb2", 120);
 
-    // 注册 HTTP 服务
+    // Register HTTP service
     mdns_resp_add_service(netif,
                           "My HTTP Server",
                           "_http",
@@ -248,7 +248,7 @@ void mdns_http_example(struct netif *netif)
 }
 ```
 
-### 在 WiFi 连接后启动
+### Starting After Wi-Fi Connection
 
 ```c
 void wifi_connected_callback(struct netif *netif)

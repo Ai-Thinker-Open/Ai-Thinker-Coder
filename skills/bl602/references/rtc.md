@@ -1,38 +1,38 @@
-# RTC API 参考
+# RTC API Reference
 
-> 来源文件：`components/platform/hosal/include/hosal_rtc.h`
+> Source file: `components/platform/hosal/include/hosal_rtc.h`
 
-## 宏定义
+## Macros
 
 ```c
-#define HOSAL_RTC_FORMAT_DEC 1  // 十进制格式
-#define HOSAL_RTC_FORMAT_BCD 2  // BCD 格式
+#define HOSAL_RTC_FORMAT_DEC 1  // Decimal format
+#define HOSAL_RTC_FORMAT_BCD 2  // BCD format
 ```
 
-## 类型定义
+## Type Definitions
 
-### `hosal_rtc_config_t` — RTC 配置结构
+### `hosal_rtc_config_t` — RTC Configuration Structure
 
 ```c
 typedef struct {
-    uint8_t format;  // 时间格式：HOSAL_RTC_FORMAT_DEC 或 HOSAL_RTC_FORMAT_BCD
+    uint8_t format;  // Time format: HOSAL_RTC_FORMAT_DEC or HOSAL_RTC_FORMAT_BCD
 } hosal_rtc_config_t;
 ```
 
-### `hosal_rtc_time_t` — RTC 时间结构
+### `hosal_rtc_time_t` — RTC Time Structure
 
 ```c
 typedef struct {
-    uint8_t  sec;     // 秒（DEC: 0~59 / BCD: 0x00~0x59）
-    uint8_t  min;     // 分（DEC: 0~59 / BCD: 0x00~0x59）
-    uint8_t  hr;      // 时（DEC: 0~23 / BCD: 0x00~0x23）
-    uint8_t  date;    // 日（DEC: 1~31 / BCD: 0x01~0x31）
-    uint8_t  month;   // 月（DEC: 1~12 / BCD: 0x01~0x12）
-    uint16_t year;    // 年（DEC: 0~9999 / BCD: 0x0000~0x9999）
+    uint8_t  sec;     // Seconds (DEC: 0~59 / BCD: 0x00~0x59)
+    uint8_t  min;     // Minutes (DEC: 0~59 / BCD: 0x00~0x59)
+    uint8_t  hr;      // Hours (DEC: 0~23 / BCD: 0x00~0x23)
+    uint8_t  date;    // Day (DEC: 1~31 / BCD: 0x01~0x31)
+    uint8_t  month;   // Month (DEC: 1~12 / BCD: 0x01~0x12)
+    uint16_t year;    // Year (DEC: 0~9999 / BCD: 0x0000~0x9999)
 } hosal_rtc_time_t;
 ```
 
-### `hosal_rtc_dev_t` — RTC 设备结构
+### `hosal_rtc_dev_t` — RTC Device Structure
 
 ```c
 typedef struct {
@@ -42,11 +42,11 @@ typedef struct {
 } hosal_rtc_dev_t;
 ```
 
-## 函数接口
+## Function API
 
 ### `hosal_rtc_init`
 
-初始化 RTC。
+Initialize RTC.
 
 ```c
 int hosal_rtc_init(hosal_rtc_dev_t *rtc);
@@ -56,7 +56,7 @@ int hosal_rtc_init(hosal_rtc_dev_t *rtc);
 
 ### `hosal_rtc_set_time`
 
-设置时间（struct 方式）。
+Set time (struct mode).
 
 ```c
 int hosal_rtc_set_time(hosal_rtc_dev_t *rtc, const hosal_rtc_time_t *time);
@@ -66,7 +66,7 @@ int hosal_rtc_set_time(hosal_rtc_dev_t *rtc, const hosal_rtc_time_t *time);
 
 ### `hosal_rtc_get_time`
 
-读取时间（struct 方式）。
+Read time (struct mode).
 
 ```c
 int hosal_rtc_get_time(hosal_rtc_dev_t *rtc, hosal_rtc_time_t *time);
@@ -76,21 +76,21 @@ int hosal_rtc_get_time(hosal_rtc_dev_t *rtc, hosal_rtc_time_t *time);
 
 ### `hosal_rtc_set_count`
 
-设置时间（时间戳方式）。
+Set time (timestamp mode).
 
 ```c
 int hosal_rtc_set_count(hosal_rtc_dev_t *rtc, uint64_t *time_stamp);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `time_stamp` | 64 位时间戳（秒） |
+| Parameter | Description |
+|-----------|-------------|
+| `time_stamp` | 64-bit timestamp (seconds) |
 
 ---
 
 ### `hosal_rtc_get_count`
 
-读取时间（时间戳方式）。
+Read time (timestamp mode).
 
 ```c
 int hosal_rtc_get_count(hosal_rtc_dev_t *rtc, uint64_t *time_stamp);
@@ -100,13 +100,13 @@ int hosal_rtc_get_count(hosal_rtc_dev_t *rtc, uint64_t *time_stamp);
 
 ### `hosal_rtc_finalize`
 
-释放 RTC。
+Finalize RTC.
 
 ```c
 int hosal_rtc_finalize(hosal_rtc_dev_t *rtc);
 ```
 
-## 使用示例
+## Usage Example
 
 ```c
 #include "hal_rtc.h"
@@ -114,13 +114,13 @@ int hosal_rtc_finalize(hosal_rtc_dev_t *rtc);
 hosal_rtc_dev_t rtc0 = {
     .port = 0,
     .config = {
-        .format = HOSAL_RTC_FORMAT_DEC,  // 十进制格式
+        .format = HOSAL_RTC_FORMAT_DEC,  // Decimal format
     }
 };
 
 hosal_rtc_init(&rtc0);
 
-// 设置时间
+// Set time
 hosal_rtc_time_t set_time = {
     .year = 2025,
     .month = 6,
@@ -131,18 +131,18 @@ hosal_rtc_time_t set_time = {
 };
 hosal_rtc_set_time(&rtc0, &set_time);
 
-// 读取时间
+// Read time
 hosal_rtc_time_t cur_time;
 hosal_rtc_get_time(&rtc0, &cur_time);
 printf("%04d-%02d-%02d %02d:%02d:%02d\r\n",
        cur_time.year, cur_time.month, cur_time.date,
        cur_time.hr, cur_time.min, cur_time.sec);
 
-// 时间戳方式
+// Timestamp mode
 uint64_t ts;
 hosal_rtc_get_count(&rtc0, &ts);
 printf("Timestamp: %llu\r\n", ts);
 
-// 关闭
+// Finalize
 hosal_rtc_finalize(&rtc0);
 ```

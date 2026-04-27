@@ -1,92 +1,92 @@
-# DMA API 参考
+# DMA API Reference
 
-> 来源文件：`components/platform/hosal/include/hosal_dma.h`
+> Source file: `components/platform/hosal/include/hosal_dma.h`
 
-## 宏定义
+## Macro Definitions
 
 ```c
-#define HOSAL_DMA_INT_TRANS_COMPLETE 0  // 传输完成中断
-#define HOSAL_DMA_INT_TRANS_ERROR    1  // 传输错误中断
+#define HOSAL_DMA_INT_TRANS_COMPLETE 0  // Transfer complete interrupt
+#define HOSAL_DMA_INT_TRANS_ERROR    1  // Transfer error interrupt
 ```
 
-## 类型定义
+## Type Definitions
 
-### `hosal_dma_irq_t` — DMA 中断回调类型
+### `hosal_dma_irq_t` — DMA Interrupt Callback Type
 
 ```c
 typedef void (*hosal_dma_irq_t)(void *p_arg, uint32_t flag);
 ```
 
-- `flag` = `0` (`HOSAL_DMA_INT_TRANS_COMPLETE`)：传输完成
-- `flag` = `1` (`HOSAL_DMA_INT_TRANS_ERROR`)：传输错误
+- `flag` = `0` (`HOSAL_DMA_INT_TRANS_COMPLETE`): Transfer complete
+- `flag` = `1` (`HOSAL_DMA_INT_TRANS_ERROR`): Transfer error
 
-### `hosal_dma_chan_t` — DMA 通道号
+### `hosal_dma_chan_t` — DMA Channel Number
 
 ```c
 typedef int hosal_dma_chan_t;
 ```
 
-通道号为整数（如 0、1、2 等）。
+Channel numbers are integers (e.g., 0, 1, 2, etc.).
 
-### `hosal_dma_dev_t` — DMA 设备结构
+### `hosal_dma_dev_t` — DMA Device Structure
 
 ```c
 typedef struct hosal_dma_dev {
-    int max_chans;                    // 最大通道数
-    struct hosal_dma_chan *used_chan; // 已用通道数组
+    int max_chans;                    // Maximum number of channels
+    struct hosal_dma_chan *used_chan; // Array of used channels
     void *priv;
 } hosal_dma_dev_t;
 ```
 
-## 函数接口
+## Function API
 
 ### `hosal_dma_init`
 
-初始化 DMA 全局控制器。
+Initialize the DMA global controller.
 
 ```c
 int hosal_dma_init(void);
 ```
 
-**返回值**：`0` 成功，`EIO` 失败
+**Return value**: `0` success, `EIO` failure
 
 ---
 
 ### `hosal_dma_chan_request`
 
-请求一个 DMA 通道。
+Request a DMA channel.
 
 ```c
 hosal_dma_chan_t hosal_dma_chan_request(int flag);
 ```
 
-| 参数 | 说明 |
+| Parameter | Description |
 |------|------|
-| `flag` | 请求标志（通常填 0） |
+| `flag` | Request flag (usually set to 0) |
 
-**返回值**：成功返回通道号（>=0），失败返回负数
+**Return value**: Returns channel number (>=0) on success, negative number on failure
 
 ---
 
 ### `hosal_dma_chan_release`
 
-释放 DMA 通道。
+Release a DMA channel.
 
 ```c
 int hosal_dma_chan_release(hosal_dma_chan_t chan);
 ```
 
-| 参数 | 说明 |
+| Parameter | Description |
 |------|------|
-| `chan` | DMA 通道号 |
+| `chan` | DMA channel number |
 
-**返回值**：`0` 成功，`EIO` 失败
+**Return value**: `0` success, `EIO` failure
 
 ---
 
 ### `hosal_dma_chan_start`
 
-启动 DMA 传输。
+Start DMA transfer.
 
 ```c
 int hosal_dma_chan_start(hosal_dma_chan_t chan);
@@ -96,7 +96,7 @@ int hosal_dma_chan_start(hosal_dma_chan_t chan);
 
 ### `hosal_dma_chan_stop`
 
-停止 DMA 传输。
+Stop DMA transfer.
 
 ```c
 int hosal_dma_chan_stop(hosal_dma_chan_t chan);
@@ -106,7 +106,7 @@ int hosal_dma_chan_stop(hosal_dma_chan_t chan);
 
 ### `hosal_dma_irq_callback_set`
 
-设置 DMA 传输完成/错误中断回调。
+Set DMA transfer completion/error interrupt callback.
 
 ```c
 int hosal_dma_irq_callback_set(hosal_dma_chan_t chan,
@@ -118,35 +118,35 @@ int hosal_dma_irq_callback_set(hosal_dma_chan_t chan,
 
 ### `hosal_dma_finalize`
 
-释放 DMA 全局控制器。
+Release the DMA global controller.
 
 ```c
 int hosal_dma_finalize(void);
 ```
 
-## 使用示例
+## Usage Example
 
 ```c
 #include "hal_dma.h"
 
-// 全局 DMA 初始化（通常在系统初始化时调用一次）
+// Global DMA initialization (usually called once during system initialization)
 hosal_dma_init();
 
-// 请求通道
+// Request a channel
 hosal_dma_chan_t chan = hosal_dma_chan_request(0);
 if (chan < 0) {
-    // 请求失败
+    // Request failed
 }
 
-// 设置中断回调
+// Set interrupt callback
 hosal_dma_irq_callback_set(chan, my_dma_callback, NULL);
 
-// 启动传输（具体传输由外设驱动触发）
+// Start transfer (actual transfer is triggered by peripheral driver)
 hosal_dma_chan_start(chan);
 
-// 传输完成后停止
+// Stop after transfer completes
 hosal_dma_chan_stop(chan);
 
-// 释放通道
+// Release the channel
 hosal_dma_chan_release(chan);
 ```

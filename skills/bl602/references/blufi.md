@@ -1,42 +1,42 @@
-# BLUFI 配网 API 参考
+# BLUFI Provisioning API Reference
 
-> 来源文件：`components/network/blufi/blufi_api.h`  
-> BLUFI 是安信可基于 BLE 通道实现 Wi-Fi 配网和控制的协议，手机 APP 通过 BLE 发送 SSID/密码，BL602 接收后自动连接指定热点。
+> Source file: `components/network/blufi/blufi_api.h`  
+> BLUFI is a Wi-Fi provisioning and control protocol implemented by Ai-Thinker based on BLE channel. The mobile app sends SSID/password via BLE, and BL602 receives and automatically connects to the specified hotspot.
 
 ---
 
-## 概述
+## Overview
 
-BLUFI 配网流程：
+BLUFI provisioning flow:
 
 ```
-手机 APP (BLE) ──▶ BL602 (BLUFI) ──▶ 连接指定 Wi-Fi 热点
+Mobile App (BLE) ──▶ BL602 (BLUFI) ──▶ Connect to specified Wi-Fi hotspot
                          │
-                         ├── 解析 SSID/密码
-                         ├── 配置 AP 模式（可选）
-                         ├── 连接 Wi-Fi
-                         └── 上报连接结果
+                         ├── Parse SSID/password
+                         ├── Configure AP mode (optional)
+                         ├── Connect to Wi-Fi
+                         └── Report connection result
 ```
 
-**事件类型**：
+**Event types**:
 
-| 事件 | 说明 |
-|------|------|
-| `AXK_BLUFI_EVENT_INIT_FINISH` | BLUFI 初始化完成 |
-| `AXK_BLUFI_EVENT_BLE_CONNECT` | 手机 BLE 连接成功 |
-| `AXK_BLUFI_EVENT_BLE_DISCONNECT` | 手机 BLE 断开 |
-| `AXK_BLUFI_EVENT_RECV_STA_SSID` | 收到 STA 的 SSID |
-| `AXK_BLUFI_EVENT_RECV_STA_PASSWD` | 收到 STA 的密码 |
-| `AXK_BLUFI_EVENT_REQ_CONNECT_TO_AP` | 请求连接热点 |
-| `AXK_BLUFI_EVENT_GET_WIFI_STATUS` | 查询 Wi-Fi 状态 |
-| `AXK_BLUFI_EVENT_RECV_SOFTAP_SSID` | 收到 AP 的 SSID |
-| `AXK_BLUFI_EVENT_RECV_CUSTOM_DATA` | 收到自定义数据 |
+| Event | Description |
+|-------|-------------|
+| `AXK_BLUFI_EVENT_INIT_FINISH` | BLUFI initialization complete |
+| `AXK_BLUFI_EVENT_BLE_CONNECT` | Mobile BLE connection success |
+| `AXK_BLUFI_EVENT_BLE_DISCONNECT` | Mobile BLE disconnected |
+| `AXK_BLUFI_EVENT_RECV_STA_SSID` | Received STA SSID |
+| `AXK_BLUFI_EVENT_RECV_STA_PASSWD` | Received STA password |
+| `AXK_BLUFI_EVENT_REQ_CONNECT_TO_AP` | Request to connect to hotspot |
+| `AXK_BLUFI_EVENT_GET_WIFI_STATUS` | Query Wi-Fi status |
+| `AXK_BLUFI_EVENT_RECV_SOFTAP_SSID` | Received AP SSID |
+| `AXK_BLUFI_EVENT_RECV_CUSTOM_DATA` | Received custom data |
 
 ---
 
-## 类型定义
+## Type Definitions
 
-### `_blufi_cb_event_t` — BLUFI 事件类型
+### `_blufi_cb_event_t` — BLUFI Event Types
 
 ```c
 typedef enum {
@@ -54,43 +54,43 @@ typedef enum {
     AXK_BLUFI_EVENT_RECV_SOFTAP_SSID,
     AXK_BLUFI_EVENT_RECV_SOFTAP_PASSWD,
     AXK_BLUFI_EVENT_RECV_CUSTOM_DATA,
-    // ... 更多事件
+    // ... more events
 } _blufi_cb_event_t;
 ```
 
-### `_blufi_callbacks_t` — BLUFI 回调结构
+### `_blufi_callbacks_t` — BLUFI Callback Structure
 
 ```c
 typedef struct {
-    _blufi_event_cb_t             event_cb;             // 事件回调
-    _blufi_negotiate_data_handler_t negotiate_data_handler; // 密钥协商
-    _blufi_encrypt_func_t         encrypt_func;         // 加密函数
-    _blufi_decrypt_func_t         decrypt_func;         // 解密函数
-    _blufi_checksum_func_t        checksum_func;        // 校验和函数
+    _blufi_event_cb_t             event_cb;             // Event callback
+    _blufi_negotiate_data_handler_t negotiate_data_handler; // Key negotiation
+    _blufi_encrypt_func_t         encrypt_func;         // Encryption function
+    _blufi_decrypt_func_t         decrypt_func;         // Decryption function
+    _blufi_checksum_func_t        checksum_func;        // Checksum function
 } _blufi_callbacks_t;
 ```
 
 ---
 
-## 函数接口
+## Function API
 
 ### `axk_blufi_register_callbacks`
 
-注册 BLUFI 回调函数。
+Register BLUFI callback functions.
 
 ```c
 int axk_blufi_register_callbacks(_blufi_callbacks_t *callbacks);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `callbacks` | 回调函数结构体指针 |
+| Parameter | Description |
+|-----------|-------------|
+| `callbacks` | Callback function structure pointer |
 
 ---
 
 ### `axk_blufi_profile_init`
 
-初始化 BLUFI 协议层。
+Initialize BLUFI protocol layer.
 
 ```c
 int axk_blufi_profile_init(void);
@@ -100,7 +100,7 @@ int axk_blufi_profile_init(void);
 
 ### `axk_blufi_profile_deinit`
 
-去初始化 BLUFI。
+Deinitialize BLUFI.
 
 ```c
 int axk_blufi_profile_deinit(void);
@@ -110,7 +110,7 @@ int axk_blufi_profile_deinit(void);
 
 ### `axk_blufi_send_wifi_conn_report`
 
-向手机上报 Wi-Fi 连接状态。
+Report Wi-Fi connection status to mobile.
 
 ```c
 int axk_blufi_send_wifi_conn_report(wifi_mode_t opmode,
@@ -119,18 +119,18 @@ int axk_blufi_send_wifi_conn_report(wifi_mode_t opmode,
                                      axk_blufi_extra_info_t *extra_info);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `opmode` | Wi-Fi 模式（STA/AP） |
-| `sta_conn_state` | 连接状态（`_BLUFI_STA_CONN_SUCCESS` / `_BLUFI_STA_CONN_FAIL`） |
-| `softap_conn_num` | AP 已连接终端数 |
-| `extra_info` | 额外信息（SSID 等） |
+| Parameter | Description |
+|-----------|-------------|
+| `opmode` | Wi-Fi mode (STA/AP) |
+| `sta_conn_state` | Connection state (`_BLUFI_STA_CONN_SUCCESS` / `_BLUFI_STA_CONN_FAIL`) |
+| `softap_conn_num` | Number of connected stations in AP mode |
+| `extra_info` | Extra information (SSID, etc.) |
 
 ---
 
 ### `axk_blufi_send_wifi_list`
 
-向手机发送 Wi-Fi 列表。
+Send Wi-Fi list to mobile.
 
 ```c
 int axk_blufi_send_wifi_list(uint16_t apCount, _blufi_ap_record_t *list);
@@ -140,7 +140,7 @@ int axk_blufi_send_wifi_list(uint16_t apCount, _blufi_ap_record_t *list);
 
 ### `axk_blufi_send_error_info`
 
-上报 BLUFI 错误信息。
+Report BLUFI error information.
 
 ```c
 int axk_blufi_send_error_info(_blufi_error_state_t state);
@@ -150,7 +150,7 @@ int axk_blufi_send_error_info(_blufi_error_state_t state);
 
 ### `axk_blufi_send_custom_data`
 
-向手机发送自定义数据。
+Send custom data to mobile.
 
 ```c
 int axk_blufi_send_custom_data(uint8_t *data, uint32_t data_len);
@@ -158,7 +158,7 @@ int axk_blufi_send_custom_data(uint8_t *data, uint32_t data_len);
 
 ---
 
-## 使用示例
+## Usage Example
 
 ```c
 #include "blufi_api.h"
@@ -166,7 +166,7 @@ int axk_blufi_send_custom_data(uint8_t *data, uint32_t data_len);
 static char s_sta_ssid[32];
 static char s_sta_passwd[64];
 
-// BLUFI 事件回调
+// BLUFI event callback
 static void blufi_event_cb(_blufi_cb_event_t event, _blufi_cb_param_t *param)
 {
     switch (event) {
@@ -196,16 +196,16 @@ static void blufi_event_cb(_blufi_cb_event_t event, _blufi_cb_param_t *param)
 
     case AXK_BLUFI_EVENT_REQ_CONNECT_TO_AP:
         printf("Connecting to AP: %s\r\n", s_sta_ssid);
-        // 使用 BLUFI 收到的 SSID/密码连接 Wi-Fi
+        // Connect to Wi-Fi using SSID/password received via BLUFI
         wifi_sta_connect(s_sta_ssid, s_sta_passwd);
-        // 上报连接结果
+        // Report connection result
         axk_blufi_send_wifi_conn_report(WIFI_MODE_STA,
                                          _BLUFI_STA_CONN_SUCCESS,
                                          0, NULL);
         break;
 
     case AXK_BLUFI_EVENT_GET_WIFI_STATUS:
-        // 上报当前 Wi-Fi 状态
+        // Report current Wi-Fi status
         axk_blufi_send_wifi_conn_report(WIFI_MODE_STA,
                                          _BLUFI_STA_CONN_SUCCESS,
                                          0, NULL);
@@ -219,28 +219,28 @@ static void blufi_event_cb(_blufi_cb_event_t event, _blufi_cb_param_t *param)
     }
 }
 
-// 加密/解密/校验和回调（可使用默认实现）
+// Encryption/decryption/checksum callbacks (can use default implementations)
 static void blufi_negotiate_data_handler(uint8_t *data, int len,
                                           uint8_t **output, int *out_len,
                                           bool *need_free)
 {
-    // 默认实现
+    // Default implementation
     *need_free = false;
 }
 
 static int blufi_encrypt(uint8_t iv8, uint8_t *crypt_data, int crypt_len)
 {
-    return crypt_len; // 默认不加密
+    return crypt_len; // No encryption by default
 }
 
 static int blufi_decrypt(uint8_t iv8, uint8_t *crypt_data, int crypt_len)
 {
-    return crypt_len; // 默认不解密
+    return crypt_len; // No decryption by default
 }
 
 static uint16_t blufi_checksum(uint8_t iv8, uint8_t *data, int len)
 {
-    return 0; // 默认校验和
+    return 0; // Default checksum
 }
 
 void blufi_app_init(void)

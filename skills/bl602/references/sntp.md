@@ -1,21 +1,21 @@
-# SNTP 时间同步 API 参考
+# SNTP Time Synchronization API Reference
 
-> 来源文件：`components/network/sntp/include/sntp.h`  
-> 基于标准 lwIP SNTP 客户端，支持 NTP 服务器轮询和回调通知。
-
----
-
-## 概述
-
-SNTP 客户端用于从 NTP 服务器同步系统时间，支持：
-- 单播/广播模式
-- 多服务器配置
-- 可达性监控
-- 同步回调通知
+> Source file: `components/network/sntp/include/sntp.h`  
+> Based on standard lwIP SNTP client, supports NTP server polling and callback notifications.
 
 ---
 
-## 头文件
+## Overview
+
+The SNTP client is used to synchronize the system time from NTP servers, supporting:
+- Unicast/broadcast mode
+- Multiple server configuration
+- Server reachability monitoring
+- Synchronization callback notifications
+
+---
+
+## Header File
 
 ```c
 #include "sntp.h"
@@ -23,11 +23,11 @@ SNTP 客户端用于从 NTP 服务器同步系统时间，支持：
 
 ---
 
-## 类型定义
+## Type Definitions
 
 ### `ntp_sync_cb`
 
-时间同步回调函数类型：
+Time synchronization callback function type:
 
 ```c
 typedef void (*ntp_sync_cb)(void);
@@ -35,26 +35,26 @@ typedef void (*ntp_sync_cb)(void);
 
 ---
 
-## 函数接口
+## Function API
 
 ### `sntp_setoperatingmode`
 
-设置 SNTP 工作模式（需在 `sntp_init` 前调用）。
+Set SNTP operating mode (must be called before `sntp_init`).
 
 ```c
 void sntp_setoperatingmode(u8_t operating_mode);
 ```
 
-| 模式 | 值 | 说明 |
-|------|----|------|
-| `SNTP_OPMODE_POLL` | 0 | 轮询模式（默认） |
-| `SNTP_OPMODE_LISTENONLY` | 1 | 仅监听广播 |
+| Mode | Value | Description |
+|------|-------|-------------|
+| `SNTP_OPMODE_POLL` | 0 | Polling mode (default) |
+| `SNTP_OPMODE_LISTENONLY` | 1 | Listen to broadcast only |
 
 ---
 
 ### `sntp_getoperatingmode`
 
-获取当前工作模式：
+Get current operating mode:
 
 ```c
 u8_t sntp_getoperatingmode(void);
@@ -64,7 +64,7 @@ u8_t sntp_getoperatingmode(void);
 
 ### `sntp_init`
 
-初始化并启动 SNTP 客户端。
+Initialize and start the SNTP client.
 
 ```c
 void sntp_init(void);
@@ -74,7 +74,7 @@ void sntp_init(void);
 
 ### `sntp_stop`
 
-停止 SNTP 客户端。
+Stop the SNTP client.
 
 ```c
 void sntp_stop(void);
@@ -84,34 +84,34 @@ void sntp_stop(void);
 
 ### `sntp_enabled`
 
-查询 SNTP 是否已启用。
+Query whether SNTP is enabled.
 
 ```c
 u8_t sntp_enabled(void);
 ```
 
-**返回值**：1=已启用，0=未启用
+**Return value**: 1=enabled, 0=disabled
 
 ---
 
 ### `sntp_setserver`
 
-设置 NTP 服务器地址（按索引）。
+Set NTP server address (by index).
 
 ```c
 void sntp_setserver(u8_t idx, const ip_addr_t *addr);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `idx` | 服务器索引（0~3） |
-| `addr` | IP 地址 |
+| Parameter | Description |
+|-----------|-------------|
+| `idx` | Server index (0~3) |
+| `addr` | IP address |
 
 ---
 
 ### `sntp_getserver`
 
-获取 NTP 服务器地址。
+Get NTP server address.
 
 ```c
 const ip_addr_t *sntp_getserver(u8_t idx);
@@ -121,7 +121,7 @@ const ip_addr_t *sntp_getserver(u8_t idx);
 
 ### `sntp_setservername`
 
-通过域名设置 NTP 服务器（需 `SNTP_SERVER_DNS=1`）。
+Set NTP server via domain name (requires `SNTP_SERVER_DNS=1`).
 
 ```c
 void sntp_setservername(u8_t idx, const char *server);
@@ -131,7 +131,7 @@ void sntp_setservername(u8_t idx, const char *server);
 
 ### `sntp_getservername`
 
-获取 NTP 服务器域名。
+Get NTP server domain name.
 
 ```c
 const char *sntp_getservername(u8_t idx);
@@ -141,36 +141,36 @@ const char *sntp_getservername(u8_t idx);
 
 ### `sntp_getreachability`
 
-获取服务器可达性状态（需 `SNTP_MONITOR_SERVER_REACHABILITY=1`）。
+Get server reachability status (requires `SNTP_MONITOR_SERVER_REACHABILITY=1`).
 
 ```c
 u8_t sntp_getreachability(u8_t idx);
 ```
 
-**返回值**：0=不可达，非0=可达
+**Return value**: 0=unreachable, non-zero=reachable
 
 ---
 
 ### `sntp_get_time`
 
-获取当前时间（高分辨率）。
+Get current time (high resolution).
 
 ```c
 int sntp_get_time(uint32_t *seconds, uint32_t *frags);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `seconds` | Epoch 秒数（输出） |
-| `frags` | 分数秒（输出） |
+| Parameter | Description |
+|-----------|-------------|
+| `seconds` | Epoch seconds (output) |
+| `frags` | Fractional seconds (output) |
 
-**返回值**：0=成功
+**Return value**: 0=success
 
 ---
 
 ### `sntp_settimesynccb`
 
-设置时间同步回调（同步成功时自动调用）。
+Set time synchronization callback (automatically called on successful sync).
 
 ```c
 void sntp_settimesynccb(ntp_sync_cb cb);
@@ -180,7 +180,7 @@ void sntp_settimesynccb(ntp_sync_cb cb);
 
 ### `sntp_setupdatedelay`
 
-设置同步间隔。
+Set synchronization interval.
 
 ```c
 void sntp_setupdatedelay(uint32_t delay);
@@ -190,7 +190,7 @@ void sntp_setupdatedelay(uint32_t delay);
 
 ### `sntp_cli_init`
 
-初始化 SNTP CLI 命令（可通过 CLI 操作）。
+Initialize SNTP CLI commands (operable via CLI).
 
 ```c
 int sntp_cli_init(void);
@@ -198,9 +198,9 @@ int sntp_cli_init(void);
 
 ---
 
-## 使用示例
+## Usage Example
 
-### 基本初始化
+### Basic Initialization
 
 ```c
 #include "sntp.h"
@@ -208,19 +208,19 @@ int sntp_cli_init(void);
 
 void sntp_example(void)
 {
-    // 设置工作模式
+    // Set operating mode
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
 
-    // 设置 NTP 服务器（可用域名）
+    // Set NTP servers (domain names are supported)
     sntp_setservername(0, "pool.ntp.org");
     sntp_setservername(1, "time.google.com");
 
-    // 初始化
+    // Initialize
     sntp_init();
 }
 ```
 
-### 带回调的初始化
+### Initialization with Callback
 
 ```c
 static void on_time_synced(void)

@@ -1,29 +1,29 @@
-# HTTP Server (HTTPD) API 参考
+# HTTP Server (HTTPD) API Reference
 
-> 来源文件：`components/network/httpd/include/httpd.h`  
-> BL602 内置轻量级 HTTP 服务器，支持 CGI 脚本和静态文件服务。
+> Source file: `components/network/httpd/include/httpd.h`  
+> BL602 built-in lightweight HTTP server, supporting CGI scripts and static file serving.
 
 ---
 
-## 概述
+## Overview
 
-BL602 HTTPD 工作模式：
+BL602 HTTPD working mode:
 
 ```
-浏览器/客户端  ──HTTP──▶  BL602 HTTPD  ──▶  CGI 脚本处理
+Browser/Client  ──HTTP──▶  BL602 HTTPD  ──▶  CGI Script Processing
                               │
-                              └──▶  静态文件 (SPI Flash)
+                              └──▶  Static Files (SPI Flash)
 ```
 
-**特点**：
-- 集成在 LwIP 协议栈之上（基于 `altcp`）
-- 支持 CGI（Common Gateway Interface）回调
-- 支持 URI 路由注册
-- 支持 POST 数据处理
+**Features**:
+- Integrated on top of LwIP protocol stack (based on `altcp`)
+- Supports CGI (Common Gateway Interface) callbacks
+- Supports URI routing registration
+- Supports POST data processing
 
 ---
 
-## 头文件
+## Header File
 
 ```c
 #include "httpd.h"
@@ -31,46 +31,46 @@ BL602 HTTPD 工作模式：
 
 ---
 
-## CGI 回调
+## CGI Callbacks
 
 ### `tCGI`
 
-CGI 处理函数类型定义。
+CGI handler function type definition.
 
 ```c
 typedef err_t (*tCGI)(struct httpd_state *pVars, char *pBuffer, int iBufferLen);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `pVars` | HTTP 请求状态结构（包含请求方法、URI、参数、POST 数据等） |
-| `pBuffer` | 输出缓冲区，用于写入响应内容 |
-| `iBufferLen` | 缓冲区大小 |
+| Parameter | Description |
+|-----------|-------------|
+| `pVars` | HTTP request state structure (contains request method, URI, parameters, POST data, etc.) |
+| `pBuffer` | Output buffer, used to write response content |
+| `iBufferLen` | Buffer size |
 
-**返回值**：`ERR_OK`（成功）或其他 LwIP err_t
+**Return value**: `ERR_OK` (success) or other LwIP err_t
 
 ---
 
 ### `httpd_register_cgi`
 
-注册 CGI 路由。
+Registers a CGI route.
 
 ```c
 void httpd_register_cgi(const char *pcMyURI, tCGI pFunction);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `pcMyURI` | URI 路径，如 `"/api/led"` |
-| `pFunction` | 处理该 URI 的 CGI 函数 |
+| Parameter | Description |
+|-----------|-------------|
+| `pcMyURI` | URI path, such as `"/api/led"` |
+| `pFunction` | CGI function that handles this URI |
 
 ---
 
-## SSI 回调
+## SSI Callbacks
 
 ### `tSSIHandler`
 
-SSI（Server Side Include）处理函数类型。
+SSI (Server Side Include) handler function type.
 
 ```c
 typedef u16_t (*tSSIHandler)(const char *pcInsert, char *pBuffer, u16_t iBufferLen);
@@ -80,7 +80,7 @@ typedef u16_t (*tSSIHandler)(const char *pcInsert, char *pBuffer, u16_t iBufferL
 
 ### `httpd_register_ssi_handler`
 
-注册 SSI 处理函数。
+Registers an SSI handler function.
 
 ```c
 void httpd_register_ssi_handler(tSSIHandler pHandler,
@@ -88,31 +88,31 @@ void httpd_register_ssi_handler(tSSIHandler pHandler,
                                 u16_t uiNumTags);
 ```
 
-| 参数 | 说明 |
-|------|------|
-| `pHandler` | SSI 处理函数 |
-| `ppcTags` | SSI 标签数组（如 `{"temp", "humidity"}`） |
-| `uiNumTags` | 标签数量 |
+| Parameter | Description |
+|-----------|-------------|
+| `pHandler` | SSI handler function |
+| `ppcTags` | SSI tag array (e.g., `{"temp", "humidity"}`) |
+| `uiNumTags` | Number of tags |
 
 ---
 
-## 初始化
+## Initialization
 
 ### `httpd_init`
 
-初始化并启动 HTTP 服务器。
+Initializes and starts the HTTP server.
 
 ```c
 void httpd_init(void);
 ```
 
-> 默认监听 `0.0.0.0:80`。调用此函数后，HTTPD 开始接收 HTTP 请求。
+> Default listener is `0.0.0.0:80`. After calling this function, HTTPD begins receiving HTTP requests.
 
 ---
 
 ### `httpd_set_port`
 
-设置监听端口（需在 `httpd_init` 前调用）。
+Sets the listening port (must be called before `httpd_init`).
 
 ```c
 void httpd_set_port(uint16_t port);
@@ -120,9 +120,9 @@ void httpd_set_port(uint16_t port);
 
 ---
 
-## CGI 使用示例
+## CGI Usage Example
 
-### CGI 回调函数实现
+### CGI Callback Function Implementation
 
 ```c
 #include "httpd.h"
@@ -130,10 +130,10 @@ void httpd_set_port(uint16_t port);
 static err_t cgi_led_handler(struct httpd_state *pVars,
                               char *pBuffer, int iBufferLen)
 {
-    const char *method = pVars->request_method; // "GET" 或 "POST"
+    const char *method = pVars->request_method; // "GET" or "POST"
 
     if (strcmp(method, "GET") == 0) {
-        // GET /api/led：返回当前 LED 状态
+        // GET /api/led: Return current LED status
         snprintf(pBuffer, iBufferLen,
                  "HTTP/1.1 200 OK\r\n"
                  "Content-Type: application/json\r\n"
@@ -142,9 +142,9 @@ static err_t cgi_led_handler(struct httpd_state *pVars,
                  "{\"led\":%d}",
                  led_state);
     } else if (strcmp(method, "POST") == 0) {
-        // POST /api/led：解析 body 设置 LED 状态
-        char *body = pVars->pcPostData; // POST 请求体
-        // 解析 body，设置为 LED
+        // POST /api/led: Parse body to set LED status
+        char *body = pVars->pcPostData; // POST request body
+        // Parse body, set LED
         snprintf(pBuffer, iBufferLen,
                  "HTTP/1.1 200 OK\r\n"
                  "Content-Type: text/plain\r\n"
@@ -158,7 +158,7 @@ static err_t cgi_led_handler(struct httpd_state *pVars,
 static err_t cgi_sensor_handler(struct httpd_state *pVars,
                                  char *pBuffer, int iBufferLen)
 {
-    // 读取传感器数据
+    // Read sensor data
     int temp = read_temperature();
     int humi = read_humidity();
 
@@ -174,24 +174,24 @@ static err_t cgi_sensor_handler(struct httpd_state *pVars,
 }
 ```
 
-### 注册 CGI 并启动
+### Register CGI and Start
 
 ```c
 void app_main(void)
 {
-    // 其他初始化...
+    // Other initialization...
 
-    // 注册 CGI 路由
+    // Register CGI routes
     httpd_register_cgi("/api/led", cgi_led_handler);
     httpd_register_cgi("/api/sensor", cgi_sensor_handler);
 
-    // 启动 HTTP 服务器
+    // Start HTTP server
     httpd_init();
     printf("HTTP server started on port 80\r\n");
 }
 ```
 
-## SSI 使用示例
+## SSI Usage Example
 
 ```c
 static u16_t ssi_handler(const char *pcInsert, char *pBuffer, u16_t iBufferLen)
@@ -213,16 +213,16 @@ void app_main(void)
 }
 ```
 
-HTML 模板中使用 `<!--#temp-->` 会被替换为实际温度值。
+Using `<!--#temp-->` in an HTML template will be replaced with the actual temperature value.
 
-## httpd_state 关键字段
+## httpd_state Key Fields
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `request_method` | `char *` | 请求方法："GET" 或 "POST" |
-| `uri` | `char *` | 请求 URI 路径 |
-| `pcGetVars` | `char *` | URL 查询参数（GET 请求） |
-| `pcPostData` | `char *` | POST 请求体数据 |
-| `iPostDataLen` | `int` | POST 数据长度 |
-| `remote_ip` | `u32_t` | 客户端 IP 地址 |
-| `remote_port` | `u16_t` | 客户端端口 |
+| Field | Type | Description |
+|-------|------|-------------|
+| `request_method` | `char *` | Request method: "GET" or "POST" |
+| `uri` | `char *` | Request URI path |
+| `pcGetVars` | `char *` | URL query parameters (GET request) |
+| `pcPostData` | `char *` | POST request body data |
+| `iPostDataLen` | `int` | POST data length |
+| `remote_ip` | `u32_t` | Client IP address |
+| `remote_port` | `u16_t` | Client port |

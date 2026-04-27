@@ -1,18 +1,18 @@
-# Watchdog API 参考
+# Watchdog API Reference
 
-> 来源文件：`components/platform/hosal/include/hosal_wdg.h`
+> Source file: `components/platform/hosal/include/hosal_wdg.h`
 
-## 类型定义
+## Type Definitions
 
-### `hosal_wdg_config_t` — 看门狗配置结构
+### `hosal_wdg_config_t` — Watchdog Configuration Structure
 
 ```c
 typedef struct {
-    uint32_t timeout;  // 看门狗超时时间（毫秒 ms）
+    uint32_t timeout;  // Watchdog timeout (milliseconds)
 } hosal_wdg_config_t;
 ```
 
-### `hosal_wdg_dev_t` — 看门狗设备结构
+### `hosal_wdg_dev_t` — Watchdog Device Structure
 
 ```c
 typedef struct {
@@ -22,11 +22,11 @@ typedef struct {
 } hosal_wdg_dev_t;
 ```
 
-## 函数接口
+## Function Interface
 
 ### `hosal_wdg_init`
 
-初始化看门狗。
+Initializes the watchdog.
 
 ```c
 int hosal_wdg_init(hosal_wdg_dev_t *wdg);
@@ -36,7 +36,7 @@ int hosal_wdg_init(hosal_wdg_dev_t *wdg);
 
 ### `hosal_wdg_reload`
 
-喂狗（重载计数器，防止复位）。
+Feeds the watchdog (reloads the counter to prevent reset).
 
 ```c
 void hosal_wdg_reload(hosal_wdg_dev_t *wdg);
@@ -46,13 +46,13 @@ void hosal_wdg_reload(hosal_wdg_dev_t *wdg);
 
 ### `hosal_wdg_finalize`
 
-释放看门狗。
+Releases the watchdog.
 
 ```c
 int hosal_wdg_finalize(hosal_wdg_dev_t *wdg);
 ```
 
-## 使用示例
+## Usage Example
 
 ```c
 #include "hal_wdg.h"
@@ -60,16 +60,16 @@ int hosal_wdg_finalize(hosal_wdg_dev_t *wdg);
 hosal_wdg_dev_t wdg = {
     .port = 0,
     .config = {
-        .timeout = 3000,  // 3 秒超时
+        .timeout = 3000,  // 3 second timeout
     }
 };
 
 hosal_wdg_init(&wdg);
 
-// 主循环中定期喂狗
+// In the main loop, periodically feed the watchdog
 while (1) {
-    hosal_wdg_reload(&wdg);  // 喂狗
-    // 业务逻辑
+    hosal_wdg_reload(&wdg);  // Feed the watchdog
+    // Business logic
     vTaskDelay(pdMS_TO_TICKS(500));
 }
 ```
