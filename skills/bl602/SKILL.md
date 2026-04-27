@@ -871,6 +871,10 @@ ble_svc_gatt_add_service(service_uuid, att_db, sizeof(att_db));
 | [CLI](./references/cli.md) | 命令行接口、静态/动态命令注册、参数解析 |
 | [EasyFlash](./references/easyflash.md) | KV 存储、ENV 环境变量、日志循环写入 |
 | [系统时间](./references/bl_sys_time.md) | 系统 Epoch 时间获取/更新、NTP 同步回调 |
+| [Yloop](./references/yloop.md) | AliOS 事件循环、事件过滤、延时回调、os_task_v Yield |
+| [Utils](./references/utils.md) | CRC32/MD5/SHA256/Hex/Base64 工具函数 |
+| [cJSON](./references/cjson.md) | JSON 解析/构建、数组/对象遍历 |
+| [FastLZ](./references/fastlz.md) | 无损压缩解压、Level 1/2 算法选择 |
 
 ### 无线通信
 
@@ -892,6 +896,10 @@ ble_svc_gatt_add_service(service_uuid, att_db, sizeof(att_db));
 | [SNTP](./references/sntp.md) | NTP时间同步、多服务器轮询、同步回调 |
 | [mDNS](./references/mdns.md) | 本地服务发现、主机名注册、服务公告 |
 | [Ping](./references/ping.md) | ICMP Ping、连通性检测、RTT统计 |
+| [OTA](./references/ota.md) | HTTP/HTTPS OTA 固件升级、多芯片头解析、MD5 校验 |
+| [DHCP Server](./references/dhcp-server.md) | lwIP DHCPv4 服务器、IP 自动分配 |
+| [Wi-Fi HOSAL](./references/wifi-hosal.md) | Wi-Fi RF/功耗抽象层、发射功率配置 |
+| [Wi-Fi BT Coex](./references/wifi-bt-coex.md) | Wi-Fi/BT 共存模式切换、时序协调 |
 | [Power Management](./references/pm.md) | 电源管理、RF 控制、Wi-Fi 低功耗、PSM |
 
 ---
