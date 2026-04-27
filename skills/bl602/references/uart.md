@@ -1,449 +1,623 @@
-# BL602 UART Register-Level API Reference
+# UART API Reference
 
-**Source file:** `components/platform/soc/bl602/bl602_std/bl602_std/Device/Bouffalo/BL602/Peripherals/uart_reg.h`
+> Source file: `components/platform/hosal/include/hosal_uart.h`
 
-**Base addresses:**
-- UART0: `0x4000A000`
-- UART1: `0x4000A100`
-
----
-
-## Register Overview
-
-| Offset | Register Name       | Description                                      |
-|--------|---------------------|--------------------------------------------------|
-| `0x00` | `utx_config`        | UART Transmitter configuration                   |
-| `0x04` | `urx_config`        | UART Receiver configuration                       |
-| `0x08` | `uart_bit_prd`      | Bit timing period for TX and RX                  |
-| `0x0C` | `data_config`       | Data format configuration (bit inversion)         |
-| `0x10` | `utx_ir_position`   | IR TX position (start/pulse)                     |
-| `0x14` | `urx_ir_position`   | IR RX position (start)                           |
-| `0x18` | `urx_rto_timer`     | RX timeout value                                 |
-| `0x20` | `uart_int_sts`      | Interrupt status (raw)                           |
-| `0x24` | `uart_int_mask`     | Interrupt mask                                   |
-| `0x28` | `uart_int_clear`    | Interrupt clear (write-1-to-clear)               |
-| `0x2C` | `uart_int_en`       | Interrupt enable                                 |
-| `0x30` | `uart_status`       | Bus busy status                                  |
-| `0x34` | `sts_urx_abr_prd`   | Auto-baud rate measurement results               |
-| `0x80` | `uart_fifo_config_0` | FIFO DMA and overflow flags                     |
-| `0x84` | `uart_fifo_config_1` | FIFO count and threshold                        |
-| `0x88` | `uart_fifo_wdata`   | FIFO write data (TX)                             |
-| `0x8C` | `uart_fifo_rdata`   | FIFO read data (RX)                             |
-
----
-
-## Key Register Fields
-
-### `utx_config` (Offset `0x00`) - TX Configuration
-
-| Bit(s) | Field            | Description                                              | R/W  | Default |
-|--------|------------------|----------------------------------------------------------|------|---------|
-| `[0]`  | `cr_utx_en`      | TX enable                                                | r/w  | `0x0`   |
-| `[1]`  | `cr_utx_cts_en`  | TX CTS enable                                            | r/w  | `0x0`   |
-| `[2]`  | `cr_utx_frm_en`  | TX frame enable                                          | r/w  | `0x0`   |
-| `[4]`  | `cr_utx_prt_en`  | Parity enable                                            | r/w  | `0x0`   |
-| `[5]`  | `cr_utx_prt_sel` | Parity select (0=even, 1=odd)                           | r/w  | `0x0`   |
-| `[6]`  | `cr_utx_ir_en`   | IR TX enable                                             | r/w  | `0x0`   |
-| `[7]`  | `cr_utx_ir_inv`  | IR TX inversion                                          | r/w  | `0x0`   |
-| `[10:8]` | `cr_utx_bit_cnt_d` | TX data bits count minus 1 (e.g. `0x7` = 8 bits)     | r/w  | `0x7`   |
-| `[13:12]` | `cr_utx_bit_cnt_p` | TX stop bits count minus 1 (0=1stop, 1=1.5, 2=2stop) | r/w | `0x1` |
-| `[31:16]` | `cr_utx_len`    | TX frame length in bits (0=continuous)                 | r/w  | `0x0`   |
-
-### `urx_config` (Offset `0x04`) - RX Configuration
-
-| Bit(s) | Field               | Description                                          | R/W  | Default |
-|--------|---------------------|------------------------------------------------------|------|---------|
-| `[0]`  | `cr_urx_en`         | RX enable                                            | r/w  | `0x0`   |
-| `[1]`  | `cr_urx_rts_sw_mode` | RX RTS software mode                                | r/w  | `0x0`   |
-| `[2]`  | `cr_urx_rts_sw_val` | RX RTS software value                               | r/w  | `0x0`   |
-| `[3]`  | `cr_urx_abr_en`     | Auto-baud rate detection enable                     | r/w  | `0x0`   |
-| `[4]`  | `cr_urx_prt_en`     | Parity enable                                        | r/w  | `0x0`   |
-| `[5]`  | `cr_urx_prt_sel`    | Parity select (0=even, 1=odd)                       | r/w  | `0x0`   |
-| `[6]`  | `cr_urx_ir_en`      | IR RX enable                                        | r/w  | `0x0`   |
-| `[7]`  | `cr_urx_ir_inv`     | IR RX inversion                                     | r/w  | `0x0`   |
-| `[10:8]` | `cr_urx_bit_cnt_d`  | RX data bits count minus 1                          | r/w  | `0x7`   |
-| `[11]` | `cr_urx_deg_en`     | Deglitch enable                                      | r/w  | `0x0`   |
-| `[15:12]` | `cr_urx_deg_cnt`  | Deglitch clock cycle count (0-15)                   | r/w  | `0x0`   |
-| `[31:16]` | `cr_urx_len`      | RX frame length in bits (0=continuous)              | r/w  | `0x0`   |
-
-### `uart_bit_prd` (Offset `0x08`) - Bit Timing Period
-
-| Bit(s) | Field            | Description                           | R/W  | Default |
-|--------|------------------|---------------------------------------|------|---------|
-| `[15:0]` | `cr_utx_bit_prd` | TX bit period - 1 (clock cycles - 1) | r/w  | `0xff`  |
-| `[31:16]` | `cr_urx_bit_prd` | RX bit period - 1 (clock cycles - 1) | r/w  | `0xff`  |
-
-> Formula: `bit_period = (cr_utx_bit_prd + 1) / pclk_freq`
-> For 115200 baud with 40MHz PCLK: `cr_utx_bit_prd` = `40MHz / 115200 - 1` ≈ `0xD8`
-
-### `data_config` (Offset `0x0C`) - Data Format
-
-| Bit(s) | Field             | Description              | R/W  | Default |
-|--------|-------------------|--------------------------|------|---------|
-| `[0]`  | `cr_uart_bit_inv` | UART data bit inversion   | r/w  | `0x0`   |
-
-### `uart_int_sts` (Offset `0x20`) - Interrupt Status (Raw)
-
-| Bit | Field          | Description                     | R/W | Default |
-|-----|----------------|---------------------------------|-----|---------|
-| `[0]` | `utx_end_int`  | TX end interrupt flag           | r   | `0x0`   |
-| `[1]` | `urx_end_int`  | RX end interrupt flag           | r   | `0x0`   |
-| `[2]` | `utx_fifo_int` | TX FIFO threshold interrupt     | r   | `0x0`   |
-| `[3]` | `urx_fifo_int` | RX FIFO threshold interrupt     | r   | `0x0`   |
-| `[4]` | `urx_rto_int`  | RX timeout interrupt flag       | r   | `0x0`   |
-| `[5]` | `urx_pce_int`  | RX parity check error interrupt | r   | `0x0`   |
-| `[6]` | `utx_fer_int`  | TX frame error interrupt        | r   | `0x0`   |
-| `[7]` | `urx_fer_int`  | RX frame error interrupt        | r   | `0x0`   |
-
-### `uart_int_mask` (Offset `0x24`) - Interrupt Mask
-
-| Bit | Field              | Description                | R/W  | Default |
-|-----|--------------------|----------------------------|------|---------|
-| `[0]` | `cr_utx_end_mask`  | Mask TX end interrupt      | r/w  | `0x1`   |
-| `[1]` | `cr_urx_end_mask`  | Mask RX end interrupt      | r/w  | `0x1`   |
-| `[2]` | `cr_utx_fifo_mask` | Mask TX FIFO interrupt     | r/w  | `0x1`   |
-| `[3]` | `cr_urx_fifo_mask` | Mask RX FIFO interrupt     | r/w  | `0x1`   |
-| `[4]` | `cr_urx_rto_mask`  | Mask RX timeout interrupt  | r/w  | `0x1`   |
-| `[5]` | `cr_urx_pce_mask`  | Mask RX PCE interrupt      | r/w  | `0x1`   |
-| `[6]` | `cr_utx_fer_mask`  | Mask TX FER interrupt      | r/w  | `0x1`   |
-| `[7]` | `cr_urx_fer_mask`  | Mask RX FER interrupt      | r/w  | `0x1`   |
-
-### `uart_int_clear` (Offset `0x28`) - Interrupt Clear (Write-1-to-Clear)
-
-| Bit | Field             | Description              | R/W | Default |
-|-----|-------------------|--------------------------|-----|---------|
-| `[0]` | `cr_utx_end_clr`  | Clear TX end flag        | w1c | `0x0`   |
-| `[1]` | `cr_urx_end_clr`  | Clear RX end flag        | w1c | `0x0`   |
-| `[4]` | `cr_urx_rto_clr`  | Clear RX timeout flag    | w1c | `0x0`   |
-| `[5]` | `cr_urx_pce_clr`  | Clear RX PCE flag        | w1c | `0x0`   |
-
-### `uart_int_en` (Offset `0x2C`) - Interrupt Enable
-
-| Bit | Field            | Description              | R/W  | Default |
-|-----|------------------|--------------------------|------|---------|
-| `[0]` | `cr_utx_end_en`  | Enable TX end interrupt  | r/w  | `0x1`   |
-| `[1]` | `cr_urx_end_en`  | Enable RX end interrupt  | r/w  | `0x1`   |
-| `[2]` | `cr_utx_fifo_en` | Enable TX FIFO interrupt | r/w  | `0x1`   |
-| `[3]` | `cr_urx_fifo_en` | Enable RX FIFO interrupt | r/w  | `0x1`   |
-| `[4]` | `cr_urx_rto_en`  | Enable RX timeout int    | r/w  | `0x1`   |
-| `[5]` | `cr_urx_pce_en`  | Enable RX PCE interrupt  | r/w  | `0x1`   |
-| `[6]` | `cr_utx_fer_en`  | Enable TX FER interrupt  | r/w  | `0x1`   |
-| `[7]` | `cr_urx_fer_en`  | Enable RX FER interrupt  | r/w  | `0x1`   |
-
-### `uart_status` (Offset `0x30`) - Bus Status
-
-| Bit | Field              | Description       | R/W | Default |
-|-----|--------------------|-------------------|-----|---------|
-| `[0]` | `sts_utx_bus_busy` | TX bus busy flag  | r   | `0x0`   |
-| `[1]` | `sts_urx_bus_busy` | RX bus busy flag  | r   | `0x0`   |
-
-### `uart_fifo_config_0` (Offset `0x80`) - FIFO and DMA Control
-
-| Bit | Field                | Description                    | R/W  | Default |
-|-----|----------------------|--------------------------------|------|---------|
-| `[0]` | `uart_dma_tx_en`    | TX DMA enable                  | r/w  | `0x0`   |
-| `[1]` | `uart_dma_rx_en`    | RX DMA enable                  | r/w  | `0x0`   |
-| `[2]` | `tx_fifo_clr`       | TX FIFO clear (write 1)       | w1c  | `0x0`   |
-| `[3]` | `rx_fifo_clr`       | RX FIFO clear (write 1)       | w1c  | `0x0`   |
-| `[4]` | `tx_fifo_overflow`  | TX FIFO overflow flag (read)  | r    | `0x0`   |
-| `[5]` | `tx_fifo_underflow` | TX FIFO underflow flag (read)  | r    | `0x0`   |
-| `[6]` | `rx_fifo_overflow`  | RX FIFO overflow flag (read)   | r    | `0x0`   |
-| `[7]` | `rx_fifo_underflow` | RX FIFO underflow flag (read)  | r    | `0x0`   |
-
-### `uart_fifo_config_1` (Offset `0x84`) - FIFO Count and Threshold
-
-| Bit(s)   | Field          | Description                      | R/W | Default |
-|----------|----------------|----------------------------------|-----|---------|
-| `[5:0]`  | `tx_fifo_cnt`  | TX FIFO count (0-32)             | r   | `0x20`  |
-| `[13:8]` | `rx_fifo_cnt`  | RX FIFO count (0-32)             | r   | `0x0`   |
-| `[20:16]` | `tx_fifo_th`  | TX FIFO threshold                | r/w | `0x0`   |
-| `[28:24]` | `rx_fifo_th`  | RX FIFO threshold                | r/w | `0x0`   |
-
-### `uart_fifo_wdata` (Offset `0x88`) - TX FIFO Write
-
-| Bit(s)  | Field             | Description       | R/W | Default |
-|---------|-------------------|-------------------|-----|---------|
-| `[7:0]` | `uart_fifo_wdata` | TX FIFO write data | w   | undefined |
-
-### `uart_fifo_rdata` (Offset `0x8C`) - RX FIFO Read
-
-| Bit(s)  | Field             | Description       | R/W | Default |
-|---------|-------------------|-------------------|-----|---------|
-| `[7:0]` | `uart_fifo_rdata` | RX FIFO read data  | r   | `0x0`   |
-
----
-
-## Register-Level Programming Example
-
-### Initialize UART0 at 115200 Baud, 8N1, Polling Mode
+## Macros
 
 ```c
-#include "bl602.h"
-#include "uart_reg.h"
+#define HOSAL_UART_AUTOBAUD_0X55     1   // Auto baud detection using 0x55
+#define HOSAL_UART_AUTOBAUD_STARTBIT 2   // Auto detection using start bit
 
-#define UART0_BASE (0x4000A000)
-#define PCLK_FREQ  40000000UL  /* 40 MHz */
+// Callback types
+#define HOSAL_UART_TX_CALLBACK       1   // TX idle interrupt callback
+#define HOSAL_UART_RX_CALLBACK       2   // RX complete callback
+#define HOSAL_UART_TX_DMA_CALLBACK   3   // TX DMA complete callback
+#define HOSAL_UART_RX_DMA_CALLBACK   4   // RX DMA complete callback
 
-static volatile uart_reg_t *uart0 = (uart_reg_t *)UART0_BASE;
-
-void uart0_init(void)
-{
-    uint32_t bit_prd;
-
-    /* Calculate bit period: bit_prd = PCLK / baud - 1 */
-    bit_prd = PCLK_FREQ / 115200UL - 1;
-
-    /* Disable TX and RX during configuration */
-    uart0->utx_config.WORD = 0;
-    uart0->urx_config.WORD = 0;
-
-    /* Configure bit timing: 8 data bits, 1 stop bit */
-    uart0->uart_bit_prd.WORD = (bit_prd << 16) | bit_prd;
-
-    /* Configure TX: 8-bit mode, no parity, no IR, no frame */
-    uart0->utx_config.BF.cr_utx_en = 1;
-    uart0->utx_config.BF.cr_utx_bit_cnt_d = 7;  /* 8 - 1 = 7 */
-    uart0->utx_config.BF.cr_utx_bit_cnt_p = 0; /* 1 stop bit */
-    uart0->utx_config.BF.cr_utx_prt_en = 0;     /* no parity */
-
-    /* Configure RX: 8-bit mode, no parity, no IR */
-    uart0->urx_config.BF.cr_urx_en = 1;
-    uart0->urx_config.BF.cr_urx_bit_cnt_d = 7;  /* 8 - 1 = 7 */
-    uart0->urx_config.BF.cr_urx_bit_cnt_p = 0; /* 1 stop bit */
-    uart0->urx_config.BF.cr_urx_prt_en = 0;     /* no parity */
-}
+// ioctl control commands
+#define HOSAL_UART_BAUD_SET          1
+#define HOSAL_UART_BAUD_GET          2
+#define HOSAL_UART_DATA_WIDTH_SET    3
+#define HOSAL_UART_DATA_WIDTH_GET    4
+#define HOSAL_UART_STOP_BITS_SET     5
+#define HOSAL_UART_STOP_BITS_GET     6
+#define HOSAL_UART_FLOWMODE_SET      7
+#define HOSAL_UART_FLOWSTAT_GET      8
+#define HOSAL_UART_PARITY_SET        9
+#define HOSAL_UART_PARITY_GET       10
+#define HOSAL_UART_MODE_SET         11
+#define HOSAL_UART_MODE_GET         12
+#define HOSAL_UART_FREE_TXFIFO_GET  13
+#define HOSAL_UART_FREE_RXFIFO_GET  14
+#define HOSAL_UART_FLUSH            15
+#define HOSAL_UART_TX_TRIGGER_ON    16
+#define HOSAL_UART_TX_TRIGGER_OFF   17
+#define HOSAL_UART_DMA_TX_START     18
+#define HOSAL_UART_DMA_RX_START     19
 ```
 
-### Send a Byte (Polling)
+## Type Definitions
+
+### `hosal_uart_data_width_t` — Data Width
 
 ```c
-void uart0_putc(uint8_t ch)
-{
-    /* Wait until TX FIFO has space */
-    while (uart0->uart_fifo_config_1.BF.tx_fifo_cnt == 0)
-        ;
-
-    /* Write byte to TX FIFO */
-    uart0->uart_fifo_wdata.BF.uart_fifo_wdata = ch;
-}
+typedef enum {
+    HOSAL_DATA_WIDTH_5BIT,
+    HOSAL_DATA_WIDTH_6BIT,
+    HOSAL_DATA_WIDTH_7BIT,
+    HOSAL_DATA_WIDTH_8BIT,  // Common
+    HOSAL_DATA_WIDTH_9BIT
+} hosal_uart_data_width_t;
 ```
 
-### Receive a Byte (Polling)
+### `hosal_uart_stop_bits_t` — Stop Bits
 
 ```c
-uint8_t uart0_getc(void)
-{
-    /* Wait until RX FIFO has data */
-    while (uart0->uart_fifo_config_1.BF.rx_fifo_cnt == 0)
-        ;
-
-    /* Read byte from RX FIFO */
-    return (uint8_t)uart0->uart_fifo_rdata.BF.uart_fifo_rdata;
-}
+typedef enum {
+    HOSAL_STOP_BITS_1,      // 1 stop bit (common)
+    HOSAL_STOP_BITS_1_5,   // 1.5 stop bits
+    HOSAL_STOP_BITS_2       // 2 stop bits
+} hosal_uart_stop_bits_t;
 ```
 
-### Send a String
+### `hosal_uart_parity_t` — Parity
 
 ```c
-void uart0_puts(const char *s)
-{
-    while (*s) {
-        if (*s == '\n')
-            uart0_putc('\r');
-        uart0_putc(*s++);
-    }
-}
+typedef enum {
+    HOSAL_NO_PARITY,        // No parity (common)
+    HOSAL_ODD_PARITY,      // Odd parity
+    HOSAL_EVEN_PARITY      // Even parity
+} hosal_uart_parity_t;
 ```
 
-### Configure UART0 with RX Timeout Interrupt
+### `hosal_uart_flow_control_t` — Flow Control
 
 ```c
-void uart0_init_it(void)
-{
-    uint32_t bit_prd = PCLK_FREQ / 115200UL - 1;
-
-    /* Disable TX/RX for configuration */
-    uart0->utx_config.WORD = 0;
-    uart0->urx_config.WORD = 0;
-
-    /* Bit timing */
-    uart0->uart_bit_prd.WORD = (bit_prd << 16) | bit_prd;
-
-    /* TX config */
-    uart0->utx_config.BF.cr_utx_en = 1;
-    uart0->utx_config.BF.cr_utx_bit_cnt_d = 7;
-    uart0->utx_config.BF.cr_utx_bit_cnt_p = 0;
-    uart0->utx_config.BF.cr_utx_prt_en = 0;
-
-    /* RX config with timeout */
-    uart0->urx_config.BF.cr_urx_en = 1;
-    uart0->urx_config.BF.cr_urx_bit_cnt_d = 7;
-    uart0->urx_config.BF.cr_urx_bit_cnt_p = 0;
-    uart0->urx_config.BF.cr_urx_prt_en = 0;
-
-    /* Set RX timeout: RTO_VALUE in bit periods */
-    uart0->urx_rto_timer.BF.cr_urx_rto_value = 20; /* ~20 bit periods */
-
-    /* Clear all pending interrupts */
-    uart0->uart_int_clear.WORD = 0xFF;
-
-    /* Enable RX end, RX FIFO, and RX timeout interrupts */
-    uart0->uart_int_en.BF.cr_urx_end_en = 1;
-    uart0->uart_int_en.BF.cr_urx_fifo_en = 1;
-    uart0->uart_int_en.BF.cr_urx_rto_en = 1;
-
-    /* Unmask the corresponding interrupts */
-    uart0->uart_int_mask.BF.cr_urx_end_mask = 0;
-    uart0->uart_int_mask.BF.cr_urx_fifo_mask = 0;
-    uart0->uart_int_mask.BF.cr_urx_rto_mask = 0;
-}
+typedef enum {
+    HOSAL_FLOW_CONTROL_DISABLED, // No flow control (common)
+    HOSAL_FLOW_CONTROL_CTS,
+    HOSAL_FLOW_CONTROL_RTS,
+    HOSAL_FLOW_CONTROL_CTS_RTS
+} hosal_uart_flow_control_t;
 ```
 
-### Check RX Timeout and Parity Error in ISR
+### `hosal_uart_mode_t` — Mode
 
 ```c
-void UART0_IRQHandler(void)
-{
-    uint32_t status = uart0->uart_int_sts.WORD;
-
-    if (status & (1 << 4)) {  /* urx_rto_int */
-        /* RX timeout: incomplete frame received */
-        uart0->uart_int_clear.BF.cr_urx_rto_clr = 1;
-    }
-
-    if (status & (1 << 5)) {  /* urx_pce_int */
-        /* Parity check error */
-        uart0->uart_int_clear.BF.cr_urx_pce_clr = 1;
-    }
-
-    if (status & (1 << 1)) {  /* urx_end_int */
-        /* RX complete */
-        uint8_t ch = (uint8_t)uart0->uart_fifo_rdata.BF.uart_fifo_rdata;
-        uart0->uart_int_clear.BF.cr_urx_end_clr = 1;
-        /* process ch... */
-    }
-}
+typedef enum {
+    HOSAL_UART_MODE_POLL,      // Polling mode (default)
+    HOSAL_UART_MODE_INT_TX,    // TX interrupt mode
+    HOSAL_UART_MODE_INT_RX,    // RX interrupt mode
+    HOSAL_UART_MODE_INT,       // TX+RX interrupt mode
+} hosal_uart_mode_t;
 ```
 
-### Use Auto-Baud Rate Detection (0x55 Pattern)
+### `hosal_uart_callback_t` — Callback Function Type
 
 ```c
-void uart0_autobaud(void)
-{
-    /* Disable RX/TX */
-    uart0->utx_config.WORD = 0;
-    uart0->urx_config.WORD = 0;
-
-    /* Configure RX for auto-baud */
-    uart0->urx_config.BF.cr_urx_en = 1;
-    uart0->urx_config.BF.cr_urx_bit_cnt_d = 7;
-    uart0->urx_config.BF.cr_urx_abr_en = 1;  /* Enable ABR */
-
-    /* Clear any pending status */
-    uart0->uart_int_clear.WORD = 0xFF;
-
-    /* Wait for auto-baud measurement to complete (polling) */
-    while (uart0->sts_urx_abr_prd.BF.sts_urx_abr_prd_0x55 == 0)
-        ;
-
-    /* Read measured bit period */
-    uint32_t abr_prd = uart0->sts_urx_abr_prd.BF.sts_urx_abr_prd_0x55;
-
-    /* Configure TX with measured period */
-    uart0->uart_bit_prd.BF.cr_utx_bit_prd = abr_prd;
-
-    /* Now configure TX normally */
-    uart0->utx_config.BF.cr_utx_en = 1;
-    uart0->utx_config.BF.cr_utx_bit_cnt_d = 7;
-    uart0->utx_config.BF.cr_utx_bit_cnt_p = 0;
-}
+typedef int (*hosal_uart_callback_t)(void *p_arg);
 ```
 
----
+### `hosal_uart_dma_cfg_t` — DMA Configuration
 
-## HOSAL API
+```c
+typedef struct {
+    uint8_t *dma_buf;         // DMA buffer
+    uint32_t dma_buf_size;     // Buffer size
+} hosal_uart_dma_cfg_t;
+```
 
-**Header:** `components/platform/hosal/include/hosal_uart.h`
+### `hosal_uart_config_t` — UART Configuration Structure
 
-The HOSAL UART layer provides a high-level abstraction above the register interface.
+```c
+typedef struct {
+    uint8_t                   uart_id;        // UART ID (0/1/2)
+    uint8_t                   tx_pin;         // TX pin
+    uint8_t                   rx_pin;         // RX pin
+    uint8_t                   cts_pin;        // CTS pin (255=not used)
+    uint8_t                   rts_pin;        // RTS pin (255=not used)
+    uint32_t                  baud_rate;      // Baud rate
+    hosal_uart_data_width_t   data_width;    // Data width
+    hosal_uart_parity_t       parity;         // Parity
+    hosal_uart_stop_bits_t    stop_bits;      // Stop bits
+    hosal_uart_flow_control_t flow_control;   // Flow control
+    hosal_uart_mode_t         mode;           // Mode
+} hosal_uart_config_t;
+```
 
-### Initialization
+### `hosal_uart_dev_t` — UART Device Structure
+
+```c
+typedef struct {
+    uint8_t       port;
+    hosal_uart_config_t config;
+    hosal_uart_callback_t tx_cb;
+    void *p_txarg;
+    hosal_uart_callback_t rx_cb;
+    void *p_rxarg;
+    hosal_uart_callback_t txdma_cb;
+    void *p_txdma_arg;
+    hosal_uart_callback_t rxdma_cb;
+    void *p_rxdma_arg;
+    hosal_dma_chan_t dma_tx_chan;
+    hosal_dma_chan_t dma_rx_chan;
+    void         *priv;
+} hosal_uart_dev_t;
+```
+
+## Macros
+
+### Quick UART Configuration and Device Declaration
+
+```c
+// Declare configuration
+HOSAL_UART_CFG_DECL(cfg, id, tx_pin, rx_pin, baud);
+// Example: HOSAL_UART_CFG_DECL(my_cfg, 0, 16, 7, 115200);
+
+// Declare device
+HOSAL_UART_DEV_DECL(my_uart, 0, 16, 7, 115200);
+```
+
+## Function API
+
+### `hosal_uart_init`
+
+Initialize UART.
 
 ```c
 int hosal_uart_init(hosal_uart_dev_t *uart);
+```
+
+### `hosal_uart_init_only_tx`
+
+Initialize TX only (one-way communication).
+
+```c
 int hosal_uart_init_only_tx(hosal_uart_dev_t *uart);
 ```
 
-### Send / Receive (Polling)
+### `hosal_uart_send`
+
+Send data in polling mode.
 
 ```c
 int hosal_uart_send(hosal_uart_dev_t *uart, const void *txbuf, uint32_t size);
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `uart` | UART device |
+| `txbuf` | Transmit data buffer |
+| `size` | Number of bytes to send |
+
+**Return value**: bytes sent (>0) on success, `EIO` on failure
+
+---
+
+### `hosal_uart_receive`
+
+Receive data in polling mode.
+
+```c
 int hosal_uart_receive(hosal_uart_dev_t *uart, void *data, uint32_t expect_size);
 ```
 
-### IO Control
+| Parameter | Description |
+|-----------|-------------|
+| `uart` | UART device |
+| `data` | Receive data buffer |
+| `expect_size` | Expected number of bytes to receive |
+
+**Return value**: bytes received (>0) on success, `EIO` on failure
+
+---
+
+### `hosal_uart_ioctl`
+
+UART IO control.
 
 ```c
 int hosal_uart_ioctl(hosal_uart_dev_t *uart, int ctl, void *p_arg);
 ```
 
-Supported `ctl` values:
-- `HOSAL_UART_BAUD_SET` / `HOSAL_UART_BAUD_GET` - baud rate
-- `HOSAL_UART_DATA_WIDTH_SET` / `HOSAL_UART_DATA_WIDTH_GET` - data width (`HOSAL_DATA_WIDTH_5BIT` ... `HOSAL_DATA_WIDTH_9BIT`)
-- `HOSAL_UART_STOP_BITS_SET` / `HOSAL_UART_STOP_BITS_GET` - stop bits (`HOSAL_STOP_BITS_1`, `HOSAL_STOP_BITS_1_5`, `HOSAL_STOP_BITS_2`)
-- `HOSAL_UART_PARITY_SET` / `HOSAL_UART_PARITY_GET` - parity (`HOSAL_NO_PARITY`, `HOSAL_ODD_PARITY`, `HOSAL_EVEN_PARITY`)
-- `HOSAL_UART_MODE_SET` / `HOSAL_UART_MODE_GET` - mode (`HOSAL_UART_MODE_POLL`, `HOSAL_UART_MODE_INT_TX`, `HOSAL_UART_MODE_INT_RX`, `HOSAL_UART_MODE_INT`)
-- `HOSAL_UART_FLOWMODE_SET` / `HOSAL_UART_FLOWSTAT_GET` - flow control
-- `HOSAL_UART_FREE_TXFIFO_GET` / `HOSAL_UART_FREE_RXFIFO_GET` - FIFO status
-- `HOSAL_UART_FLUSH` - wait for TX complete
-- `HOSAL_UART_DMA_TX_START` / `HOSAL_UART_DMA_RX_START` - DMA transfer
+| ctl command | p_arg type | Description |
+|-------------|------------|-------------|
+| `HOSAL_UART_BAUD_SET` | `uint32_t *` | Set baud rate |
+| `HOSAL_UART_DATA_WIDTH_SET` | `hosal_uart_data_width_t *` | Set data width |
+| `HOSAL_UART_STOP_BITS_SET` | `hosal_uart_stop_bits_t *` | Set stop bits |
+| `HOSAL_UART_PARITY_SET` | `hosal_uart_parity_t *` | Set parity |
+| `HOSAL_UART_MODE_SET` | `hosal_uart_mode_t *` | Set mode |
+| `HOSAL_UART_FLUSH` | `NULL` | Wait for TX complete |
+| `HOSAL_UART_DMA_TX_START` | `hosal_uart_dma_cfg_t *` | Start DMA TX |
+| `HOSAL_UART_DMA_RX_START` | `hosal_uart_dma_cfg_t *` | Start DMA RX |
 
-### Callbacks
+---
+
+### `hosal_uart_callback_set`
+
+Set interrupt callback.
 
 ```c
-int hosal_uart_callback_set(hosal_uart_dev_t *uart, int callback_type,
-                            hosal_uart_callback_t pfn_callback, void *arg);
+int hosal_uart_callback_set(hosal_uart_dev_t *uart,
+                            int callback_type,
+                            hosal_uart_callback_t pfn_callback,
+                            void *arg);
 ```
 
-Callback types:
-- `HOSAL_UART_TX_CALLBACK` - TX idle interrupt
-- `HOSAL_UART_RX_CALLBACK` - RX complete interrupt
-- `HOSAL_UART_TX_DMA_CALLBACK` - TX DMA complete
-- `HOSAL_UART_RX_DMA_CALLBACK` - RX DMA complete
+| callback_type | Description |
+|---------------|-------------|
+| `HOSAL_UART_TX_CALLBACK` | TX idle callback |
+| `HOSAL_UART_RX_CALLBACK` | RX complete callback |
+| `HOSAL_UART_TX_DMA_CALLBACK` | TX DMA complete callback |
+| `HOSAL_UART_RX_DMA_CALLBACK` | RX DMA complete callback |
 
-### Auto-Baud
+---
+
+### `hosal_uart_finalize`
+
+Finalize UART.
 
 ```c
-int hosal_uart_abr_get(hosal_uart_dev_t *uart, uint8_t mode);
+int hosal_uart_finalize(hosal_uart_dev_t *uart);
 ```
 
-- `mode = HOSAL_UART_AUTOBAUD_0X55` - detect using 0x55 pattern
-- `mode = HOSAL_UART_AUTOBAUD_STARTBIT` - detect using start bit
-
-### Example using HOSAL
+## Usage Example
 
 ```c
-#include "hosal_uart.h"
+#include "hal_uart.h"
 
-hosal_uart_dev_t uart0;
+hosal_uart_dev_t uart0 = {
+    .port = 0,
+    .config = {
+        .uart_id = 0,
+        .tx_pin = 16,
+        .rx_pin = 7,
+        .baud_rate = 115200,
+        .data_width = HOSAL_DATA_WIDTH_8BIT,
+        .parity = HOSAL_NO_PARITY,
+        .stop_bits = HOSAL_STOP_BITS_1,
+        .mode = HOSAL_UART_MODE_POLL,
+    }
+};
 
-void uart0_example(void)
+hosal_uart_init(&uart0);
+
+// Send
+uint8_t tx_data[] = "Hello\r\n";
+hosal_uart_send(&uart0, tx_data, sizeof(tx_data) - 1);
+
+// Receive (blocking, wait for 10 bytes)
+uint8_t rx_buf[10];
+int len = hosal_uart_receive(&uart0, rx_buf, sizeof(rx_buf));
+
+// Dynamically change baud rate
+uint32_t new_baud = 9600;
+hosal_uart_ioctl(&uart0, HOSAL_UART_BAUD_SET, &new_baud);
+```
+
+---
+
+## Register-Level Programming
+
+> Register Header: `components/platform/soc/bl602/bl602_std/bl602_std/Device/Bouffalo/BL602/Peripherals/uart_reg.h`  
+> Base Address: UART0_BASE = 0x4000A000, UART1_BASE = 0x4000A100
+
+### Register Overview
+
+| Offset | Name | Description |
+|--------|------|-------------|
+| 0x00 | UTX_CONFIG | UART TX configuration |
+| 0x04 | URX_CONFIG | UART RX configuration |
+| 0x08 | UART_BIT_PRD | Bit period and sample cycle configuration |
+| 0x0C | DATA_CONFIG | Data format configuration (parity, stop bits, bit width) |
+| 0x10 | UTX_IR_POSITION | UART TX IR position |
+| 0x14 | URX_IR_POSITION | UART RX IR position |
+| 0x18 | UART_STATUS | UART status flags |
+| 0x1C | UART_INT_STATUS | UART interrupt status |
+| 0x20 | UART_INT_CLEAR | UART interrupt clear |
+| 0x24 | UART_INT_ENABLE | UART interrupt enable |
+| 0x28 | UART_FIFO_CONFIG_0 | FIFO configuration 0 (thresholds) |
+| 0x2C | UART_FIFO_CONFIG_1 | FIFO configuration 1 (overflow/underflow) |
+| 0x30 | UART_FIFO_STATUS | FIFO status (TX/RX count) |
+| 0x34 | UART_FIFO_WDATA | FIFO write data |
+| 0x38 | UART_FIFO_RDATA | FIFO read data |
+| 0x40 | UART_UTX_DUMMY | TX dummy register |
+| 0x44 | UART_CLKDIV | Clock divider |
+| 0x80 | AUTO_BAUD_CONFIG | Auto baud configuration |
+
+### Key Register Fields
+
+**UTX_CONFIG (offset 0x00) — TX Configuration**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| 0 | tx_enable | TX enable (1=enable) |
+| 1 | tx_irq_enable | TX interrupt enable (1=enable) |
+| 4 | tx_dma_enable | TX DMA enable (1=enable) |
+| 8 | tx_cts_enable | TX CTS flow control enable |
+| 16 | tx_fifo_overflow_int_enable | TX FIFO overflow interrupt enable |
+
+**URX_CONFIG (offset 0x04) — RX Configuration**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| 0 | rx_enable | RX enable (1=enable) |
+| 1 | rx_irq_enable | RX interrupt enable (1=enable) |
+| 4 | rx_dma_enable | RX DMA enable (1=enable) |
+| 8 | rts_enable | RTS flow control enable |
+| 16 | rx_fifo_overflow_int_enable | RX FIFO overflow interrupt enable |
+
+**UART_BIT_PRD (offset 0x08) — Bit Timing**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| [15:0] | bit_period | Bit period value (baud rate divisor - 1) |
+| [31:16] | sample_cycle | Sample cycle count for oversampling |
+
+**DATA_CONFIG (offset 0x0C) — Data Format**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| [2:0] | data_width | Data width (0=5bit, 1=6bit, 2=7bit, 3=8bit, 4=9bit) |
+| [5:3] | stop_bits | Stop bits (0=1stop, 1=1.5stop, 2=2stop) |
+| 8 | parity_enable | Parity enable (1=enable) |
+| 9 | paritysel | Parity select (0=even, 1=odd) |
+| 12 | bit_inverse | Bit inverse (1=invert TX/RX) |
+| 13 | byte_inverse | Byte inverse (1=invert byte order) |
+
+**UART_STATUS (offset 0x18) — Status Flags**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| 0 | tx_done | TX done flag |
+| 1 | rx_done | RX done flag |
+| 2 | rx_break | RX break detected |
+| 8 | tx_fifo_full | TX FIFO full |
+| 9 | tx_fifo_empty | TX FIFO empty |
+| 10 | rx_fifo_full | RX FIFO full |
+| 11 | rx_fifo_empty | RX FIFO empty |
+
+**UART_INT_STATUS (offset 0x1C) — Interrupt Status**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| 0 | tx_end_int | TX end interrupt |
+| 1 | rx_end_int | RX end interrupt |
+| 2 | rx_break_int | RX break interrupt |
+| 3 | rto_int | RX timeout interrupt |
+| 4 | rx_fifo_overflow_int | RX FIFO overflow interrupt |
+| 5 | tx_fifo_underflow_int | TX FIFO underflow interrupt |
+
+**UART_FIFO_CONFIG_0 (offset 0x28) — FIFO Thresholds**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| [7:0] | tx_fifo_threshold | TX FIFO threshold for interrupt |
+| [15:8] | rx_fifo_threshold | RX FIFO threshold for interrupt |
+
+**UART_FIFO_STATUS (offset 0x30) — FIFO Counts**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| [7:0] | tx_fifo_cnt | TX FIFO count |
+| [15:8] | rx_fifo_cnt | RX FIFO count |
+
+**UART_FIFO_WDATA (offset 0x34) — FIFO Write**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| [8:0] | fifo_wdata | Write data to TX FIFO |
+
+**UART_FIFO_RDATA (offset 0x38) — FIFO Read**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| [8:0] | fifo_rdata | Read data from RX FIFO |
+| 16 | rx_fifo_push | Push RX data to FIFO |
+
+**UART_CLKDIV (offset 0x44) — Clock Divider**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| [11:0] | div | Clock divider value |
+
+**AUTO_BAUD_CONFIG (offset 0x80) — Auto Baud**
+
+| Bits | Field | Description |
+|------|-------|-------------|
+| 0 | auto_baud_enable | Auto baud enable |
+| 1 | auto_baud_start | Auto baud start (write 1 to begin) |
+| 8 | overflow_indication | Overflow indication flag |
+
+### Register-Level Code Example
+
+```c
+#include <stdint.h>
+
+/* Register definitions for BL602 UART0 */
+#define UART0_BASE           0x4000A000UL
+#define UART1_BASE           0x4000A100UL
+
+#define UART_UTX_CONFIG      0x00
+#define UART_URX_CONFIG      0x04
+#define UART_BIT_PRD         0x08
+#define UART_DATA_CONFIG     0x0C
+#define UART_STATUS          0x18
+#define UART_INT_STATUS      0x1C
+#define UART_INT_CLEAR       0x20
+#define UART_INT_ENABLE      0x24
+#define UART_FIFO_CONFIG_0   0x28
+#define UART_FIFO_STATUS     0x30
+#define UART_FIFO_WDATA      0x34
+#define UART_FIFO_RDATA      0x38
+#define UART_CLKDIV          0x44
+
+/* Helper macros for register access */
+#define UART_REG(base, offset)  (*(volatile uint32_t *)((base) + (offset)))
+#define UTX_CONFIG(base)   UART_REG(base, UART_UTX_CONFIG)
+#define URX_CONFIG(base)   UART_REG(base, UART_URX_CONFIG)
+#define UBIT_PRD(base)     UART_REG(base, UART_BIT_PRD)
+#define UDATA_CONFIG(base) UART_REG(base, UART_DATA_CONFIG)
+#define USTATUS(base)      UART_REG(base, UART_STATUS)
+#define UINT_STATUS(base)  UART_REG(base, UART_INT_STATUS)
+#define UINT_CLEAR(base)   UART_REG(base, UART_INT_CLEAR)
+#define UINT_ENABLE(base)  UART_REG(base, UART_INT_ENABLE)
+#define UFIFO_CONFIG0(base) UART_REG(base, UART_FIFO_CONFIG_0)
+#define UFIFO_STATUS(base) UART_REG(base, UART_FIFO_STATUS)
+#define UFIFO_WDATA(base)  UART_REG(base, UART_FIFO_WDATA)
+#define UFIFO_RDATA(base)  UART_REG(base, UART_FIFO_RDATA)
+#define UCLKDIV(base)      UART_REG(base, UART_CLKDIV)
+
+/* System clock is 80MHz */
+#define SYS_CLK_HZ  80000000UL
+
+/* Calculate bit period for desired baud rate */
+/* Formula: bit_period = (sys_clk / baud) - 1 */
+static uint32_t calc_bit_period(uint32_t baud)
 {
-    /* Configure UART0 on pins TX=11, RX=14 at 115200 baud */
-    HOSAL_UART_CFG_DECL(uart0_cfg, 0, 11, 14, 115200);
+    return (SYS_CLK_HZ / baud) - 1;
+}
 
-    uart0.config = uart0_cfg;
+/* Initialize UART0 at 115200 baud, 8N1 using registers only */
+static void uart_reg_init(uint32_t base, uint32_t baud)
+{
+    uint32_t bit_period;
+    uint32_t clkdiv_val;
 
-    hosal_uart_init(&uart0);
+    /* Disable TX and RX during configuration */
+    UTX_CONFIG(base) = 0;
+    URX_CONFIG(base) = 0;
 
-    /* Send data */
-    const char *msg = "Hello\r\n";
-    hosal_uart_send(&uart0, msg, strlen(msg));
+    /* Configure clock divider: div = (sys_clk / (baud * 16)) - 1 */
+    clkdiv_val = (SYS_CLK_HZ / (baud * 16)) - 1;
+    UCLKDIV(base) = clkdiv_val & 0xFFF;
 
-    /* Receive data */
-    uint8_t buf[64];
-    hosal_uart_receive(&uart0, buf, sizeof(buf));
+    /* Configure bit timing: sample_cycle = 15 (16x oversampling) */
+    bit_period = calc_bit_period(baud);
+    UBIT_PRD(base) = (bit_period & 0xFFFF) | (15UL << 16);
 
-    hosal_uart_finalize(&uart0);
+    /* Configure data format: 8-bit, no parity, 1 stop bit */
+    UDATA_CONFIG(base) = 0;  /* data_width=0 (8bit), stop_bits=0 (1stop), no parity */
+
+    /* Configure FIFO thresholds: 1/2 full trigger */
+    UFIFO_CONFIG0(base) = (31UL << 8) | (31UL << 0);  /* tx threshold=31, rx threshold=31 */
+
+    /* Clear any pending interrupts */
+    UINT_CLEAR(base) = 0xFFFFFFFF;
+
+    /* Enable TX and RX */
+    UTX_CONFIG(base) = 1;   /* tx_enable = 1 */
+    URX_CONFIG(base) = 1;   /* rx_enable = 1 */
+}
+
+/* Send a single byte via register-level access */
+static void uart_reg_putc(uint32_t base, uint8_t ch)
+{
+    /* Wait until TX FIFO has space */
+    while (UFIFO_STATUS(base) & (1UL << 8)) { /* tx_fifo_full flag */ }
+
+    /* Write byte to TX FIFO */
+    UFIFO_WDATA(base) = ch & 0xFF;
+}
+
+/* Receive a single byte via register-level access (blocking) */
+static uint8_t uart_reg_getc(uint32_t base)
+{
+    uint32_t status;
+
+    /* Wait for RX data available */
+    do {
+        status = UINT_STATUS(base);
+    } while ((status & (1UL << 1)) == 0);  /* rx_end_int not set */
+
+    /* Read from RX FIFO */
+    uint32_t rdata = UFIFO_RDATA(base);
+    UINT_CLEAR(base) = (1UL << 1);  /* clear rx_end_int */
+
+    return rdata & 0xFF;
+}
+
+/* Send a buffer via register-level access */
+static void uart_reg_send(uint32_t base, const uint8_t *data, uint32_t len)
+{
+    uint32_t i;
+    for (i = 0; i < len; i++) {
+        uart_reg_putc(base, data[i]);
+    }
+}
+
+/* Receive multiple bytes (blocking) */
+static void uart_reg_receive(uint32_t base, uint8_t *data, uint32_t len)
+{
+    uint32_t i;
+    for (i = 0; i < len; i++) {
+        data[i] = uart_reg_getc(base);
+    }
+}
+
+/* Configure UART interrupt */
+static void uart_reg_irq_config(uint32_t base, uint8_t enable)
+{
+    if (enable) {
+        /* Enable RX interrupt */
+        UINT_ENABLE(base) = (1UL << 1);  /* rx_end_int enable */
+        /* Also enable TX end interrupt */
+        UINT_ENABLE(base) |= (1UL << 0); /* tx_end_int enable */
+    } else {
+        UINT_ENABLE(base) = 0;
+    }
+}
+
+/* Clear UART interrupt flags */
+static void uart_reg_irq_clear(uint32_t base)
+{
+    UINT_CLEAR(base) = 0xFFFFFFFF;
+}
+
+/* Example: Initialize UART0 at 115200 and send/receive data */
+static void example_uart_reg(void)
+{
+    /* Initialize UART0 at 115200 baud, 8N1 */
+    uart_reg_init(UART0_BASE, 115200);
+
+    /* Send a string */
+    uint8_t tx_buf[] = "Hello from register-level UART!\r\n";
+    uart_reg_send(UART0_BASE, tx_buf, sizeof(tx_buf) - 1);
+
+    /* Receive 5 bytes (blocking) */
+    uint8_t rx_buf[5];
+    uart_reg_receive(UART0_BASE, rx_buf, 5);
+
+    /* Echo received bytes back */
+    uart_reg_send(UART0_BASE, rx_buf, 5);
+}
+
+/* Example: Initialize UART0 with interrupt-based RX */
+static void example_uart_reg_irq(uint32_t uart_base)
+{
+    /* Disable interrupts during setup */
+    UINT_ENABLE(uart_base) = 0;
+
+    /* Initialize UART */
+    uart_reg_init(uart_base, 115200);
+
+    /* Configure FIFO thresholds for interrupt */
+    UFIFO_CONFIG0(uart_base) = (1UL << 8) | (1UL << 0);  /* trigger when 1+ bytes */
+
+    /* Clear any pending interrupts */
+    UINT_CLEAR(uart_base) = 0xFFFFFFFF;
+
+    /* Enable interrupts for RX */
+    UINT_ENABLE(uart_base) = (1UL << 1) | (1UL << 2) | (1UL << 3); /* rx_end + rx_break + rto */
+
+    /* Note: In real usage, enable global interrupts and configure the GIPO-related
+     * interrupt controller (like GLB_REG) to route UART interrupts to CPU */
+}
+
+/* Calculate proper bit_period value for given baud and sample rate */
+static uint32_t calc_bit_prd(uint32_t baud, uint32_t sample_cycle)
+{
+    /* Formula: bit_period = (sys_clk / (baud * (sample_cycle + 1))) - 1 */
+    return (SYS_CLK_HZ / (baud * (sample_cycle + 1))) - 1;
 }
 ```

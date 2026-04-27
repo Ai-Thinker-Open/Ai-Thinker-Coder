@@ -1,425 +1,319 @@
-# BL602 DMA Register-Level API Reference
+# DMA API Reference
 
-**Source file:** `components/platform/soc/bl602/bl602_std/bl602_std/Device/Bouffalo/BL602/Peripherals/dma_reg.h`
+> Source file: `components/platform/hosal/include/hosal_dma.h`
 
-**Base Address:** `0x4000C000`
-
----
-
-## Register Overview
-
-### Global DMA Registers
-
-| Offset | Register Name | Description |
-|--------|--------------|-------------|
-| `0x00` | DMA_IntStatus | Interrupt Status Register |
-| `0x04` | DMA_IntTCStatus | Transfer Complete Interrupt Status |
-| `0x08` | DMA_IntTCClear | Transfer Complete Interrupt Clear |
-| `0x0C` | DMA_IntErrorStatus | Error Interrupt Status |
-| `0x10` | DMA_IntErrClr | Error Interrupt Clear |
-| `0x14` | DMA_RawIntTCStatus | Raw Transfer Complete Status |
-| `0x18` | DMA_RawIntErrorStatus | Raw Error Status |
-| `0x1C` | DMA_EnbldChns | Enabled Channels Register |
-| `0x20` | DMA_SoftBReq | Software Big Request Register |
-| `0x24` | DMA_SoftSReq | Software Single Request Register |
-| `0x28` | DMA_SoftLBReq | Software Last Big Request Register |
-| `0x2C` | DMA_SoftLSReq | Software Last Single Request Register |
-| `0x30` | DMA_Top_Config | Top Configuration Register |
-| `0x34` | DMA_Sync | DMA Request Synchronization |
-
-### Channel 0 Registers (Offset base 0x100)
-
-| Offset | Register Name | Description |
-|--------|--------------|-------------|
-| `0x100` | DMA_C0SrcAddr | Channel 0 Source Address |
-| `0x104` | DMA_C0DstAddr | Channel 0 Destination Address |
-| `0x108` | DMA_C0LLI | Channel 0 Linked List Item |
-| `0x10C` | DMA_C0Control | Channel 0 Control |
-| `0x110` | DMA_C0Config | Channel 0 Configuration |
-
-### Channel 1 Registers (Offset base 0x200)
-
-| Offset | Register Name | Description |
-|--------|--------------|-------------|
-| `0x200` | DMA_C1SrcAddr | Channel 1 Source Address |
-| `0x204` | DMA_C1DstAddr | Channel 1 Destination Address |
-| `0x208` | DMA_C1LLI | Channel 1 Linked List Item |
-| `0x20C` | DMA_C1Control | Channel 1 Control |
-| `0x210` | DMA_C1Config | Channel 1 Configuration |
-
-### Channel 2 Registers (Offset base 0x300)
-
-| Offset | Register Name | Description |
-|--------|--------------|-------------|
-| `0x300` | DMA_C2SrcAddr | Channel 2 Source Address |
-| `0x304` | DMA_C2DstAddr | Channel 2 Destination Address |
-| `0x308` | DMA_C2LLI | Channel 2 Linked List Item |
-| `0x30C` | DMA_C2Control | Channel 2 Control |
-| `0x310` | DMA_C2Config | Channel 2 Configuration |
-
----
-
-## Key Register Fields
-
-### DMA_Top_Config - Top Configuration (Offset 0x30)
-
-| Field | Bits | Access | Description |
-|-------|------|--------|-------------|
-| E | [0] | R/W | Master enable bit for DMA controller |
-| M | [1] | R/W | Memory endianness configuration |
-
-### DMA_CxControl - Channel Control (Offsets 0x10C, 0x20C, 0x30C, ...)
-
-| Field | Bits | Access | Description |
-|-------|------|--------|-------------|
-| TRANSFERSIZE | [11:0] | R/W | Number of transfers (1-4096) |
-| SBSIZE | [14:12] | R/W | Source burst size (0=1, 1=2, 2=4, 3=8, 4=16) |
-| DBSIZE | [17:15] | R/W | Destination burst size |
-| SWIDTH | [20:18] | R/W | Source transfer width (0=8-bit, 1=16-bit, 2=32-bit, 3=64-bit) |
-| DWIDTH | [23:21] | R/W | Destination transfer width |
-| SLARGERD | [24] | R/W | Source larger than destination enable |
-| SI | [26] | R/W | Source increment (1=increment, 0=fixed) |
-| DI | [27] | R/W | Destination increment (1=increment, 0=fixed) |
-| PROT | [30:28] | R/W | Protection control |
-| I | [31] | R/W | Interrupt enable on transfer complete |
-
-### DMA_CxConfig - Channel Configuration (Offsets 0x110, 0x210, 0x310, ...)
-
-| Field | Bits | Access | Description |
-|-------|------|--------|-------------|
-| E | [0] | R/W | Channel enable |
-| SRCPERIPHERAL | [5:1] | R/W | Source peripheral select (0-31) |
-| DSTPERIPHERAL | [10:6] | R/W | Destination peripheral select (0-31) |
-| FLOWCNTRL | [13:11] | R/W | Flow control (0=M2M, 1=M2P, 2=P2M, 3=P2P, 4=LIM) |
-| IE | [14] | R/W | Error interrupt enable |
-| ITC | [15] | R/W | Terminal count interrupt enable |
-| L | [16] | R/W | Last descriptor (for linked lists) |
-| A | [17] | R/W | Active flag (read-only status) |
-| H | [18] | R/W | Halt flag |
-| LLICOUNTER | [29:20] | R/W | Linked list repeat count |
-
-### DMA_LLI - Linked List Item (Offsets 0x108, 0x208, 0x308, ...)
-
-| Field | Bits | Access | Description |
-|-------|------|--------|-------------|
-| LLI | [31:2] | R/W | Next LLI address (word-aligned) |
-| Reserved | [1:0] | - | Must be zero |
-
-### DMA_SoftBReq / DMA_SoftSReq / DMA_SoftLBReq / DMA_SoftLSReq (Offsets 0x20-0x2C)
-
-| Field | Bits | Access | Description |
-|-------|------|--------|-------------|
-| SOFTBREQ | [31:0] | R/W | Per-peripheral software request bits |
-
----
-
-## Register-Level Programming Example
-
-### Memory-to-Memory DMA Transfer Example
+## Macro Definitions
 
 ```c
-#include "bl602.h"
-#include "bl602_dma.h"
-
-#define DMA_BASE 0x4000C000
-
-/* DMA channel configuration structure */
-typedef struct {
-    uint32_t src_addr;
-    uint32_t dst_addr;
-    uint32_t transfer_size;
-    uint8_t  src_width;   /* 0=8-bit, 1=16-bit, 2=32-bit */
-    uint8_t  dst_width;
-    uint8_t  src_inc;     /* 1=increment, 0=fixed */
-    uint8_t  dst_inc;
-    uint8_t  burst_size;  /* 0=1, 1=2, 2=4, 3=8, 4=16 */
-} dma_xfer_config_t;
-
-/* Start DMA channel 0 for memory-to-memory transfer */
-int dma_m2m_start(uint32_t src, uint32_t dst, uint32_t size)
-{
-    volatile dma_reg_t *dma = (volatile dma_reg_t *)DMA_BASE;
-
-    /* Enable DMA controller if not already enabled */
-    if (!dma->DMA_Top_Config.BF.e) {
-        dma->DMA_Top_Config.BF.e = 1;
-    }
-
-    /* Stop channel 0 if running */
-    dma->DMA_C0Config.BF.e = 0;
-
-    /* Clear any pending interrupts */
-    dma->DMA_IntTCClear.WORD = (1 << 0);
-    dma->DMA_IntErrClr.WORD = (1 << 0);
-
-    /* Set source address */
-    dma->DMA_C0SrcAddr.WORD = src;
-
-    /* Set destination address */
-    dma->DMA_C0DstAddr.WORD = dst;
-
-    /* Configure transfer:
-     * - 32-bit transfers
-     * - Increment both source and destination
-     * - Burst size of 4
-     * - Enable interrupt on complete
-     */
-    dma->DMA_C0Control.WORD = 0;
-    dma->DMA_C0Control.BF.transfer_size = size;
-    dma->DMA_C0Control.BF.sbsize = 2;     /* Burst 4 */
-    dma->DMA_C0Control.BF.dbsize = 2;     /* Burst 4 */
-    dma->DMA_C0Control.BF.swidth = 2;     /* 32-bit */
-    dma->DMA_C0Control.BF.dwidth = 2;     /* 32-bit */
-    dma->DMA_C0Control.BF.si = 1;          /* Increment source */
-    dma->DMA_C0Control.BF.di = 1;          /* Increment dest */
-    dma->DMA_C0Control.BF.i = 1;           /* Interrupt enable */
-
-    /* Configure channel:
-     * - Memory to memory transfer
-     * - No peripheral select
-     * - Enable channel
-     */
-    dma->DMA_C0Config.WORD = 0;
-    dma->DMA_C0Config.BF.flowcntrl = 0;    /* M2M */
-    dma->DMA_C0Config.BF.srcperipheral = 0;
-    dma->DMA_C0Config.BF.dstperipheral = 0;
-    dma->DMA_C0Config.BF.itc = 1;          /* Terminal count interrupt */
-    dma->DMA_C0Config.BF.ie = 1;           /* Error interrupt */
-    dma->DMA_C0Config.BF.e = 1;            /* Enable channel */
-
-    return 0;
-}
-
-/* DMA interrupt handler */
-void dma_irq_handler(void)
-{
-    volatile dma_reg_t *dma = (volatile dma_reg_t *)DMA_BASE;
-
-    /* Check channel 0 transfer complete */
-    if (dma->DMA_IntTCStatus.WORD & (1 << 0)) {
-        /* Clear interrupt */
-        dma->DMA_IntTCClear.WORD = (1 << 0);
-
-        /* Transfer complete - handle callback */
-        // ...
-    }
-
-    /* Check for errors */
-    if (dma->DMA_IntErrorStatus.WORD & (1 << 0)) {
-        /* Clear error */
-        dma->DMA_IntErrClr.WORD = (1 << 0);
-
-        /* Handle error */
-        // ...
-    }
-}
+#define HOSAL_DMA_INT_TRANS_COMPLETE 0  // Transfer complete interrupt
+#define HOSAL_DMA_INT_TRANS_ERROR    1  // Transfer error interrupt
 ```
 
-### Peripheral-to-Memory DMA Example (UART)
+## Type Definitions
+
+### `hosal_dma_irq_t` — DMA Interrupt Callback Type
 
 ```c
-/* Configure DMA for UART receive (peripheral to memory) */
-int dma_uart_rx_start(uint8_t channel, uint32_t uart_rx_addr, uint8_t *buf, uint32_t size)
-{
-    volatile dma_reg_t *dma = (volatile dma_reg_t *)DMA_BASE;
-    uint32_t channel_base = 0x100 + (channel * 0x100);
-    uint32_t config_reg = 0x110 + (channel * 0x100);
-
-    /* Enable DMA controller */
-    dma->DMA_Top_Config.BF.e = 1;
-
-    /* Stop channel */
-    *(volatile uint32_t *)(DMA_BASE + config_reg) &= ~1;
-
-    /* Clear interrupts */
-    dma->DMA_IntTCClear.WORD = (1 << channel);
-    dma->DMA_IntErrClr.WORD = (1 << channel);
-
-    /* Set source (UART RX register) */
-    *(volatile uint32_t *)(DMA_BASE + channel_base) = uart_rx_addr;
-
-    /* Set destination (memory buffer) */
-    *(volatile uint32_t *)(DMA_BASE + channel_base + 4) = (uint32_t)buf;
-
-    /* Configure control:
-     * - 8-bit transfers
-     * - Source fixed (peripheral), dest increment (memory)
-     * - Size = number of bytes
-     */
-    *(volatile uint32_t *)(DMA_BASE + channel_base + 8) =
-        (size & 0xFFF) |          /* TransferSize */
-        (0 << 12) |               /* SBSIZE = 1 */
-        (0 << 15) |               /* DBSIZE = 1 */
-        (0 << 18) |               /* SWIDTH = 8-bit */
-        (0 << 21) |               /* DWIDTH = 8-bit */
-        (0 << 26) |               /* SI = 0 (fixed) */
-        (1 << 27) |               /* DI = 1 (increment) */
-        (1 << 31);                /* I = 1 (interrupt) */
-
-    /* Configure channel:
-     * - Peripheral to Memory
-     * - UART peripheral as source
-     * - Flow controlled by peripheral
-     */
-    *(volatile uint32_t *)(DMA_BASE + config_reg) =
-        (0 << 0) |                /* E = 0 for now */
-        (17 << 1) |              /* SRCPERIPHERAL = UART (peripheral #17) */
-        (0 << 6) |               /* DSTPERIPHERAL = 0 (memory) */
-        (2 << 11) |              /* FLOWCNTRL = P2M */
-        (1 << 14) |               /* IE = 1 */
-        (1 << 15);                /* ITC = 1 */
-
-    /* Enable channel */
-    *(volatile uint32_t *)(DMA_BASE + config_reg) |= 1;
-
-    return 0;
-}
-```
-
-### Linked List Transfer Example
-
-```c
-/* Linked list item structure */
-typedef struct {
-    uint32_t src_addr;      /* Source address */
-    uint32_t dst_addr;      /* Destination address */
-    uint32_t next_lli;       /* Next LLI address (0 = end of list) */
-    uint32_t control;        /* Transfer control word */
-} dma_lli_t;
-
-/* Execute linked list transfer */
-int dma_lli_start(dma_lli_t *lli_list, uint32_t num_items)
-{
-    volatile dma_reg_t *dma = (volatile dma_reg_t *)DMA_BASE;
-    dma_lli_t *p_lli = lli_list;
-
-    /* Configure each LLI in the list */
-    for (uint32_t i = 0; i < num_items; i++) {
-        uint32_t ch_base = 0x100 + (i * 0x100);
-
-        /* Set source address */
-        *(volatile uint32_t *)(DMA_BASE + ch_base) = p_lli->src_addr;
-
-        /* Set destination address */
-        *(volatile uint32_t *)(DMA_BASE + ch_base + 4) = p_lli->dst_addr;
-
-        /* Set next LLI (must be word-aligned, lower 2 bits = 0) */
-        *(volatile uint32_t *)(DMA_BASE + ch_base + 8) = 
-            (i < num_items - 1) ? ((uint32_t)(p_lli + 1) & ~0x3) : 0;
-
-        /* Set control */
-        *(volatile uint32_t *)(DMA_BASE + ch_base + 12) = p_lli->control;
-
-        /* Configure channel */
-        uint32_t config_reg = 0x110 + (i * 0x100);
-        *(volatile uint32_t *)(DMA_BASE + config_reg) =
-            (0 << 0) |             /* E = 0 for now */
-            (0 << 1) |             /* SRCPERIPHERAL = 0 */
-            (0 << 6) |             /* DSTPERIPHERAL = 0 */
-            (0 << 11) |            /* FLOWCNTRL = M2M */
-            (1 << 14) |            /* IE */
-            (1 << 15) |            /* ITC */
-            ((i < num_items - 1) ? (1 << 16) : 0);  /* L (not last if more items) */
-
-        p_lli++;
-    }
-
-    /* Enable first channel to start transfer */
-    dma->DMA_C0Config.BF.e = 1;
-
-    return 0;
-}
-```
-
----
-
-## HOSAL API
-
-**Header:** `components/platform/hosal/include/hosal_dma.h`
-
-### Data Types and Constants
-
-```c
-/* Interrupt flags */
-#define HOSAL_DMA_INT_TRANS_COMPLETE  0  /* Transfer complete interrupt */
-#define HOSAL_DMA_INT_TRANS_ERROR     1  /* Transfer error interrupt */
-
 typedef void (*hosal_dma_irq_t)(void *p_arg, uint32_t flag);
+```
 
-struct hosal_dma_chan {
-    uint8_t used;
-    hosal_dma_irq_t callback;
-    void *p_arg;
-};
+- `flag` = `0` (`HOSAL_DMA_INT_TRANS_COMPLETE`): Transfer complete
+- `flag` = `1` (`HOSAL_DMA_INT_TRANS_ERROR`): Transfer error
 
-typedef struct hosal_dma_dev {
-    int max_chans;
-    struct hosal_dma_chan *used_chan;
-    void *priv;
-} hosal_dma_dev_t;
+### `hosal_dma_chan_t` — DMA Channel Number
 
+```c
 typedef int hosal_dma_chan_t;
 ```
 
-### API Functions
+Channel numbers are integers (e.g., 0, 1, 2, etc.).
 
-| Function | Description |
-|----------|-------------|
-| `int hosal_dma_init(void)` | Initialize DMA controller |
-| `hosal_dma_chan_t hosal_dma_chan_request(int flag)` | Request a DMA channel |
-| `int hosal_dma_chan_release(hosal_dma_chan_t chan)` | Release a DMA channel |
-| `int hosal_dma_chan_start(hosal_dma_chan_t chan)` | Start DMA transfer |
-| `int hosal_dma_chan_stop(hosal_dma_chan_t chan)` | Stop DMA transfer |
-| `int hosal_dma_irq_callback_set(hosal_dma_chan_t chan, hosal_dma_irq_t pfn, void *p_arg)` | Set DMA callback |
-| `int hosal_dma_finalize(void)` | De-initialize DMA |
-
-### HOSAL Usage Example
+### `hosal_dma_dev_t` — DMA Device Structure
 
 ```c
-#include "hosal_dma.h"
+typedef struct hosal_dma_dev {
+    int max_chans;                    // Maximum number of channels
+    struct hosal_dma_chan *used_chan; // Array of used channels
+    void *priv;
+} hosal_dma_dev_t;
+```
 
-hosal_dma_chan_t dma_chan;
-volatile uint8_t src_buffer[256];
-volatile uint8_t dst_buffer[256];
-volatile int dma_complete = 0;
+## Function API
 
-void dma_callback(void *p_arg, uint32_t flag)
+### `hosal_dma_init`
+
+Initialize the DMA global controller.
+
+```c
+int hosal_dma_init(void);
+```
+
+**Return value**: `0` success, `EIO` failure
+
+---
+
+### `hosal_dma_chan_request`
+
+Request a DMA channel.
+
+```c
+hosal_dma_chan_t hosal_dma_chan_request(int flag);
+```
+
+| Parameter | Description |
+|------|------|
+| `flag` | Request flag (usually set to 0) |
+
+**Return value**: Returns channel number (>=0) on success, negative number on failure
+
+---
+
+### `hosal_dma_chan_release`
+
+Release a DMA channel.
+
+```c
+int hosal_dma_chan_release(hosal_dma_chan_t chan);
+```
+
+| Parameter | Description |
+|------|------|
+| `chan` | DMA channel number |
+
+**Return value**: `0` success, `EIO` failure
+
+---
+
+### `hosal_dma_chan_start`
+
+Start DMA transfer.
+
+```c
+int hosal_dma_chan_start(hosal_dma_chan_t chan);
+```
+
+---
+
+### `hosal_dma_chan_stop`
+
+Stop DMA transfer.
+
+```c
+int hosal_dma_chan_stop(hosal_dma_chan_t chan);
+```
+
+---
+
+### `hosal_dma_irq_callback_set`
+
+Set DMA transfer completion/error interrupt callback.
+
+```c
+int hosal_dma_irq_callback_set(hosal_dma_chan_t chan,
+                               hosal_dma_irq_t pfn,
+                               void *p_arg);
+```
+
+---
+
+### `hosal_dma_finalize`
+
+Release the DMA global controller.
+
+```c
+int hosal_dma_finalize(void);
+```
+
+## Usage Example
+
+```c
+#include "hal_dma.h"
+
+// Global DMA initialization (usually called once during system initialization)
+hosal_dma_init();
+
+// Request a channel
+hosal_dma_chan_t chan = hosal_dma_chan_request(0);
+if (chan < 0) {
+    // Request failed
+}
+
+// Set interrupt callback
+hosal_dma_irq_callback_set(chan, my_dma_callback, NULL);
+
+// Start transfer (actual transfer is triggered by peripheral driver)
+hosal_dma_chan_start(chan);
+
+// Stop after transfer completes
+hosal_dma_chan_stop(chan);
+
+// Release the channel
+hosal_dma_chan_release(chan);
+```
+
+---
+
+## Register-Level Programming
+
+> Register Header: `components/platform/soc/bl602/bl602_std/bl602_std/Device/Bouffalo/BL602/Peripherals/dma_reg.h`  
+> Base Address: `DMA_BASE = 0x4000C000`
+
+### Register Overview
+
+The DMA controller has 8 channels. Each channel occupies 0x1C bytes. Channel N registers start at `DMA_BASE + N * 0x1C`.
+
+| Offset (ch N) | Name    | Description                              |
+|---------------|---------|------------------------------------------|
+| 0x00          | SAR     | Source address                           |
+| 0x04          | DAR     | Destination address                      |
+| 0x08          | CHAR    | Chain address (linked list pointer)       |
+| 0x0C          | CTRLH   | Control high: widths, burst, block size  |
+| 0x10          | CTRLG   | Control: enable, handshake, mode         |
+| 0x14          | SR      | Status: done, block done, error          |
+| 0x18          | PER     | Peripheral handshake number              |
+
+### Key Register Fields
+
+**SAR / DAR — Source/Destination Address (32-bit)**
+Holds the physical source or destination address for the transfer.
+
+**CHAR — Chain Address Register (32-bit)**
+Pointer to next DMA descriptor (linked-list mode). Set to 0 for single-block transfers.
+
+**CTRLH — Control High (32-bit)**
+
+| Bits    | Name           | Description                                      |
+|---------|----------------|--------------------------------------------------|
+| [27:26] | src_width      | Source data width: 0=byte, 1=halfword, 2=word   |
+| [25:24] | dst_width      | Destination data width: 0=byte, 1=halfword, 2=word |
+| [23:20] | src_burst_size | Source burst transaction length (0=1, 1=4, etc.)|
+| [19:14] | block_size     | Number of transfers per block minus 1            |
+| [13:8]  | dst_burst_size | Destination burst transaction length             |
+
+**CTRLG — Control (32-bit)**
+
+| Bits | Name          | Description                                    |
+|------|---------------|------------------------------------------------|
+| 0    | channel_enable| Channel enable (1=enable, 0=disable)          |
+| 1    | handshake_mode| Handshake mode (1=hardware handshake, 0=software) |
+| 4    | dma_mode      | DMA mode (1=linked list, 0=basic)             |
+
+**SR — Status Register (32-bit)**
+
+| Bits | Name         | Description                          |
+|------|--------------|--------------------------------------|
+| 0    | channel_done | Transfer complete for this channel  |
+| 1    | block_done   | Block transfer done                  |
+| 2    | error        | DMA error occurred                   |
+
+**PER — Peripheral Handshake Number (32-bit)**
+
+| Bits   | Name          | Description                            |
+|--------|---------------|----------------------------------------|
+| [7:4]  | handshake_num | Peripheral handshake select (for hardware handshake mode) |
+| [9:8]  | priority      | Channel priority (0-3)                |
+
+### Register-Level Code Example
+
+```c
+#include <stdint.h>
+
+#define DMA_BASE   0x4000C000UL
+#define DMA_CHAN_SIZE 0x1C  /* bytes per channel */
+
+/* Per-channel register offsets */
+#define DMA_SAR(ch)   *(volatile uint32_t *)(DMA_BASE + (ch) * DMA_CHAN_SIZE + 0x00)
+#define DMA_DAR(ch)   *(volatile uint32_t *)(DMA_BASE + (ch) * DMA_CHAN_SIZE + 0x04)
+#define DMA_CHAR(ch)  *(volatile uint32_t *)(DMA_BASE + (ch) * DMA_CHAN_SIZE + 0x08)
+#define DMA_CTRLH(ch) *(volatile uint32_t *)(DMA_BASE + (ch) * DMA_CHAN_SIZE + 0x0C)
+#define DMA_CTRLG(ch) *(volatile uint32_t *)(DMA_BASE + (ch) * DMA_CHAN_SIZE + 0x10)
+#define DMA_SR(ch)    *(volatile uint32_t *)(DMA_BASE + (ch) * DMA_CHAN_SIZE + 0x14)
+#define DMA_PER(ch)   *(volatile uint32_t *)(DMA_BASE + (ch) * DMA_CHAN_SIZE + 0x18)
+
+/* Build CTRLH value for a memory-to-memory transfer
+ * width=2 (word = 4 bytes), burst=1 (4 beats), block_size = count-1
+ * For block_size: if count=256 transfers, block_size = 255 (bits[19:14])
+ */
+static uint32_t build_ctrlh(uint32_t count)
 {
-    if (flag == HOSAL_DMA_INT_TRANS_COMPLETE) {
-        dma_complete = 1;
-        /* Handle transfer completion */
-    } else if (flag == HOSAL_DMA_INT_TRANS_ERROR) {
-        /* Handle transfer error */
+    return (2 << 26)   /* src_width = 2 (word)  */
+         | (2 << 24)   /* dst_width = 2 (word)  */
+         | (1 << 20)   /* src_burst_size = 1 (burst of 4 beats) */
+         | ((count - 1) & 0x3F) << 14;  /* block_size [19:14] */
+}
+
+/* Polls channel_done bit in SR */
+static void dma_wait_done(uint8_t ch)
+{
+    while ((DMA_SR(ch) & 0x01) == 0) {
+        /* spin */
     }
 }
 
-void app_dma_init(void)
+/* Start a memory-to-memory DMA copy on channel 0.
+ * Copy count words from src to dst.
+ * NOTE: Ensure src and dst are DMA-capable memory regions.
+ */
+void dma_memcpy(uint32_t *dst, const uint32_t *src, uint32_t count)
 {
-    /* Initialize DMA controller */
-    hosal_dma_init();
+    uint8_t ch = 0;
 
-    /* Request a DMA channel */
-    dma_chan = hosal_dma_chan_request(0);
-    if (dma_chan < 0) {
-        /* Handle error */
-        return;
+    /* Disable channel before configuring */
+    DMA_CTRLG(ch) = 0x00;
+
+    /* Source and destination addresses */
+    DMA_SAR(ch) = (uint32_t)src;
+    DMA_DAR(ch) = (uint32_t)dst;
+
+    /* No linked list */
+    DMA_CHAR(ch) = 0;
+
+    /* Control: word transfers, burst of 4, block_size = count-1 */
+    DMA_CTRLH(ch) = build_ctrlh(count);
+
+    /* Configuration: enable channel, software trigger (handshake_num=0) */
+    DMA_PER(ch)   = 0 << 4;     /* handshake_num = 0 (software) */
+    DMA_CTRLG(ch) = 0 << 4      /* dma_mode = 0 (basic) */
+                 | 0 << 1        /* handshake_mode = 0 (software trigger) */
+                 | (1 << 0);     /* channel_enable = 1 */
+
+    /* Poll for completion */
+    dma_wait_done(ch);
+
+    /* Disable channel */
+    DMA_CTRLG(ch) = 0x00;
+}
+
+/* Example: Copy 256 words (1 KiB) using channel 1 */
+void dma_reg_example(void)
+{
+    uint32_t src_buf[256];
+    uint32_t dst_buf[256];
+    int i;
+
+    for (i = 0; i < 256; i++) {
+        src_buf[i] = i * 2;
     }
 
-    /* Set callback */
-    hosal_dma_irq_callback_set(dma_chan, dma_callback, NULL);
-}
+    /* Configure channel 1 for memory-to-memory copy of 256 words */
+    DMA_CTRLG(1) = 0x00;
 
-void app_dma_start_transfer(void)
-{
-    /* Note: HOSAL DMA abstract interface - actual source/dest/size
-     * configuration depends on underlying implementation */
-    hosal_dma_chan_start(dma_chan);
-}
+    DMA_SAR(1) = (uint32_t)src_buf;
+    DMA_DAR(1) = (uint32_t)dst_buf;
+    DMA_CHAR(1) = 0;
 
-void app_dma_stop(void)
-{
-    hosal_dma_chan_stop(dma_chan);
-    hosal_dma_chan_release(dma_chan);
-    hosal_dma_finalize();
+    DMA_CTRLH(1) = (2 << 26)   /* src_width = word */
+                 | (2 << 24)   /* dst_width = word */
+                 | (1 << 20)   /* src_burst_size = 4 beats */
+                 | ((256 - 1) & 0x3F) << 14;  /* block_size = 255 */
+
+    DMA_PER(1)   = 0 << 4;     /* handshake_num = 0 (software) */
+    DMA_CTRLG(1) = (1 << 0);   /* channel_enable */
+
+    dma_wait_done(1);
+
+    DMA_CTRLG(1) = 0x00;
+
+    /* dst_buf now contains identical data to src_buf */
 }
 ```

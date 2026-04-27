@@ -1,268 +1,224 @@
-# BL602 RNG (TRNG) Register-Level API Reference
+# RNG API Reference
 
-**Source File:** `components/platform/soc/bl602/bl602_std/bl602_std/Device/Bouffalo/BL602/Peripherals/sec_eng_reg.h`  
-**HOSAL Header:** `components/platform/hosal/include/hosal_rng.h`  
-**Base Address:** `SEC_ENG_BASE = 0x40004000` (Security Engine module)  
-**TRNG Offset:** `0x200` (TRNG block within SEC_ENG)  
-**Interrupt:** `SEC_TRNG_IRQn` (IRQ 28)  
-**Driver Source:** `components/platform/soc/bl602/bl602_std/bl602_std/StdDriver/Src/bl602_sec_eng.c`
+> Source file: `components/platform/hosal/include/hosal_rng.h`
 
----
+## Function Interface
 
-## Register Overview
+### `hosal_rng_init`
 
-The RNG is implemented as a True Random Number Generator (TRNG) within the Security Engine. It uses analog noise sources and provides cryptographically secure random numbers.
-
-| Offset | Register Name | Description |
-|--------|--------------|-------------|
-| `0x200` | `SEC_ENG_SE_TRNG_0_CTRL_0` | TRNG control and status |
-| `0x204` | `SEC_ENG_SE_TRNG_0_STATUS` | TRNG status register |
-| `0x208` | `SEC_ENG_SE_TRNG_0_DOUT_0` | Random data output [31:0] |
-| `0x20C` | `SEC_ENG_SE_TRNG_0_DOUT_1` | Random data output [63:32] |
-| `0x210` | `SEC_ENG_SE_TRNG_0_DOUT_2` | Random data output [95:64] |
-| `0x214` | `SEC_ENG_SE_TRNG_0_DOUT_3` | Random data output [127:96] |
-| `0x218` | `SEC_ENG_SE_TRNG_0_DOUT_4` | Random data output [159:128] |
-| `0x21C` | `SEC_ENG_SE_TRNG_0_DOUT_5` | Random data output [191:160] |
-| `0x220` | `SEC_ENG_SE_TRNG_0_DOUT_6` | Random data output [223:192] |
-| `0x224` | `SEC_ENG_SE_TRNG_0_DOUT_7` | Random data output [255:224] |
-
----
-
-## Key Register Fields
-
-### SEC_ENG_SE_TRNG_0_CTRL_0 (Offset 0x200)
-
-| Field | Bits | Name | Description |
-|-------|------|------|-------------|
-| `SE_TRNG_0_BUSY` | [0] | TRNG Busy | 1=TRNG is generating numbers |
-| `SE_TRNG_0_TRIG_1T` | [1] | Trigger | Write 1 to trigger generation |
-| `SE_TRNG_0_EN` | [2] | TRNG Enable | 1=enable TRNG |
-| `SE_TRNG_0_DOUT_CLR_1T` | [3] | Clear Output | Write 1 to clear output |
-| `SE_TRNG_0_HT_ERROR` | [4] | Health Test Error | 1=health test failed |
-| `SE_TRNG_0_INT` | [8] | Interrupt Flag | 1=TRNG interrupt pending |
-| `SE_TRNG_0_INT_CLR_1T` | [9] | Clear Interrupt | Write 1 to clear interrupt |
-| `SE_TRNG_0_INT_SET_1T` | [10] | Set Interrupt | Write 1 to set interrupt |
-| `SE_TRNG_0_INT_MASK` | [11] | Interrupt Mask | 1=mask interrupt |
-| `SE_TRNG_0_MANUAL_FUN_SEL` | [13] | Manual Mode | 1=use manual function |
-| `SE_TRNG_0_MANUAL_RESEED` | [14] | Manual Reseed | Write 1 to reseed |
-| `SE_TRNG_0_MANUAL_EN` | [15] | Manual Enable | 1=enable manual mode |
-
-### SEC_ENG_SE_TRNG_0_STATUS (Offset 0x204)
-
-| Field | Bits | Name | Description |
-|-------|------|------|-------------|
-| `SE_TRNG_0_STATUS` | [31:0] | TRNG Status | Status bits from TRNG health check |
-
----
-
-## Register-Level Programming Example
+Initialize the random number generator.
 
 ```c
-#include "bl602.h"
-#include "sec_eng_reg.h"
-
-#define SEC_ENG_BASE  ((uint32_t)0x40004000)
-
-/* Check if TRNG is busy */
-uint8_t TRNG_Is_Busy(void)
-{
-    uint32_t val = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0);
-    return BL_IS_REG_BIT_SET(val, SE_TRNG_0_BUSY);
-}
-
-/* Generate random 32-bit number (blocking) */
-uint32_t TRNG_Read_32(void)
-{
-    uint32_t tmpVal;
-
-    /* Enable and trigger TRNG */
-    tmpVal = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0);
-    tmpVal = BL_SET_REG_BIT(tmpVal, SE_TRNG_0_EN);
-    tmpVal = BL_SET_REG_BIT(tmpVal, SE_TRNG_0_TRIG_1T);
-    BL_WR_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0, tmpVal);
-
-    /* Wait for completion */
-    do {
-        tmpVal = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0);
-    } while (BL_IS_REG_BIT_SET(tmpVal, SE_TRNG_0_BUSY));
-
-    /* Read random data */
-    return BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_DOUT_0);
-}
-
-/* Generate random 64-bit number (blocking) */
-uint64_t TRNG_Read_64(void)
-{
-    uint32_t tmpVal;
-    uint32_t lo, hi;
-
-    /* Enable and trigger */
-    tmpVal = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0);
-    tmpVal = BL_SET_REG_BIT(tmpVal, SE_TRNG_0_EN);
-    tmpVal = BL_SET_REG_BIT(tmpVal, SE_TRNG_0_TRIG_1T);
-    BL_WR_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0, tmpVal);
-
-    /* Wait for completion */
-    do {
-        tmpVal = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0);
-    } while (BL_IS_REG_BIT_SET(tmpVal, SE_TRNG_0_BUSY));
-
-    /* Read 64 bits */
-    lo = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_DOUT_0);
-    hi = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_DOUT_1);
-
-    return ((uint64_t)hi << 32) | lo;
-}
-
-/* Generate 256-bit random number (blocking) */
-void TRNG_Read_256(uint8_t *buf)
-{
-    uint32_t tmpVal;
-    uint32_t *words = (uint32_t *)buf;
-    int i;
-
-    /* Enable and trigger */
-    tmpVal = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0);
-    tmpVal = BL_SET_REG_BIT(tmpVal, SE_TRNG_0_EN);
-    tmpVal = BL_SET_REG_BIT(tmpVal, SE_TRNG_0_TRIG_1T);
-    BL_WR_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0, tmpVal);
-
-    /* Wait for completion */
-    do {
-        tmpVal = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0);
-    } while (BL_IS_REG_BIT_SET(tmpVal, SE_TRNG_0_BUSY));
-
-    /* Read all 8 words */
-    for (i = 0; i < 8; i++) {
-        words[i] = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_DOUT_0 + i * 4);
-    }
-}
-
-/* Fill buffer with random data */
-void TRNG_Fill_Buffer(uint8_t *buf, uint32_t len)
-{
-    uint32_t words_len = len / 4;
-    uint32_t remaining = len % 4;
-    uint32_t i;
-
-    /* Fill complete 32-bit words */
-    for (i = 0; i < words_len; i++) {
-        ((uint32_t *)buf)[i] = TRNG_Read_32();
-    }
-
-    /* Handle remaining bytes */
-    if (remaining > 0) {
-        uint32_t last_word = TRNG_Read_32();
-        for (i = 0; i < remaining; i++) {
-            buf[words_len * 4 + i] = (last_word >> (i * 8)) & 0xFF;
-        }
-    }
-}
-
-/* Check TRNG health test status */
-uint8_t TRNG_Health_Test_Pass(void)
-{
-    uint32_t ctrl = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_CTRL_0);
-    uint32_t status = BL_RD_REG(SEC_ENG_BASE, SEC_ENG_SE_TRNG_0_STATUS);
-
-    /* HT_ERROR bit should be 0 if health test passed */
-    if (BL_IS_REG_BIT_SET(ctrl, SE_TRNG_0_HT_ERROR)) {
-        return 0;  /* failed */
-    }
-
-    /* Check specific health test bits in status register */
-    /* (bits vary by implementation, check datasheet) */
-    return (status != 0xFFFFFFFF) ? 1 : 0;
-}
+int hosal_rng_init(void);
 ```
 
+**Return value**: `0` success, others failure
+
+> This function must be called before `hosal_random_num_read`.
+
 ---
 
-## HOSAL API
+### `hosal_random_num_read`
 
-**Header:** `components/platform/hosal/include/hosal_rng.h`
+Read random numbers to fill the buffer.
 
 ```c
-/**
- * @brief Initialize RNG
- * @return 0 on success, other on failure
- */
-int hosal_rng_init(void);
-
-/**
- * @brief Fill a memory buffer with random data
- * @param buf  pointer to memory buffer
- * @param bytes  number of bytes to read
- * @return 0 on success, other on failure
- */
 int hosal_random_num_read(void *buf, uint32_t bytes);
 ```
 
-### HOSAL RNG Usage Example
+| Parameter | Description |
+|-----------|-------------|
+| `buf` | Valid memory buffer, random numbers will be filled into this memory |
+| `bytes` | Buffer length (bytes) |
+
+**Return value**: `0` success, others failure
+
+## Usage Example
 
 ```c
-#include "hosal_rng.h"
-#include <string.h>
+#include "hal_rng.h"
 
-void rng_example(void)
-{
-    int ret;
-    uint32_t random_word;
-    uint8_t random_bytes[32];
-    uint8_t key[16];
+// Initialize RNG (usually called once during system initialization)
+hosal_rng_init();
 
-    /* Initialize RNG */
-    ret = hosal_rng_init();
-    if (ret != 0) {
-        printf("RNG init failed\r\n");
-        return;
-    }
-
-    /* Read single 32-bit random number */
-    ret = hosal_random_num_read(&random_word, sizeof(random_word));
-    if (ret == 0) {
-        printf("Random: 0x%08X\r\n", random_word);
-    }
-
-    /* Fill buffer with random bytes */
-    ret = hosal_random_num_read(random_bytes, sizeof(random_bytes));
-    if (ret == 0) {
-        printf("First 8 bytes: %02X %02X %02X %02X %02X %02X %02X %02X\r\n",
-               random_bytes[0], random_bytes[1], random_bytes[2], random_bytes[3],
-               random_bytes[4], random_bytes[5], random_bytes[6], random_bytes[7]);
-    }
-
-    /* Generate AES key */
-    ret = hosal_random_num_read(key, sizeof(key));
-    if (ret == 0) {
-        printf("AES-128 key generated\r\n");
-        /* key is ready for use with sec_eng AES */
-    }
-
-    /* Generate random MAC address */
-    uint8_t mac[6];
-    ret = hosal_random_num_read(mac, 6);
-    if (ret == 0) {
-        /* Ensure multicast bit is clear and local bit is set */
-        mac[0] = (mac[0] & 0xFE) | 0x02;
-        printf("Random MAC: %02X:%02X:%02X:%02X:%02X:%02X\r\n",
-               mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-    }
-
-    /* Generate random password/salt */
-    uint8_t salt[16];
-    hosal_random_num_read(salt, sizeof(salt));
-    printf("Random salt generated for password hashing\r\n");
+// Read 8 bytes of random numbers
+uint8_t random_bytes[8];
+int ret = hosal_random_num_read(random_bytes, 8);
+if (ret == 0) {
+    printf("Random: %02X%02X%02X%02X%02X%02X%02X%02X\r\n",
+           random_bytes[0], random_bytes[1], random_bytes[2], random_bytes[3],
+           random_bytes[4], random_bytes[5], random_bytes[6], random_bytes[7]);
 }
+
+// Generate random numbers for keys, random delays, frequency hopping, etc.
+uint32_t random_val;
+hosal_random_num_read(&random_val, sizeof(random_val));
 ```
 
-### Notes
+## Application Scenarios
 
-- The TRNG uses analog noise sources (typically thermal noise from resistors) for true randomness
-- The TRNG includes built-in health tests to ensure statistical quality of output
-- The TRNG output is suitable for cryptographic operations including key generation
-- For high-throughput applications, use the HOSAL `hosal_random_num_read()` which handles blocking and buffering
-- The TRNG can generate up to 256 bits (8 words) per request
-- Health test errors (HT_ERROR bit) indicate the analog source may be malfunctioning
-- The RNG is part of the always-on security engine and remains available in low-power modes
-- For very high-speed random number generation, consider using DMA mode if supported
+| Scenario | Description |
+|----------|-------------|
+| Key generation | Session keys for encrypted communication |
+| Random delay | Random backoff time to avoid wireless communication conflicts |
+| MAC address | Generate random MAC address for testing |
+| Frequency hopping seed | Pseudo-random sequence seed for frequency hopping communication |
+
+---
+
+## Register-Level Programming
+
+> Register Header: `components/platform/soc/bl602/bl602_std/bl602_std/Device/Bouffalo/BL602/Peripherals/sec_eng_reg.h`  
+> Base Address: `SEC_ENG_BASE = 0x40004000`  
+> TRNG Offset: `0x200` (TRNG base = `0x40004200`)
+
+### Register Overview
+
+TRNG (True Random Number Generator) is part of the Security Engine block.
+
+| Offset | Name | Description |
+|--------|------|-------------|
+| 0x00 | TRNG_CONFIG | TRNG configuration (enable, oscillator, post-process) |
+| 0x04 | TRNG_DATA | Random data output (32-bit) |
+| 0x08 | TRNG_STATUS | TRNG status (data ready, health test fail) |
+| 0x0C | TRNG_INT_CTRL | TRNG interrupt control |
+
+### Key Register Fields
+
+**TRNG_CONFIG (0x00)**
+
+| Bits | Name | Description |
+|------|------|-------------|
+| 0 | trng_en | TRNG enable (1=enable) |
+| 1 | ringosc_en | Ring oscillator enable (1=enable) |
+| 2 | post_process_en | Post-processing / health test enable (1=enable) |
+
+**TRNG_STATUS (0x08)**
+
+| Bits | Name | Description |
+|------|------|-------------|
+| 0 | data_ready | Random data ready (1=ready) |
+| 1 | health_test_fail | Health test failed (1=test failed) |
+
+**TRNG_INT_CTRL (0x0C)**
+
+| Bits | Name | Description |
+|------|------|-------------|
+| 0 | int_enable | TRNG interrupt enable (1=enable) |
+
+### Register-Level Code Example
+
+```c
+#include <stdint.h>
+
+/* Security Engine base */
+#define SEC_ENG_BASE  0x40004000
+
+/* TRNG offset within SEC_ENG */
+#define TRNG_OFFSET   0x200
+#define TRNG_BASE     (SEC_ENG_BASE + TRNG_OFFSET)
+
+/* TRNG register offsets */
+#define TRNG_CONFIG     0x00
+#define TRNG_DATA       0x04
+#define TRNG_STATUS     0x08
+#define TRNG_INT_CTRL   0x0C
+
+/* Bit masks */
+#define TRNG_EN           (1 << 0)
+#define TRNG_RINGOSC_EN   (1 << 1)
+#define TRNG_POST_PROC_EN (1 << 2)
+#define TRNG_DATA_READY   (1 << 0)
+#define TRNG_HEALTH_FAIL  (1 << 1)
+#define TRNG_INT_EN       (1 << 0)
+
+static volatile uint32_t * const TRNG = (volatile uint32_t *)TRNG_BASE;
+
+/* Initialize TRNG (must be called before reading) */
+void rng_init(void) {
+    /* Enable ring oscillator and TRNG with post-processing (health test) */
+    TRNG[TRNG_CONFIG / 4] = TRNG_EN | TRNG_RINGOSC_EN | TRNG_POST_PROC_EN;
+}
+
+/* Poll for random data ready */
+int rng_wait_ready(void) {
+    uint32_t timeout = 100000;
+    while (timeout--) {
+        if (TRNG[TRNG_STATUS / 4] & TRNG_DATA_READY)
+            return 0;
+    }
+    return -1;
+}
+
+/* Read a single 32-bit random word (blocking) */
+uint32_t rng_read_word(void) {
+    /* Poll until ready */
+    while ((TRNG[TRNG_STATUS / 4] & TRNG_DATA_READY) == 0);
+    return TRNG[TRNG_DATA / 4];
+}
+
+/* Read multiple random bytes into buffer */
+int rng_read_bytes(uint8_t *buf, uint32_t len) {
+    uint32_t words, remainder;
+    uint32_t i;
+
+    /* Ensure TRNG is initialized */
+    if ((TRNG[TRNG_CONFIG / 4] & TRNG_EN) == 0) {
+        rng_init();
+    }
+
+    words = len / 4;
+    remainder = len % 4;
+
+    /* Read full 32-bit words */
+    for (i = 0; i < words; i++) {
+        if (rng_wait_ready() != 0)
+            return -1;
+        uint32_t val = TRNG[TRNG_DATA / 4];
+        buf[i * 4 + 0] = (uint8_t)(val & 0xFF);
+        buf[i * 4 + 1] = (uint8_t)((val >> 8) & 0xFF);
+        buf[i * 4 + 2] = (uint8_t)((val >> 16) & 0xFF);
+        buf[i * 4 + 3] = (uint8_t)((val >> 24) & 0xFF);
+    }
+
+    /* Read remaining bytes */
+    if (remainder > 0) {
+        if (rng_wait_ready() != 0)
+            return -1;
+        uint32_t val = TRNG[TRNG_DATA / 4];
+        for (i = 0; i < remainder; i++) {
+            buf[words * 4 + i] = (uint8_t)((val >> (i * 8)) & 0xFF);
+        }
+    }
+
+    return 0;
+}
+
+/* Check health test status */
+int rng_health_ok(void) {
+    return (TRNG[TRNG_STATUS / 4] & TRNG_HEALTH_FAIL) == 0;
+}
+
+/* Example: read 8 random bytes */
+void rng_example(void) {
+    uint8_t random_bytes[8];
+    uint32_t i;
+
+    /* Initialize TRNG */
+    rng_init();
+
+    /* Read 8 bytes */
+    if (rng_read_bytes(random_bytes, 8) == 0) {
+        printf("Random bytes: ");
+        for (i = 0; i < 8; i++)
+            printf("%02X", random_bytes[i]);
+        printf("\r\n");
+    }
+
+    /* Check health */
+    if (rng_health_ok())
+        printf("RNG health: OK\r\n");
+    else
+        printf("RNG health: FAILED\r\n");
+}
+```
