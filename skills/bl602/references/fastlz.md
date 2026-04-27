@@ -7,7 +7,7 @@ fastlz is a fast, lossless compression library designed for real-time compressio
 ## Location
 
 ```
-/home/seahi/workspase/Ai-Thinker-WB2/components/stage/fastlz/
+components/stage/fastlz/
 ```
 
 ## Key Files

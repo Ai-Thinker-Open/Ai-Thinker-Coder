@@ -7,7 +7,7 @@ yloop is an event loop component for AliOS Things (aos), providing a unified eve
 ## Location
 
 ```
-/home/seahi/workspase/Ai-Thinker-WB2/components/stage/yloop/
+components/stage/yloop/
 ```
 
 ## Key Files

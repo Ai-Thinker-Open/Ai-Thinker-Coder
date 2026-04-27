@@ -7,7 +7,7 @@ The utils component provides a collection of general-purpose utility functions f
 ## Location
 
 ```
-/home/seahi/workspase/Ai-Thinker-WB2/components/utils/
+components/utils/
 ```
 
 ## Key Files

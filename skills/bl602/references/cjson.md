@@ -7,7 +7,7 @@ cjson is a lightweight JSON parser and generator for C. It provides a simple API
 ## Location
 
 ```
-/home/seahi/workspase/Ai-Thinker-WB2/components/stage/cjson/
+components/stage/cjson/
 ```
 
 ## Key Files

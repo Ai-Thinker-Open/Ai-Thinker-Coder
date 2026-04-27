@@ -7,7 +7,7 @@ wifi-bt-coex manages the coexistence between WiFi and Bluetooth wireless signals
 ## Location
 
 ```
-/home/seahi/workspase/Ai-Thinker-WB2/components/network/wifi_bt_coex/
+components/network/wifi_bt_coex/
 ```
 
 ## Key Files
@@ -17,8 +17,6 @@ wifi-bt-coex manages the coexistence between WiFi and Bluetooth wireless signals
 - `src/wifi_bt_coex_ctx.c` - Context management
 - `src/wifi_bt_coex_cli.c` - CLI interface
 - `src/wifi_bt_coex_impl_bl602.c` - BL602 platform implementation
-- `src/wifi_bt_coex_impl_bl808.c` - BL808 platform implementation
-- `src/wifi_bt_coex_impl_bl606p.c` - BL606P platform implementation
 
 ## Architecture
 
@@ -131,6 +129,4 @@ struct wifi_bt_coex_ctx {
 
 ## Platform Differences
 
-- **BL602**: Basic coexistence support
-- **BL808**: Enhanced coexistence with multiple force modes
-- **BL606P**: PTA-based arbitration with flexible priority control
+- **BL602**: PTA-based arbitration with configurable priority control

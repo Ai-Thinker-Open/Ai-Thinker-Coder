@@ -7,7 +7,7 @@ wifi-hosal is a WiFi Hardware Abstraction Service Layer (HAL) that provides a un
 ## Location
 
 ```
-/home/seahi/workspase/Ai-Thinker-WB2/components/network/wifi_hosal/
+components/network/wifi_hosal/
 ```
 
 ## Key Files
@@ -15,8 +15,6 @@ wifi-hosal is a WiFi Hardware Abstraction Service Layer (HAL) that provides a un
 - `include/wifi_hosal.h` - Main header with API definitions
 - `wifi_hosal.c` - Main implementation
 - `port/wifi_hosal_bl602.c` - BL602 platform port
-- `port/wifi_hosal_bl808.c` - BL808 platform port
-- `port/wifi_hosal_bl606p.c` - BL606P platform port
 
 ## Architecture
 
