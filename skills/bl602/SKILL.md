@@ -863,13 +863,17 @@ ble_svc_gatt_add_service(service_uuid, att_db, sizeof(att_db));
 
 ### 无线通信
 
-| 文档 | 内容 |
-|------|------|
 | [Wi-Fi STA](./references/wifi-sta.md) | Wi-Fi STA 连接、扫描、IP 配置、低功耗 |
 | [Wi-Fi AP](./references/wifi-ap.md) | Wi-Fi AP 热点、DHCP、终端管理 |
 | [LwIP Socket](./references/lwip.md) | TCP/UDP Socket、域名解析、select 多路复用 |
 | [HTTP Server](./references/httpd.md) | HTTPD CGI 回调、SSI 标签、URI 路由注册 |
 | [HTTP Client](./references/httpc.md) | HTTPC GET/POST 请求、HTTPS、响应回调 |
+| [HTTPS](./references/https.md) | blTcpSslConnect/Send/Read 加密 TCP 收发 |
+| [TLS/SSL](./references/tls-ssl.md) | mbedTLS 证书认证、PSK、会话恢复 |
+| [TCP Transport](./references/tcp-transport.md) | 传输层抽象、统一 TCP/SSL/WS 接口 |
+| [WebSocket](./references/websocket.md) | WS/WSS 文本/二进制帧、Ping/Pong、路径设置 |
+| [MQTT](./references/mqtt.md) | MQTT 客户端、QoS 0/1/2、LWT、自动重连 |
+| [DNS Server](./references/dns-server.md) | 本地 DNS 劫持、Captive Portal 重定向 |
 | [BLE GAP/GATT](./references/ble-gap-gatt.md) | BLE 广播/扫描/连接、GATT 服务/通知/读写 |
 | [BLE Mesh](./references/ble-mesh.md) | BLE Mesh 配网、模型消息、开关/级别控制 |
 | [BLUFI](./references/blufi.md) | BLUFI BLE 配网、事件回调、Wi-Fi 状态上报 |
