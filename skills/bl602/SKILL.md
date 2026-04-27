@@ -854,12 +854,27 @@ ble_svc_gatt_add_service(service_uuid, att_db, sizeof(att_db));
 | [Timer](./references/timer.md) | 硬件定时器初始化、启动、停止 |
 | [PWM](./references/pwm.md) | PWM 输出、频率/占空比动态调节 |
 | [ADC](./references/adc.md) | ADC 采样、通道管理、连续采样 |
+| [DAC](./references/dac.md) | DAC 输出、电压值设置、DMA 模式 |
 | [Flash](./references/flash.md) | Flash 分区读写、擦除 |
 | [Watchdog](./references/watchdog.md) | 看门狗初始化、喂狗 |
 | [RTC](./references/rtc.md) | RTC 时间设置/读取（DEC/BCD 格式） |
-| [DAC](./references/dac.md) | DAC 输出、电压值设置、DMA 模式 |
 | [Efuse](./references/efuse.md) | Efuse 一次性存储读写、MAC 地址读取 |
 | [RNG](./references/rng.md) | 随机数生成器初始化、数据填充 |
+
+### 无线通信
+
+| 文档 | 内容 |
+|------|------|
+| [Wi-Fi STA](./references/wifi-sta.md) | Wi-Fi STA 连接、扫描、IP 配置、低功耗 |
+| [Wi-Fi AP](./references/wifi-ap.md) | Wi-Fi AP 热点、DHCP、终端管理 |
+| [LwIP Socket](./references/lwip.md) | TCP/UDP Socket、域名解析、select 多路复用 |
+| [HTTP Server](./references/httpd.md) | HTTPD CGI 回调、SSI 标签、URI 路由注册 |
+| [HTTP Client](./references/httpc.md) | HTTPC GET/POST 请求、HTTPS、响应回调 |
+| [BLE GAP/GATT](./references/ble-gap-gatt.md) | BLE 广播/扫描/连接、GATT 服务/通知/读写 |
+| [BLE Mesh](./references/ble-mesh.md) | BLE Mesh 配网、模型消息、开关/级别控制 |
+| [BLUFI](./references/blufi.md) | BLUFI BLE 配网、事件回调、Wi-Fi 状态上报 |
+| [SmartConfig](./references/smartconfig.md) | SmartConfig/AirKiss 一键配网、sniffer 模式 |
+| [Power Management](./references/pm.md) | 电源管理、RF 控制、Wi-Fi 低功耗、PSM |
 
 ---
 
