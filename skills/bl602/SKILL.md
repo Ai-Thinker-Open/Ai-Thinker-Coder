@@ -860,6 +860,16 @@ ble_svc_gatt_add_service(service_uuid, att_db, sizeof(att_db));
 | [RTC](./references/rtc.md) | RTC 时间设置/读取（DEC/BCD 格式） |
 | [Efuse](./references/efuse.md) | Efuse 一次性存储读写、MAC 地址读取 |
 | [RNG](./references/rng.md) | 随机数生成器初始化、数据填充 |
+| [BL_MTD](./references/bl_mtd.md) | Flash 分区管理、PSM/FW/ROMFS 读写擦除 |
+
+### 系统工具
+
+| 文档 | 内容 |
+|------|------|
+| [Blog](./references/blog.md) | 日志框架、组件级 DEBUG/INFO/WARN/ERROR、Hex Dump |
+| [CLI](./references/cli.md) | 命令行接口、静态/动态命令注册、参数解析 |
+| [EasyFlash](./references/easyflash.md) | KV 存储、ENV 环境变量、日志循环写入 |
+| [系统时间](./references/bl_sys_time.md) | 系统 Epoch 时间获取/更新、NTP 同步回调 |
 
 ### 无线通信
 
@@ -878,6 +888,9 @@ ble_svc_gatt_add_service(service_uuid, att_db, sizeof(att_db));
 | [BLE Mesh](./references/ble-mesh.md) | BLE Mesh 配网、模型消息、开关/级别控制 |
 | [BLUFI](./references/blufi.md) | BLUFI BLE 配网、事件回调、Wi-Fi 状态上报 |
 | [SmartConfig](./references/smartconfig.md) | SmartConfig/AirKiss 一键配网、sniffer 模式 |
+| [SNTP](./references/sntp.md) | NTP时间同步、多服务器轮询、同步回调 |
+| [mDNS](./references/mdns.md) | 本地服务发现、主机名注册、服务公告 |
+| [Ping](./references/ping.md) | ICMP Ping、连通性检测、RTT统计 |
 | [Power Management](./references/pm.md) | 电源管理、RF 控制、Wi-Fi 低功耗、PSM |
 
 ---
