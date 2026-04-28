@@ -70,12 +70,16 @@ metadata:
 
 ### 第一步：判断当前平台
 
-```bash
-# Windows MSYS2/MINGW 环境
-echo $MSYSTEM
-# 输出 MINGW64 或 MSYS 表示在 MSYS2 环境中
+**Windows**（PowerShell）：
 
-# Linux / WSL / macOS
+```powershell
+echo $env:OS
+# 输出 Windows_NT 表示 Windows 系统
+```
+
+**Linux / WSL / macOS**（终端）：
+
+```bash
 uname -s
 # 输出 Linux 表示 Linux/WSL，Darwin 表示 macOS
 ```
@@ -88,7 +92,7 @@ uname -s
 
 **第一步：下载工具链**
 
-> ⚠️ **不要使用 MSYS2/MINGW 的 `mingw-w64-gcc`**，BL616/BL618 必须使用博流官方提供的 `riscv64-unknown-elf-gcc` 工具链。
+> ⚠️ **不要使用 GCC for Windows（如 mingw-w64-gcc）**，BL616/BL618 必须使用博流官方提供的 `riscv64-unknown-elf-gcc` RISC-V 交叉编译工具链。
 
 从 GitHub 下载预编译工具链（Windows 64 位）：
 
@@ -287,7 +291,7 @@ chmod +x riscv64-elf-x86_64/bin/*
 
 ### 第四步：编译验证
 
-> **Windows 用户**：必须在「MSYS2 MINGW64」终端中执行编译，**不要使用 CMD、PowerShell 或普通的 MSYS2 终端**。
+> **Windows 用户**：直接在 **PowerShell** 或 **命令提示符 (CMD)** 中执行编译即可，**不需要安装 MSYS2 或 MinGW 环境**。
 > **Linux/WSL 用户**：在标准 Linux 终端中执行。
 
 ```bash
