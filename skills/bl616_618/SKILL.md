@@ -847,6 +847,21 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [Thread](./references/thread.md) | 802.15.4 Thread 网络、IPv6 mesh、自愈合 |
 | [FOTA](./references/fota.md) | 固件 OTA 升级、TCP/HTTPS、双分区回滚 |
 
+### 多媒体与音频编解码
+
+| 文档 | 内容 |
+|------|------|
+| [SmartAudio](./references/smart_audio.md) | 统一音频框架、本地/蓝牙音乐、提示音、音量管理 |
+| [XAV](./references/xav.md) | 多媒体框架、player/codec/format/filter |
+| [AAC](./references/aacdec.md) | AAC-LC/AAC+/eAAC+ 解码、PVMP4AudioDecoder |
+| [Opus](./references/opus.md) | Opus 编解码、VoIP/音乐、SILK+CELT、6~510kbps |
+| [Speex](./references/speex.md) | Speex 语音编解码、VoIP、NB/WB/UWB |
+| [Vorbis](./references/vorbis.md) | Vorbis 音频解码、OGG 容器、Xiph.Org |
+| [AMR](./references/amr.md) | AMR-NB/WB 语音解码、3GPP 标准、VoIP |
+| [FVAD](./references/fvad.md) | 语音活动检测、WebRTC VAD、语音识别前端 |
+| [AudioCodec](./references/audio_codec.md) | 声卡驱动 SndBl616、AudioFlowctrlBridge、SBC→PCM |
+| [FrogFS](./references/frogfs.md) | 轻量级只读文件系统、LVGL 资源存储、XIP |
+
 ---
 
 ## 开发教程
