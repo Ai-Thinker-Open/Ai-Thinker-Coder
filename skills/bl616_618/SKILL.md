@@ -82,72 +82,85 @@ uname -s
 
 ### 第二步：安装工具链（按平台）
 
-#### Windows MSYS2 环境
+#### Windows 环境
 
-**适用场景**：Windows 原生开发，使用 MSYS2 提供编译工具链。
+**适用场景**：Windows 原生开发，使用博流官方预编译的 RISC-V 工具链。
 
-**第一步：下载并安装 MSYS2**
+**第一步：下载工具链**
 
-1. 下载 MSYS2：https://www.msys2.org/
-2. 运行安装程序，选择安装路径（建议 `C:\msys64`）
-3. 安装完成后，**打开「MSYS2 MINGW64」终端**（不要用 MSYS2 原生终端）
+> ⚠️ **不要使用 MSYS2/MINGW 的 `mingw-w64-gcc`**，BL616/BL618 必须使用博流官方提供的 `riscv64-unknown-elf-gcc` 工具链。
 
-**第二步：安装编译工具链**
+从 GitHub 下载预编译工具链（Windows 64 位）：
 
-在 MSYS2 MINGW64 终端中执行：
+- 官方链接：https://github.com/bouffalolab/toolchain_gcc_t-head_windows
+- 选择 `x86_64` 目录下的最新版本（如 `x86_64-YYYY.MM.DD-mingw-w64.zip`）
+- 解压到 `C:\toolchain\` 或任意目录
+- **将工具链 `bin` 目录加入系统环境变量 PATH**
 
-```bash
-# 配置阿里云镜像源（国内加速）
-echo 'Server = https://mirrors.aliyun.com/msys2/$repo' > /etc/pacman.d/mirrorlist
+**验证安装**：
 
-# 更新包数据库
-pacman -Sy
+```powershell
+# 打开「命令提示符 (CMD)」或「PowerShell」，执行：
+riscv64-unknown-elf-gcc -v
+# 应输出版本信息，包含 "riscv64-unknown-elf"
+```
 
-# 安装 RISC-V 工具链（BL616/BL618 使用 riscv64-unknown-elf-gcc）
-pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-make
+**第二步：安装 Python 和烧录工具**
 
-# 安装 Python3（烧录工具需要）
-pacman -S python3 python3-pip
+```powershell
+# 安装 Python3（从 python.org 或 Microsoft Store）
+# 确认安装时勾选 "Add Python to PATH"
 
 # 安装 PySerial（串口烧录用）
 pip install pyserial
 ```
 
-> **如果阿里云镜像访问失败**，可尝试腾讯云或华为云镜像：
-> ```bash
-> echo 'Server = https://mirrors.cloud.tencent.com/msys2/$repo' > /etc/pacman.d/mirrorlist
-> ```
-
 **验证安装**：
 
-```bash
-riscv64-unknown-elf-gcc -v    # 应输出版本信息
-python3 --version             # 应输出版本号
-pip show pyserial            # 应显示 pyserial 信息
+```powershell
+python --version
+pip show pyserial
 ```
 
 > **报错则无法继续**，必须先解决工具链问题。
 
 #### Linux (Ubuntu 20.04) 环境
 
-**适用场景**：原生 Ubuntu、Debian 等 Linux 环境。
+**适用场景**：原生 Ubuntu、Debian、WSL2 等 Linux 环境。
+
+**第一步：下载工具链**
+
+博流官方 Linux 工具链：
+
+- 官方链接：https://github.com/bouffalolab/toolchain_gcc_t-head_linux
+- 选择 `x86_64-YYYY.MM.DD-linux-glibc-x86_64.tar.xz` 或类似文件
+- 解压到 `/opt/toolchain/`：
 
 ```bash
-# 更新软件源
-sudo apt update
-
-# 安装编译工具链
-sudo apt install -y build-essential git python3 python3-pip python3-dev wget sed
-
-# 安装 RISC-V 工具链（如果系统仓库没有，需从源码编译或下载预编译版本）
-# 检查是否已安装
-riscv64-unknown-elf-gcc -v
-
-# 如果没有，从 GitHub 下载预编译工具链
 cd /tmp
-wget https://github.com/bouffalolab/toolchain/releases/download/v1.0.0/riscv64-elf-x86_64.tar.gz
-sudo tar -xzf riscv64-elf-x86_64.tar.gz -C /opt/
-export PATH=/opt/riscv64-elf-x86_64/bin:$PATH
+wget https://github.com/bouffalolab/toolchain_gcc_t-head_linux/releases/download/v1.2.0/x86_64-2024.10.08-linux-glibc-x86_64.tar.xz
+sudo mkdir -p /opt/toolchain
+sudo tar -xf x86_64-2024.10.08-linux-glibc-x86_64.tar.xz -C /opt/toolchain/
+export PATH=/opt/toolchain/x86_64-2024.10.08-linux-glibc-x86_64/bin:$PATH
+
+# 验证
+riscv64-unknown-elf-gcc -v
+```
+
+**第二步：配置系统环境变量（永久生效）**
+
+```bash
+# 将以下内容追加到 ~/.bashrc（路径需与实际解压目录一致）
+echo 'export PATH=/opt/toolchain/x86_64-2024.10.08-linux-glibc-x86_64/bin:$PATH' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**第三步：安装依赖**
+
+```bash
+sudo apt update
+sudo apt install -y build-essential git python3 python3-pip python3-dev
+pip3 install pyserial
 ```
 
 **验证安装**：
@@ -162,27 +175,41 @@ pip3 show pyserial
 
 #### macOS 环境
 
-```bash
-# 使用 Homebrew 安装
-brew install gcc git python3
+**第一步：下载工具链**
 
-# 安装 PySerial
+博流官方**不提供 macOS 预编译工具链**，需从源码编译：
+
+```bash
+# 安装依赖
+brew install python3 git
+
+# 克隆编译脚本
+git clone https://github.com/p4ddy1/pine_ox64.git
+cd pine_ox64
+# 参考 https://github.com/p4ddy1/pine_ox64/blob/main/build_toolchain_macos.md
+# 按文档编译 riscv64-unknown-elf-gcc
+```
+
+**第二步：安装 Python**
+
+```bash
+brew install python3
 pip3 install pyserial
 ```
 
 **验证安装**：
 
 ```bash
-gcc -v
+riscv64-unknown-elf-gcc -v
 python3 --version
 pip3 show pyserial
 ```
 
----
+> macOS 工具链编译耗时较长（约 30~60 分钟），建议有条件者使用 Linux/WSL2 开发。
 
-**Windows 备选方案：已有 WSL2 的用户**
+#### WSL2 环境
 
-如果 Windows 上已经安装了 WSL2，可以跳过 MSYS2，直接使用 WSL2 进行开发。WSL2 本质上就是 Linux 环境，请参考上方「Linux (Ubuntu 20.04) 环境」的安装步骤。
+WSL2 本质上是 Linux 环境，请参考上方「Linux (Ubuntu 20.04) 环境」的安装步骤（下载 Linux 版工具链）。
 
 > **WSL2 串口映射**：Windows 11 不支持自动串口映射，需在 Windows PowerShell（管理员）中手动映射：
 > ```powershell
@@ -730,7 +757,7 @@ ble_gap_adv_start(&adv_params, "BL616");
 
 ## API 参考
 
-详细 API 文档独立存放于 `references/` 目录，共 **87 个文档**，覆盖外设驱动、系统组件、网络协议、无线通信、安全加密等全部功能。
+详细 API 文档独立存放于 `references/` 目录，共 **88 个文档**，覆盖外设驱动、系统组件、网络协议、无线通信、安全加密等全部功能。
 
 ### 外设驱动
 
@@ -791,7 +818,8 @@ ble_gap_adv_start(&adv_params, "BL616");
 |------|------|
 | [LwIP](./references/lwip.md) | TCP/IP 协议栈、Socket API、UDP/TCP、netif |
 | [MQTT](./references/mqtt.md) | MQTT 客户端、QoS 0/1/2、LWT、keep-alive |
-| [HTTP](./references/http.md) | HTTP/HTTPS 客户端、GET/POST、mbedtls 集成 |
+| [HTTP Client](./references/http.md) | HTTP/HTTPS 客户端、GET/POST、Zephyr net/http、mbedtls 集成 |
+| [HTTPD Server](./references/httpd.md) | HTTP 服务器、CGI 动态路由、SSI 标签替换、POST 处理、lwIP 内置 |
 | [mbedtls](./references/mbedtls.md) | TLS 1.0-1.3、SSL 上下文、证书验证、双向认证 |
 | [AT](./references/at.md) | AT 命令框架、命令注册、Wi-Fi/BLE/MQTT/HTTP AT |
 | [netbus](./references/netbus.md) | 透传模式、UART-WiFi 桥接、Socket 客户端/服务端 |
