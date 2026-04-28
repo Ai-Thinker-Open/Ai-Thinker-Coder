@@ -96,6 +96,7 @@ uname -s
 - 选择 `x86_64` 目录下的最新版本（如 `x86_64-YYYY.MM.DD-mingw-w64.zip`）
 - 解压到 `C:\toolchain\` 或任意目录
 - **将工具链 `bin` 目录加入系统环境变量 PATH**
+- 另外还需要把 SDK 目录下的 `tools/ninja` 子目录加入 PATH
 
 **验证安装**：
 
@@ -103,7 +104,33 @@ uname -s
 # 打开「命令提示符 (CMD)」或「PowerShell」，执行：
 riscv64-unknown-elf-gcc -v
 # 应输出版本信息，包含 "riscv64-unknown-elf"
+
+# 验证 ninja（SDK 内置）
+# 假设 SDK 克隆到 C:\bouffalo_sdk
+C:\bouffalo_sdk\tools\ninja\ninja --version
+# 应输出版本号
 ```
+
+**设置环境变量 PATH**（工具链验证通过后执行）：
+
+```powershell
+# 方法一：当前终端临时生效（每次打开终端都要执行）
+set PATH=C:\toolchain\riscv64-unknown-elf\bin;%PATH%
+set PATH=C:\bouffalo_sdk\tools\ninja;%PATH%
+
+# 方法二：永久生效（推荐）
+# 1. 打开「系统属性」→「高级」→「环境变量」
+# 2. 在「系统变量」中找到 Path，点击「编辑」
+# 3. 添加以下两个绝对路径（根据实际路径调整）：
+#    C:\toolchain\riscv64-unknown-elf\bin
+#    C:\bouffalo_sdk\tools\ninja
+# 4. 点击「确定」保存，重启终端生效
+```
+
+> **关键路径**：以下三个路径都需要加入 PATH：
+> 1. 编译工具链的 `bin` 文件夹（如 `C:\toolchain\riscv64-unknown-elf\bin`）— 提供 `riscv64-unknown-elf-gcc`
+> 2. SDK 的 `tools/ninja` 目录（如 `C:\bouffalo_sdk\tools\ninja`）— 提供 `ninja` 构建工具
+> ⚠️ 必须是**绝对路径**，不能使用相对路径。
 
 **第二步：安装 Python 和烧录工具**
 
