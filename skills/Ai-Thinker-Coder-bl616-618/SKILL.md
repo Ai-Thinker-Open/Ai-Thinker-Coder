@@ -756,7 +756,7 @@ ble_gap_adv_start(&adv_params, "BL616");
 
 ## API 参考
 
-详细 API 文档独立存放于 `references/` 目录，共 **89 个文档**，覆盖外设驱动、系统组件、网络协议、无线通信、安全加密等全部功能。
+详细 API 文档独立存放于 `references/` 目录，共 **107 个文档**，覆盖外设驱动、系统组件、网络协议、无线通信、安全加密等全部功能。
 
 ### 外设驱动
 
@@ -786,8 +786,16 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [SDIO](./references/sdio.md) | SDH/SDIO3 接口、ADMA2、Wi-Fi/SD 卡 |
 | [Display](./references/display.md) | DPI/DSI/DBI 显示接口、OSD 图层、帧缓冲 |
 | [ACOMP](./references/comp.md) | 模拟比较器、16 通道、阈值选择、滞回配置 |
+| [AUADC](./references/auadc.md) | 音频 ADC、PDM 麦克风、模拟输入、DMA 录音 |
+| [CAN-FD](./references/canfd.md) | CAN 2.0B/CAN-FD、ISO/Bosch 双模、TTCAN |
+| [DPI](./references/dpi.md) | 显示并行接口、RGB888、测试图案、YUV420 |
 | [GMAC](./references/gmac.md) | 千兆以太网 MAC、TX/RX 描述符、MDIO |
 | [EMAC](./references/emac.md) | 百兆以太网 EMAC、RMII 接口、缓冲区描述符 |
+| [KYS](./references/kys.md) | 矩阵键盘扫描、按键值读取、FIFO 中断 |
+| [MJPEG](./references/mjpeg.md) | MJPEG 硬件编解码器、摄像头模式、量化表 |
+| [MTimer](./references/mtimer.md) | 64 位高精度定时器、微秒/毫秒延时、架构自适应 |
+| [SDH](./references/sdh.md) | SD Host 控制器、ADMA2、SD 卡/SDIO |
+| [SPI PSRAM](./references/spi_psram.md) | SPI PSRAM 外部 RAM、QPI 模式、Burst Wrap |
 | [AUDAC](./references/audac.md) | 音频 DAC、采样率 8K-48K、音量控制、零交叉检测 |
 | [bak](./references/bak.md) | 备份域寄存器、VBAT 供电、RTC/GPIO 唤醒源 |
 | [DBG](./references/dbg.md) | SWD/JTAG 调试接口、密码模式、芯片 ID |
@@ -802,6 +810,11 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [Core](./references/core.md) | CPU 核心访问、mtime 计时器、CLINT |
 | [PM](./references/pm.md) | 电源管理、深度睡眠、休眠、时钟门控、Wi-Fi 功耗 |
 | [FreeRTOS](./references/freertos.md) | 任务、队列、信号量、互斥锁、滴答延时（无需 vTaskStartScheduler） |
+| [CKS](./references/cks.md) | 时钟安全系统、硬件校验和、篡改检测 |
+| [EF Ctrl](./references/ef_ctrl.md) | eFuse 控制器、common trim 读写、自动加载 |
+| [IPC](./references/ipc.md) | 核间通信、AP↔NP 同步、32 位消息通道 |
+| [L1C](./references/l1c.md) | L1 Cache、I-Cache/D-Cache、写策略、性能计数 |
+| [MultiCore Sync](./references/multi_core_sync.md) | 多核同步、Flash 操作互斥、IPC Suspend/Resume |
 
 ### 安全加密
 
@@ -809,7 +822,11 @@ ble_gap_adv_start(&adv_params, "BL616");
 |------|------|
 | [sec_sha](./references/sec_sha.md) | SHA-1/224/256/384/512 硬件加速、DMA 链接模式 |
 | [sec_aes](./references/sec_aes.md) | AES ECB/CBC/CTR 模式、硬件密钥、链接模式 |
-| [sec_other](./references/sec_other.md) | TRNG/DSA/GMAC/ECDSA/PKA 完整 API 参考 |
+| [sec_dsa](./references/sec_dsa.md) | DSA 数字签名、PKA 硬件加速、CRT 优化 |
+| [sec_ecdsa](./references/sec_ecdsa.md) | ECDSA 椭圆曲线签名、ECDH 密钥交换、secp256r1/k1 |
+| [sec_gmac](./references/sec_gmac.md) | Galois 消息认证、GCM GHASH、DMA 链接模式 |
+| [sec_pka](./references/sec_pka.md) | PKA 公钥加速器、4096 位大数运算、Montgomery 域 |
+| [sec_trng](./references/sec_trng.md) | TRNG 真随机数、256 位熵输出、组访问保护 |
 | [HMAC](./references/hmac.md) | HMAC-SHA256 软件实现（无独立硬件）、寄存器级优化 |
 
 ### 网络协议栈
