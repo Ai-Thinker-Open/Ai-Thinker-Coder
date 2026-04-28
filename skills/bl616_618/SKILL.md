@@ -730,7 +730,7 @@ ble_gap_adv_start(&adv_params, "BL616");
 
 ## API 参考
 
-详细 API 文档独立存放于 `references/` 目录，共 **50 个文档**，覆盖外设驱动、系统组件、网络协议、无线通信、安全加密等全部功能。
+详细 API 文档独立存放于 `references/` 目录，共 **59 个文档**，覆盖外设驱动、系统组件、网络协议、无线通信、安全加密等全部功能。
 
 ### 外设驱动
 
@@ -792,11 +792,29 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [LwIP](./references/lwip.md) | TCP/IP 协议栈、Socket API、UDP/TCP、netif |
 | [MQTT](./references/mqtt.md) | MQTT 客户端、QoS 0/1/2、LWT、keep-alive |
 | [HTTP](./references/http.md) | HTTP/HTTPS 客户端、GET/POST、mbedtls 集成 |
+| [mbedtls](./references/mbedtls.md) | TLS 1.0-1.3、SSL 上下文、证书验证、双向认证 |
+| [AT](./references/at.md) | AT 命令框架、命令注册、Wi-Fi/BLE/MQTT/HTTP AT |
+| [netbus](./references/netbus.md) | 透传模式、UART-WiFi 桥接、Socket 客户端/服务端 |
+| [RTSP](./references/rtsp.md) | RTSP 服务器、DESCRIBE/SETUP/PLAY、 RTP over UDP |
+
+### 无线通信（Wi-Fi）
+
+| 文档 | 内容 |
+|------|------|
 | [wifi_mgmr](./references/wifi_mgmr.md) | Wi-Fi 管理器、STA/AP 连接、扫描、国家码、自动重连 |
+| [wpa_supplicant](./references/wpa_supplicant.md) | WPA2-Personal/Enterprise、WPA3、WPS-PBC/PIN、DPP、RRM/WNM |
+| [net80211](./references/net80211.md) | Wi-Fi MLME 层、scan/auth/assoc、beacon 监控、rx/tx 帧处理 |
+| [coex](./references/coex.md) | Wi-Fi/BLE 共存、优先级配置、活动通报 |
+
+### 无线通信（BT & Thread）
+
+| 文档 | 内容 |
+|------|------|
 | [BLE](./references/ble.md) | BLE 控制器、iBeacon、GATT 服务、通知/指示 |
 | [ble_mesh](./references/ble_mesh.md) | BLE Mesh 配网、模型消息发送、节点角色 |
-| [coex](./references/coex.md) | Wi-Fi/BLE 共存、优先级配置、活动通报 |
-| [wl80211](./references/wl80211.md) | wl80211 驱动接口、802.11 帧处理 |
+| [bt_a2dp](./references/bt_a2dp.md) | A2DP 音频、SBC 编解码、AVRCP 遥控、Stream 管理 |
+| [bt_hfp_spp](./references/bt_hfp_spp.md) | HFP 免提、AT 命令、SPP 串口、SDP 服务发现、RFCOMM |
+| [openthread](./references/openthread.md) | OpenThread 协议、IPv6、CoAP、UDP Socket、设备角色 |
 
 ### 组件与中间件
 
