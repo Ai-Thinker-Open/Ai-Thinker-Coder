@@ -757,7 +757,7 @@ ble_gap_adv_start(&adv_params, "BL616");
 
 ## API 参考
 
-详细 API 文档独立存放于 `references/` 目录，共 **88 个文档**，覆盖外设驱动、系统组件、网络协议、无线通信、安全加密等全部功能。
+详细 API 文档独立存放于 `references/` 目录，共 **89 个文档**，覆盖外设驱动、系统组件、网络协议、无线通信、安全加密等全部功能。
 
 ### 外设驱动
 
@@ -776,6 +776,7 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [DAC](./references/dac.md) | AUDAC 音频 DAC、PWM/GPDAC 输出、立体声混音、DMA |
 | [Flash](./references/flash.md) | SF_CTRL、XIP 直接读取、加密分区、Flash ID |
 | [Watchdog](./references/watchdog.md) | 看门狗超时、复位产生、喂狗时序 |
+| [WO](./references/wo.md) | 波形输出、WS2812 LED 驱动、WO UART bit-banging、双电平信号 |
 | [RTC](./references/rtc.md) | HBN RTC、40 位计数器、BCD 时间、闹钟 |
 | [Efuse](./references/efuse.md) | Efuse 编程控制、MAC 地址读取、启动模式 |
 | [RNG](./references/rng.md) | TRNG 随机数、256 位输出、硬件自检 |
