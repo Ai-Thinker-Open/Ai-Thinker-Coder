@@ -730,49 +730,85 @@ ble_gap_adv_start(&adv_params, "BL616");
 
 ## API 参考
 
-详细 API 文档独立存放于 `references/` 目录，按外设分类：
+详细 API 文档独立存放于 `references/` 目录，共 **50 个文档**，覆盖外设驱动、系统组件、网络协议、无线通信、安全加密等全部功能。
 
 ### 外设驱动
 
 | 文档 | 内容 |
 |------|------|
-| [GPIO](./references/gpio.md) | GPIO 初始化、输出、输入、中断（BL616/BL618 per-pin 配置） |
-| [UART](./references/uart.md) | UART 配置、发送、接收、ioctl、DMA |
-| [I2C](./references/i2c.md) | I2C 主机/从机发送、接收、内存读写 |
-| [SPI](./references/spi.md) | SPI 初始化、发送、接收、片选 |
-| [DMA](./references/dma.md) | DMA 通道申请、启停、中断回调（8 通道） |
-| [Timer](./references/timer.md) | 硬件定时器初始化、启动、停止 |
-| [PWM](./references/pwm.md) | PWM 输出、频率/占空比动态调节 |
-| [ADC](./references/adc.md) | ADC 采样、通道管理、连续采样 |
-| [DAC](./references/dac.md) | DAC 输出、电压值设置、DMA 模式 |
-| [Flash](./references/flash.md) | Flash 分区读写、擦除、XIP |
-| [Watchdog](./references/watchdog.md) | 看门狗初始化、喂狗 |
-| [RTC](./references/rtc.md) | RTC 时间设置/读取、闹钟 |
-| [Efuse](./references/efuse.md) | Efuse 一次性存储读写、MAC 地址读取 |
-| [RNG](./references/rng.md) | 随机数生成器初始化、数据填充 |
+| [GPIO](./references/gpio.md) | GPIO 初始化、per-pin 配置（0x188+n×4）、输出、输入、中断 |
+| [UART](./references/uart.md) | UART 配置、发送、接收、ioctl、DMA、自动波特率 |
+| [I2C](./references/i2c.md) | I2C 主机发送/接收、内存地址、DMA、从机模式 |
+| [I2C Slave](./references/i2c_slave.md) | I2C 从机地址配置、TX/RX 中断回调 |
+| [SPI](./references/spi.md) | SPI 初始化、全双工、FIFO 轮询、片选管理 |
+| [DMA](./references/dma.md) | DMA 通道申请、8 通道、LLI 链、UART/SPI 握手 |
+| [DMAC](./references/dmac.md) | DMA 控制器上层 API、多块传输、ping-pong 缓冲 |
+| [Timer](./references/timer.md) | 硬件定时器、PWM 输出、看门狗模式、FreeRTOS 延时 |
+| [PWM](./references/pwm.md) | PWM 通道、时钟分频、16 位周期/阈值、舵机控制 |
+| [ADC](./references/adc.md) | 12 位 SAR ADC、8 通道、连续采样、DMA |
+| [DAC](./references/dac.md) | AUDAC 音频 DAC、PWM/GPDAC 输出、立体声混音、DMA |
+| [Flash](./references/flash.md) | SF_CTRL、XIP 直接读取、加密分区、Flash ID |
+| [Watchdog](./references/watchdog.md) | 看门狗超时、复位产生、喂狗时序 |
+| [RTC](./references/rtc.md) | HBN RTC、40 位计数器、BCD 时间、闹钟 |
+| [Efuse](./references/efuse.md) | Efuse 编程控制、MAC 地址读取、启动模式 |
+| [RNG](./references/rng.md) | TRNG 随机数、256 位输出、硬件自检 |
+| [Touch](./references/touch.md) | 电容触摸按键、16 通道、扫描、频率跳变 |
+| [I2S](./references/i2s.md) | I2S 音频接口、主/从模式、DMA、音频编解码器 |
+| [IR](./references/ir.md) | 红外遥控、NEC/RC5 协议、TX/RX、FIFO |
+| [Camera](./references/camera.md) | DVP 接口、MJPEG 编码/解码、几何变换 |
+| [SDIO](./references/sdio.md) | SDH/SDIO3 接口、ADMA2、Wi-Fi/SD 卡 |
+| [Display](./references/display.md) | DPI/DSI/DBI 显示接口、OSD 图层、帧缓冲 |
+| [ACOMP](./references/comp.md) | 模拟比较器、16 通道、阈值选择、滞回配置 |
+| [GMAC](./references/gmac.md) | 千兆以太网 MAC、TX/RX 描述符、MDIO |
+| [EMAC](./references/emac.md) | 百兆以太网 EMAC、RMII 接口、缓冲区描述符 |
+| [AUDAC](./references/audac.md) | 音频 DAC、采样率 8K-48K、音量控制、零交叉检测 |
+| [bak](./references/bak.md) | 备份域寄存器、VBAT 供电、RTC/GPIO 唤醒源 |
+| [DBG](./references/dbg.md) | SWD/JTAG 调试接口、密码模式、芯片 ID |
 
-### 系统工具
+### 系统与时钟
 
 | 文档 | 内容 |
 |------|------|
-| [Blog](./references/blog.md) | 日志框架、DEBUG/INFO/WARN/ERROR |
-| [CLI](./references/cli.md) | 命令行接口、静态/动态命令注册 |
-| [EasyFlash](./references/easyflash.md) | KV 存储、ENV 环境变量 |
-| [Utils](./references/utils.md) | CRC32/MD5/SHA256/Hex/Base64 工具函数 |
-| [cJSON](./references/cjson.md) | JSON 解析/构建、数组/对象遍历 |
+| [Clock](./references/clock.md) | CPU 频率、PLL 配置、时钟门控、外设时钟源 |
+| [Reset](./references/reset.md) | 外设复位控制、36+ 复位编号映射表 |
+| [IRQ](./references/irq.md) | ECLIC 中断控制器、注册、启用/禁用、优先级 |
+| [Core](./references/core.md) | CPU 核心访问、mtime 计时器、CLINT |
+| [PM](./references/pm.md) | 电源管理、深度睡眠、休眠、时钟门控、Wi-Fi 功耗 |
+| [FreeRTOS](./references/freertos.md) | 任务、队列、信号量、互斥锁、滴答延时（无需 vTaskStartScheduler） |
 
-### 无线通信
+### 安全加密
 
 | 文档 | 内容 |
 |------|------|
-| [Wi-Fi](./references/wifi.md) | Wi-Fi STA/AP 连接、扫描、功耗管理 |
-| [BLE](./references/ble.md) | BLE 广播/扫描/连接、GATT 服务/通知 |
-| [BLE Mesh](./references/ble-mesh.md) | BLE Mesh 配网、模型消息 |
-| [LwIP Socket](./references/lwip.md) | TCP/UDP Socket、域名解析 |
-| [MQTT](./references/mqtt.md) | MQTT 客户端、QoS 0/1/2、LWT |
-| [HTTP](./references/http.md) | HTTPD/HTTPC GET/POST 请求 |
-| [OTA](./references/ota.md) | HTTP/HTTPS OTA 固件升级 |
-| [Wi-Fi HOSAL](./references/wifi-hosal.md) | Wi-Fi RF/功耗抽象层 |
+| [sec_sha](./references/sec_sha.md) | SHA-1/224/256/384/512 硬件加速、DMA 链接模式 |
+| [sec_aes](./references/sec_aes.md) | AES ECB/CBC/CTR 模式、硬件密钥、链接模式 |
+| [sec_other](./references/sec_other.md) | TRNG/DSA/GMAC/ECDSA/PKA 完整 API 参考 |
+| [HMAC](./references/hmac.md) | HMAC-SHA256 软件实现（无独立硬件）、寄存器级优化 |
+
+### 网络协议栈
+
+| 文档 | 内容 |
+|------|------|
+| [LwIP](./references/lwip.md) | TCP/IP 协议栈、Socket API、UDP/TCP、netif |
+| [MQTT](./references/mqtt.md) | MQTT 客户端、QoS 0/1/2、LWT、keep-alive |
+| [HTTP](./references/http.md) | HTTP/HTTPS 客户端、GET/POST、mbedtls 集成 |
+| [wifi_mgmr](./references/wifi_mgmr.md) | Wi-Fi 管理器、STA/AP 连接、扫描、国家码、自动重连 |
+| [BLE](./references/ble.md) | BLE 控制器、iBeacon、GATT 服务、通知/指示 |
+| [ble_mesh](./references/ble_mesh.md) | BLE Mesh 配网、模型消息发送、节点角色 |
+| [coex](./references/coex.md) | Wi-Fi/BLE 共存、优先级配置、活动通报 |
+| [wl80211](./references/wl80211.md) | wl80211 驱动接口、802.11 帧处理 |
+
+### 组件与中间件
+
+| 文档 | 内容 |
+|------|------|
+| [lvgl](./references/lvgl.md) | LVGL v9 图形库、对象系统、显示/输入驱动、定时器 |
+| [Shell](./references/shell.md) | 命令行接口、SHELL_CMD_EXPORT、内置命令 |
+| [Filesystem](./references/filesystem.md) | FATFS/LittleFS 文件系统、分区挂载、读写 |
+| [OTA](./references/ota.md) | HTTP/HTTPS OTA 固件升级、TCP OTA、 rollback |
+| [USB](./references/usb.md) | USB 设备/主机、CDC ACM、MSC 类驱动 |
+| [mquickjs](./references/mquickjs.md) | QuickJS JavaScript 引擎、嵌入式 JS 脚本执行 |
+| [Utils](./references/utils.md) | cJSON、log 系统、日志级别、DBG_TAG |
 
 ---
 
