@@ -800,6 +800,9 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [SRTP](./references/srtp.md) | SRTP 安全实时传输、AES-CM/GCM、ROC 同步 |
 | [HTTPS](./references/https.md) | HTTPS Client、TLS 1.2/1.3、mbedtls 集成 |
 | [iPerf](./references/iperf.md) | TCP/UDP 吞吐量测试、Wi-Fi 性能验证 |
+| [SmartAudio](./references/smart_audio.md) | BL618 统一音频框架、本地/蓝牙音乐、提示音、音量管理 |
+| [XAV](./references/xav.md) | 多媒体框架、player/codec/format/filter、MP3/AAC 播放 |
+| [WebSocket](./references/websocket.md) | librws WebSocket 客户端、异步 I/O、ws://wss:// |
 
 ### 无线通信（Wi-Fi）
 
@@ -840,6 +843,9 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [mquickjs](./references/mquickjs.md) | QuickJS JavaScript 引擎、嵌入式 JS 脚本执行 |
 | [Utils](./references/utils.md) | cJSON、log 系统、日志级别、DBG_TAG |
 | [AI](./references/ai.md) | DNN 加速器、图像识别、语音唤醒、手势识别 |
+| [MTD](./references/mtd.md) | Flash 分区抽象、XIP 访问、PSM 持久存储 |
+| [Thread](./references/thread.md) | 802.15.4 Thread 网络、IPv6 mesh、自愈合 |
+| [FOTA](./references/fota.md) | 固件 OTA 升级、TCP/HTTPS、双分区回滚 |
 
 ---
 
