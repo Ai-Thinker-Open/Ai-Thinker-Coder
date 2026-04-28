@@ -795,7 +795,11 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [mbedtls](./references/mbedtls.md) | TLS 1.0-1.3、SSL 上下文、证书验证、双向认证 |
 | [AT](./references/at.md) | AT 命令框架、命令注册、Wi-Fi/BLE/MQTT/HTTP AT |
 | [netbus](./references/netbus.md) | 透传模式、UART-WiFi 桥接、Socket 客户端/服务端 |
-| [RTSP](./references/rtsp.md) | RTSP 服务器、DESCRIBE/SETUP/PLAY、 RTP over UDP |
+| [RTSP](./references/rtsp.md) | RTSP 服务器、DESCRIBE/SETUP/PLAY、RTP over UDP |
+| [NetHub](./references/nethub.md) | 推流服务器、RTSP/HTTP-FLV/HLS、Wi-Fi 包过滤分发 |
+| [SRTP](./references/srtp.md) | SRTP 安全实时传输、AES-CM/GCM、ROC 同步 |
+| [HTTPS](./references/https.md) | HTTPS Client、TLS 1.2/1.3、mbedtls 集成 |
+| [iPerf](./references/iperf.md) | TCP/UDP 吞吐量测试、Wi-Fi 性能验证 |
 
 ### 无线通信（Wi-Fi）
 
@@ -805,6 +809,10 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [wpa_supplicant](./references/wpa_supplicant.md) | WPA2-Personal/Enterprise、WPA3、WPS-PBC/PIN、DPP、RRM/WNM |
 | [net80211](./references/net80211.md) | Wi-Fi MLME 层、scan/auth/assoc、beacon 监控、rx/tx 帧处理 |
 | [coex](./references/coex.md) | Wi-Fi/BLE 共存、优先级配置、活动通报 |
+| [Wi-Fi 6](./references/wifi6.md) | 802.11ax、MU-MIMO、OFDMA、BSS Color、TWT |
+| [Wi-Fi 4](./references/wifi4.md) | 802.11n 兼容、MCS 0~15、Short GI、APSD 节能 |
+| [MACSW](./references/macsw.md) | MAC 软件层、帧收发控制、加密引擎、固件 API |
+| [wl80211](./references/wl80211.md) | wl80211 驱动接口、cntrl 命令、scan_ops、input_cb |
 
 ### 无线通信（BT & Thread）
 
@@ -815,6 +823,10 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [bt_a2dp](./references/bt_a2dp.md) | A2DP 音频、SBC 编解码、AVRCP 遥控、Stream 管理 |
 | [bt_hfp_spp](./references/bt_hfp_spp.md) | HFP 免提、AT 命令、SPP 串口、SDP 服务发现、RFCOMM |
 | [openthread](./references/openthread.md) | OpenThread 协议、IPv6、CoAP、UDP Socket、设备角色 |
+| [bt_avrcp](./references/bt_avrcp.md) | BT AVRCP 遥控、播放控制、歌曲信息浏览、事件通知 |
+| [bt_sdp](./references/bt_sdp.md) | BT SDP 服务发现、Browse Group、Attribute 查询 |
+| [lmac154](./references/lmac154.md) | 802.15.4 MAC、Thread/Zigbee 基带、频道 11~26 |
+| [Matter](./references/matter.md) | Matter 智能家居、DAC 证书链、SPAKE2+ 认证、配网 |
 
 ### 组件与中间件
 
@@ -823,10 +835,11 @@ ble_gap_adv_start(&adv_params, "BL616");
 | [lvgl](./references/lvgl.md) | LVGL v9 图形库、对象系统、显示/输入驱动、定时器 |
 | [Shell](./references/shell.md) | 命令行接口、SHELL_CMD_EXPORT、内置命令 |
 | [Filesystem](./references/filesystem.md) | FATFS/LittleFS 文件系统、分区挂载、读写 |
-| [OTA](./references/ota.md) | HTTP/HTTPS OTA 固件升级、TCP OTA、 rollback |
+| [OTA](./references/ota.md) | HTTP/HTTPS OTA 固件升级、TCP OTA、rollback |
 | [USB](./references/usb.md) | USB 设备/主机、CDC ACM、MSC 类驱动 |
 | [mquickjs](./references/mquickjs.md) | QuickJS JavaScript 引擎、嵌入式 JS 脚本执行 |
 | [Utils](./references/utils.md) | cJSON、log 系统、日志级别、DBG_TAG |
+| [AI](./references/ai.md) | DNN 加速器、图像识别、语音唤醒、手势识别 |
 
 ---
 
