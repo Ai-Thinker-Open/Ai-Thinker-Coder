@@ -1,17 +1,17 @@
-# Smart Audio 音频框架
+# Smart Audio Framework
 
-## 概述
+## Overview
 
-Smart Audio 是 BL618 芯片的统一音频播放框架，整合了本地音乐、提示音、蓝牙 A2DP、蓝牙 HFP 四种音频源。该框架提供音量管理和播放状态机，支持通过回调机制通知应用层播放状态变化。
+Smart Audio is the unified audio playback framework for the BL618 chip, integrating four audio sources: local music, notification sounds, Bluetooth A2DP, and Bluetooth HFP. The framework provides volume management and playback state machine, and supports notifying the application layer of playback state changes via a callback mechanism.
 
-## 播放源类型
+## Playback Source Types
 
-| 类型 | 枚举值 | 说明 |
+| Type | Enum Value | Description |
 |------|--------|------|
-| SMTAUDIO_ONLINE_MUSIC | MEDIA_MUSIC | 在线音乐播放 |
-| SMTAUDIO_LOCAL_PLAY | MEDIA_SYSTEM | 本地提示音播放 |
-| SMTAUDIO_BT_A2DP | 102 | 蓝牙 A2DP 音乐 |
-| SMTAUDIO_BT_HFP | 103 | 蓝牙 HFP 通话 |
+| SMTAUDIO_ONLINE_MUSIC | MEDIA_MUSIC | Online music playback |
+| SMTAUDIO_LOCAL_PLAY | MEDIA_SYSTEM | Local notification sound playback |
+| SMTAUDIO_BT_A2DP | 102 | Bluetooth A2DP music |
+| SMTAUDIO_BT_HFP | 103 | Bluetooth HFP call |
 
 ```c
 typedef enum {
@@ -24,40 +24,40 @@ typedef enum {
 } smtaudio_player_type_t;
 ```
 
-## 播放状态
+## Playback States
 
 ```c
 typedef enum {
-    SMTAUDIO_STATE_PLAYING,  // 正在播放
-    SMTAUDIO_STATE_PAUSE,    // 暂停
-    SMTAUDIO_STATE_STOP,     // 停止
-    SMTAUDIO_STATE_MUTE,     // 静音
-    SMTAUDIO_STATE_NOINIT,   // 未初始化
+    SMTAUDIO_STATE_PLAYING,  // Currently playing
+    SMTAUDIO_STATE_PAUSE,    // Paused
+    SMTAUDIO_STATE_STOP,     // Stopped
+    SMTAUDIO_STATE_MUTE,     // Muted
+    SMTAUDIO_STATE_NOINIT,   // Not initialized
 } smtaudio_state_t;
 ```
 
-## 子状态机
+## Sub-State Machine
 
-每种播放源有独立的子状态：
+Each playback source has an independent sub-state:
 
 ```c
 typedef enum {
-    // 在线音乐子状态
+    // Online music sub-states
     SMTAUDIO_SUBSTATE_ONLINE_PLAYING,
     SMTAUDIO_SUBSTATE_ONLINE_PAUSE,
     SMTAUDIO_SUBSTATE_ONLINE_STOP,
 
-    // 本地提示音子状态
+    // Local notification sound sub-states
     SMTAUDIO_SUBSTATE_LOCAL_PLAYING,
     SMTAUDIO_SUBSTATE_LOCAL_PAUSE,
     SMTAUDIO_SUBSTATE_LOCAL_STOP,
 
-    // 蓝牙 A2DP 子状态
+    // Bluetooth A2DP sub-states
     SMTAUDIO_SUBSTATE_BT_A2DP_PLAYING,
     SMTAUDIO_SUBSTATE_BT_A2DP_PAUSE,
     SMTAUDIO_SUBSTATE_BT_A2DP_STOP,
 
-    // 蓝牙 HFP 子状态
+    // Bluetooth HFP sub-states
     SMTAUDIO_SUBSTATE_BT_HFP_PLAYING,
     SMTAUDIO_SUBSTATE_BT_HFP_PAUSE,
     SMTAUDIO_SUBSTATE_BT_HFP_STOP,
@@ -66,23 +66,23 @@ typedef enum {
 } smtaudio_sub_state_t;
 ```
 
-## 核心常量
+## Core Constants
 
-| 常量 | 值 | 说明 |
+| Constant | Value | Description |
 |------|-----|------|
-| VOLUME_SAVE_KV_NAME | "volume" | 音量持久化键名 |
-| SMART_AUDIO_DEFAULT_VOLUME | 60 | 默认音量值 |
-| INTERRUPT_REASON_BY_USER | 255 | 用户中断原因码 |
+| VOLUME_SAVE_KV_NAME | "volume" | Volume persistence key name |
+| SMART_AUDIO_DEFAULT_VOLUME | 60 | Default volume value |
+| INTERRUPT_REASON_BY_USER | 255 | User interrupt reason code |
 
-## 核心 API
+## Core API
 
-### 初始化
+### Initialization
 
 ```c
 int8_t smtaudio_init(audio_evt_t audio_evt_cb);
 ```
 
-### 注册播放源
+### Register Playback Sources
 
 ```c
 int8_t smtaudio_register_local_play(uint8_t min_vol, uint8_t *aef_conf, 
@@ -95,7 +95,7 @@ int8_t smtaudio_register_online_music(uint8_t min_vol, uint8_t *aef_conf,
                                        size_t aef_conf_size, float speed, int resample);
 ```
 
-### 播放控制
+### Playback Control
 
 ```c
 int8_t smtaudio_start(int type, char *url, uint64_t seek_time, uint8_t resume);
@@ -105,17 +105,17 @@ int8_t smtaudio_stop(int type);
 int8_t smtaudio_mute(void);
 ```
 
-### 音量控制
+### Volume Control
 
 ```c
-int8_t smtaudio_vol_set(int16_t vol);    // 设置音量 (0-100)
-int8_t smtaudio_vol_get(void);           // 获取当前音量
-int8_t smtaudio_vol_up(int16_t vol);     // 音量增加
-int8_t smtaudio_vol_down(int16_t vol);   // 音量减少
-int8_t smtaudio_vol_config(audio_vol_config_t *vol_config); // 配置音量映射
+int8_t smtaudio_vol_set(int16_t vol);    // Set volume (0-100)
+int8_t smtaudio_vol_get(void);           // Get current volume
+int8_t smtaudio_vol_up(int16_t vol);     // Increase volume
+int8_t smtaudio_vol_down(int16_t vol);   // Decrease volume
+int8_t smtaudio_vol_config(audio_vol_config_t *vol_config); // Configure volume mapping
 ```
 
-### 状态查询
+### Status Query
 
 ```c
 smtaudio_state_t smtaudio_get_state(void);
@@ -123,14 +123,14 @@ smtaudio_player_type_t smtaudio_get_play_type(void);
 int8_t smtaudio_info(int type, smtaudio_play_time_t *t);
 ```
 
-### 低功耗管理
+### Low Power Management
 
 ```c
-int8_t smtaudio_lpm(uint8_t state);      // 设置低功耗模式
-int smtaudio_enter_lpm_check(void);      // 检查是否可以进入低功耗
+int8_t smtaudio_lpm(uint8_t state);      // Set low power mode
+int smtaudio_enter_lpm_check(void);      // Check if can enter low power
 ```
 
-## 事件回调
+## Event Callbacks
 
 ```c
 typedef void (*audio_evt_t)(int type, smtaudio_player_evtid_t evt_id);
@@ -146,28 +146,28 @@ typedef enum {
 } smtaudio_player_evtid_t;
 ```
 
-## 播放时间信息
+## Playback Time Info
 
 ```c
 typedef struct {
-    uint64_t duration;  // 总时长（毫秒）
-    uint64_t curtime;   // 当前播放位置（毫秒）
+    uint64_t duration;  // Total duration (milliseconds)
+    uint64_t curtime;   // Current playback position (milliseconds)
 } smtaudio_play_time_t;
 ```
 
-## 音量配置结构
+## Volume Config Structure
 
 ```c
 typedef struct _audio_vol_config {
-    int32_t db_min;    // 最小分贝值
-    int32_t db_max;    // 最大分贝值
-    uint8_t *map;      // 音量映射表（大小 101）
+    int32_t db_min;    // Minimum dB value
+    int32_t db_max;    // Maximum dB value
+    uint8_t *map;      // Volume mapping table (size 101)
 } audio_vol_config_t;
 ```
 
-## 与蓝牙模块的关系
+## Relationship with Bluetooth Module
 
-### 蓝牙 A2DP 接口
+### Bluetooth A2DP Interface
 
 ```c
 int msp_app_bt_a2dp_connect(uint8_t remote_addr[BT_BD_ADDR_LEN]);
@@ -178,7 +178,7 @@ int msp_app_bt_avrcp_change_vol(uint8_t vol);
 int msp_app_bt_a2dp_register_cb(msp_app_bt_callback_t callback);
 ```
 
-AVRCP 命令类型：
+AVRCP Command Types:
 
 ```c
 typedef enum {
@@ -194,7 +194,7 @@ typedef enum {
 } msp_app_avrcp_cmd_type_t;
 ```
 
-### 蓝牙 HFP 接口
+### Bluetooth HFP Interface
 
 ```c
 int32_t msp_app_bt_hfp_reg_callback(MSP_APP_BT_HFP_IMPL_CB_FUNC_T *callback);
@@ -208,7 +208,7 @@ int32_t msp_app_bt_hfp_get_call_status(void);
 int32_t msp_app_bt_hfp_volume_update(int type, int volume);
 ```
 
-HFP 状态枚举：
+HFP State Enums:
 
 ```c
 typedef enum hfp_call_status {
@@ -235,9 +235,9 @@ typedef enum {
 } MSP_APP_BT_HFP_AUDIO_STATE_T;
 ```
 
-## 代码示例
+## Code Examples
 
-### 示例一：初始化
+### Example 1: Initialization
 
 ```c
 #include "smart_audio.h"
@@ -256,70 +256,70 @@ void audio_event_callback(int type, smtaudio_player_evtid_t evt_id)
 
 void smart_audio_init(void)
 {
-    // 初始化
+    // Initialize
     smtaudio_init(audio_event_callback);
 
-    // 注册播放源
+    // Register playback sources
     smtaudio_register_local_play(5, NULL, 0, 1.0f, 48000);
     smtaudio_register_bt_a2dp(5, NULL, 0, 1.0f, 48000);
     smtaudio_register_bt_hfp(5, NULL, 0, 1.0f, 16000);
     smtaudio_register_online_music(5, NULL, 0, 1.0f, 48000);
 
-    // 设置默认音量
+    // Set default volume
     smtaudio_vol_set(SMART_AUDIO_DEFAULT_VOLUME);
 }
 ```
 
-### 示例二：播放本地提示音
+### Example 2: Play Local Notification Sound
 
 ```c
 void play_notification(void)
 {
-    // 播放本地提示音
+    // Play local notification sound
     smtaudio_start(SMTAUDIO_LOCAL_PLAY, "/system/notification.wav", 0, 0);
 
-    // 获取播放信息
+    // Get playback info
     smtaudio_play_time_t time_info;
     smtaudio_info(SMTAUDIO_LOCAL_PLAY, &time_info);
     printf("Duration: %llu ms\r\n", time_info.duration);
 
-    // 停止播放
+    // Stop playback
     smtaudio_stop(SMTAUDIO_LOCAL_PLAY);
 }
 ```
 
-### 示例三：蓝牙 A2DP 播放
+### Example 3: Bluetooth A2DP Playback
 
 ```c
 #include "bt/msp_app_bt.h"
 
 void bt_a2dp_play(uint8_t *remote_addr)
 {
-    // 连接蓝牙设备
+    // Connect Bluetooth device
     msp_app_bt_a2dp_connect(remote_addr);
 
-    // 播放蓝牙音乐
+    // Play Bluetooth music
     smtaudio_start(SMTAUDIO_BT_A2DP, NULL, 0, 1);
 
-    // 设置音量
+    // Set volume
     smtaudio_vol_set(70);
 
-    // 发送 AVRCP 命令
+    // Send AVRCP command
     msp_app_bt_avrcp_send_passthrouth_cmd(MSP_APP_BT_AVRCP_CMD_PAUSE);
 
-    // 恢复播放
+    // Resume playback
     smtaudio_resume();
 
-    // 获取当前状态
+    // Get current state
     smtaudio_state_t state = smtaudio_get_state();
     smtaudio_player_type_t type = smtaudio_get_play_type();
 
-    // 断开连接
+    // Disconnect
     msp_app_bt_a2dp_disconnect();
 }
 ```
 
-### 示例四：蓝牙 HFP 通话
+### Example 4: Bluetooth HFP Call
 
 ```c
 void hfp_call_callbacks(MSP_APP_BT_HFP_STATE_T state, const char *mac)
@@ -336,58 +336,58 @@ void bt_hfp_call(const char *mac)
         .hfpRingIndCB = NULL,
     };
 
-    // 注册回调并连接
+    // Register callback and connect
     msp_app_bt_hfp_reg_callback(&callbacks);
     msp_app_bt_hfp_connect(mac);
     msp_app_bt_hfp_connect_audio(mac);
 
-    // 设置音量
+    // Set volume
     msp_app_bt_hfp_volume_update(0, 10);
 
-    // 拨打电话
+    // Make a call
     msp_app_bt_hfp_dial("10086");
 
-    // 通话结束挂断
+    // Hang up after call ends
     msp_app_bt_hfp_send_command(MSP_APP_BT_HFP_COMMAND_TYPE_TERMINATE);
     msp_app_bt_hfp_disconnect(mac);
 }
 ```
 
-### 示例五：音量控制
+### Example 5: Volume Control
 
 ```c
 void volume_control(void)
 {
-    // 设置音量
+    // Set volume
     smtaudio_vol_set(80);
 
-    // 获取当前音量
+    // Get current volume
     int8_t vol = smtaudio_vol_get();
     printf("Current volume: %d\r\n", vol);
 
-    // 音量调节
+    // Volume adjustment
     smtaudio_vol_up(10);
     smtaudio_vol_down(5);
 
-    // 静音
+    // Mute
     smtaudio_mute();
     smtaudio_resume();
 
-    // 获取播放状态
+    // Get playback state
     smtaudio_state_t state = smtaudio_get_state();
 }
 ```
 
-### 示例六：自定义音量映射
+### Example 6: Custom Volume Mapping
 
 ```c
 void volume_config_example(void)
 {
     static uint8_t volume_db_map[101];
 
-    // 构建自定义映射表
+    // Build custom mapping table
     for (int i = 0; i <= 100; i++) {
-        volume_db_map[i] = i;  // 线性映射
+        volume_db_map[i] = i;  // Linear mapping
     }
 
     audio_vol_config_t vol_config = {
@@ -400,9 +400,9 @@ void volume_config_example(void)
 }
 ```
 
-## 参考
+## References
 
-- [smart_audio.h 头文件源码](../workspase/BL618Claw/bouffalo_sdk/components/multimedia/smart_audio_bl616/include/smart_audio.h)
-- [msp_app_bt.h 蓝牙接口头文件](../workspase/BL618Claw/bouffalo_sdk/components/multimedia/smart_audio_bl616/include/bt/msp_app_bt.h)
-- [Bouffalo SDK 多媒体组件](../workspase/BL618Claw/bouffalo_sdk/components/multimedia)
-- [BL618 芯片技术手册](https://www.bouffalolab.com)
+- [smart_audio.h header source](../workspase/BL618Claw/bouffalo_sdk/components/multimedia/smart_audio_bl616/include/smart_audio.h)
+- [msp_app_bt.h Bluetooth interface header](../workspase/BL618Claw/bouffalo_sdk/components/multimedia/smart_audio_bl616/include/bt/msp_app_bt.h)
+- [Bouffalo SDK Multimedia Components](../workspase/BL618Claw/bouffalo_sdk/components/multimedia)
+- [BL618 Chip Technical Manual](https://www.bouffalolab.com)

@@ -7,46 +7,46 @@
 
 ## Overview
 
-EF_CTRL (eFuse Controller) 模块提供对芯片 eFuse（一次性可编程存储器）的读写控制接口。eFuse 用于存储芯片出厂校准数据、安全密钥、功能配置位等不可变信息。控制器提供自动模式和手动模式两种操作方式，支持 direct（直接）读写和 common trim（通用校准参数）两种数据访问抽象。
+The EF_CTRL (eFuse Controller) module provides read/write control interfaces for the chip's eFuse (one-time programmable memory). The eFuse is used to store immutable information such as factory calibration data, security keys, and function configuration bits. The controller offers two operating modes—automatic mode and manual mode—and supports two data access abstractions: direct read/write and common trim (general calibration parameters).
 
-**主要特性：**
-- Direct 模式：基于 offset 的原始 eFuse 数据读写
-- Common Trim 模式：基于名称的校准参数读写（如 ADC trim、电压 trim 等）
-- 自动加载检测（Auto-Load Done）
-- eFuse 编程（烧写）支持
-- 多 Region 支持（部分芯片有 Region 0 和 Region 1）
-- 时序参数可配置
-- 忙碌状态检测
-- 工具函数：parity 计算、bit 检测、zero count
+**Key Features:**
+- Direct mode: Raw eFuse data read/write based on offset
+- Common Trim mode: Name-based calibration parameter read/write (e.g., ADC trim, voltage trim, etc.)
+- Auto-load detection (Auto-Load Done)
+- eFuse programming (burning) support
+- Multi-Region support (some chips have Region 0 and Region 1)
+- Configurable timing parameters
+- Busy state detection
+- Utility functions: parity calculation, bit detection, zero count
 
 ---
 
 ## Base Address
 
-| 芯片 | EF_CTRL 基地址 | eFuse Region 0 大小 | eFuse Region 1 大小 |
+| Chip | EF_CTRL Base Address | eFuse Region 0 Size | eFuse Region 1 Size |
 |------|---------------|-------------------|-------------------|
 | BL616 | `0x20056000` | 512 bytes (16×32-bit) | — |
 | BL618DG (A0) | `0x2000C000` | 256 bytes (8×32-bit) | — |
-| BL618DG (非 A0) | `0x2000C000` | 256 bytes | 256 bytes |
+| BL618DG (non-A0) | `0x2000C000` | 256 bytes | 256 bytes |
 | BL616CL | `0x20056000` | 128 bytes (4×32-bit) | — |
 | BL702/BL702L | `0x40007000` | 128 bytes | — |
 | BL602 | `0x40007000` | 128 bytes | — |
 
 ---
 
-## 数据类型
+## Data Types
 
 ### bflb_ef_ctrl_com_trim_cfg_t
 
-eFuse Common Trim 配置描述符（用于 trim 列表）。
+eFuse Common Trim configuration descriptor (for trim list).
 
 ```c
 typedef struct {
-    char *name;           /* trim 名称 */
-    uint16_t en_addr;     /* enable 位地址 (bit offset) */
-    uint16_t parity_addr; /* parity 位地址 (bit offset) */
-    uint16_t value_addr;  /* value 位地址 (bit offset) */
-    uint16_t value_len;   /* value 位长度 */
+    char *name;           /* trim name */
+    uint16_t en_addr;     /* enable bit address (bit offset) */
+    uint16_t parity_addr; /* parity bit address (bit offset) */
+    uint16_t value_addr;  /* value bit address (bit offset) */
+    uint16_t value_len;   /* value bit length */
 } bflb_ef_ctrl_com_trim_cfg_t;
 ```
 
@@ -54,15 +54,15 @@ typedef struct {
 
 ### bflb_ef_ctrl_com_trim_t
 
-eFuse Common Trim 数据（通过名称读取后返回）。
+eFuse Common Trim data (returned after reading by name).
 
 ```c
 typedef struct {
-    uint8_t en;     /* Enable 状态 */
-    uint8_t parity; /* Trim 校验位 */
-    uint8_t empty;  /* Trim 是否为空 */
-    uint8_t len;    /* Trim value 位长度 */
-    uint32_t value; /* Trim 值 */
+    uint8_t en;     /* Enable status */
+    uint8_t parity; /* Trim parity bit */
+    uint8_t empty;  /* Whether trim is empty */
+    uint8_t len;    /* Trim value bit length */
+    uint32_t value; /* Trim value */
 } bflb_ef_ctrl_com_trim_t;
 ```
 
@@ -70,32 +70,32 @@ typedef struct {
 
 ### bflb_ef_ctrl_para_t
 
-eFuse 控制器时序参数（用于读写时的时序调整）。
+eFuse controller timing parameters (for timing adjustment during read/write).
 
 ```c
 typedef struct {
-    uint16_t pd_1st;   /* 稳定时间 */
-    uint16_t pd_cs_s;  /* CS 建立时间 (>500ns) */
-    uint16_t cs;       /* CS 宽度 (>6.6ns) */
-    uint16_t rd_adr;   /* 地址读取时间 (>6.3ns) */
-    uint16_t rd_dat;   /* 数据读取时间 (>199ns) */
-    uint16_t rd_dmy;   /* 空周期 (>14.9ns) */
-    uint16_t pd_cs_h;  /* CS 保持时间 (>1ns) */
-    uint16_t ps_cs;    /* CS 间隔 (>50ns) */
-    uint16_t wr_adr;   /* 地址写入时间 (>6.3ns) */
-    uint16_t pp;       /* 编程脉冲宽度 (>11-13us) */
-    uint16_t pi;       /* 编程间隔 (>14.9ns) */
+    uint16_t pd_1st;   /* settling time */
+    uint16_t pd_cs_s;  /* CS setup time (>500ns) */
+    uint16_t cs;       /* CS width (>6.6ns) */
+    uint16_t rd_adr;   /* address read time (>6.3ns) */
+    uint16_t rd_dat;   /* data read time (>199ns) */
+    uint16_t rd_dmy;   /* dummy cycle (>14.9ns) */
+    uint16_t pd_cs_h;  /* CS hold time (>1ns) */
+    uint16_t ps_cs;    /* CS interval (>50ns) */
+    uint16_t wr_adr;   /* address write time (>6.3ns) */
+    uint16_t pp;       /* programming pulse width (>11-13us) */
+    uint16_t pi;       /* programming interval (>14.9ns) */
 } bflb_ef_ctrl_para_t;
 ```
 
 ---
 
-## AES 加密模式宏
+## AES Encryption Mode Macros
 
-仅 BL616CL / BL618DG:
+BL616CL / BL618DG only:
 
 ```c
-#define EF_CTRL_SF_AES_NONE  (0)  /* 无 AES 加密 */
+#define EF_CTRL_SF_AES_NONE  (0)  /* No AES encryption */
 #define EF_CTRL_SF_AES_128   (1)  /* AES-128 */
 #define EF_CTRL_SF_AES_192   (2)  /* AES-192 */
 #define EF_CTRL_SF_AES_256   (3)  /* AES-256 */
@@ -105,11 +105,11 @@ typedef struct {
 
 ## API Functions
 
-### 1. Trim 列表与自动加载
+### 1. Trim List and Auto-Load
 
 #### bflb_ef_ctrl_get_common_trim_list
 
-获取 eFuse Common Trim 配置列表。
+Get the eFuse Common Trim configuration list.
 
 ```c
 uint32_t bflb_ef_ctrl_get_common_trim_list(const bflb_ef_ctrl_com_trim_cfg_t **trim_list);
@@ -119,17 +119,17 @@ uint32_t bflb_ef_ctrl_get_common_trim_list(const bflb_ef_ctrl_com_trim_cfg_t **t
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `trim_list` | `const bflb_ef_ctrl_com_trim_cfg_t **` | 输出：trim 列表指针 |
+| `trim_list` | `const bflb_ef_ctrl_com_trim_cfg_t **` | Output: pointer to trim list |
 
-**Returns:** trim 列表条目数量
+**Returns:** Number of entries in the trim list
 
-**说明:** 返回芯片支持的 eFuse trim 参数列表（如 ADC offset、bandgap trim、LDO trim 等）。该列表用于 `bflb_ef_ctrl_read_common_trim()` 和 `bflb_ef_ctrl_write_common_trim()` 按名称索引。
+**Description:** Returns the list of eFuse trim parameters supported by the chip (such as ADC offset, bandgap trim, LDO trim, etc.). This list is used by `bflb_ef_ctrl_read_common_trim()` and `bflb_ef_ctrl_write_common_trim()` for name-based indexing.
 
 ---
 
 #### bflb_ef_ctrl_autoload_done
 
-检查 eFuse 自动加载是否完成。
+Check whether eFuse auto-load has completed.
 
 ```c
 int bflb_ef_ctrl_autoload_done(struct bflb_device_s *dev);
@@ -139,24 +139,24 @@ int bflb_ef_ctrl_autoload_done(struct bflb_device_s *dev);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | eFuse 设备句柄 |
+| `dev` | `struct bflb_device_s *` | eFuse device handle |
 
 **Returns:**
 
-| 返回值 | 说明 |
+| Return Value | Description |
 |--------|------|
-| `1` | 自动加载已完成 |
-| `0` | 自动加载未完成 |
+| `1` | Auto-load completed |
+| `0` | Auto-load not completed |
 
-**说明:** 系统上电后 eFuse 控制器会自动将 eFuse 数据加载到 Shadow Register。此函数检查 `EF_CTRL_EF_IF_0_AUTOLOAD_DONE_MASK` 状态位。
+**Description:** After system power-up, the eFuse controller automatically loads eFuse data into the Shadow Register. This function checks the `EF_CTRL_EF_IF_0_AUTOLOAD_DONE_MASK` status bit.
 
 ---
 
-### 2. 时序参数
+### 2. Timing Parameters
 
 #### bflb_ef_ctrl_set_para
 
-设置 eFuse 控制器的读写时序参数。
+Set the read/write timing parameters of the eFuse controller.
 
 ```c
 int bflb_ef_ctrl_set_para(bflb_ef_ctrl_para_t *para);
@@ -166,19 +166,19 @@ int bflb_ef_ctrl_set_para(bflb_ef_ctrl_para_t *para);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `para` | `bflb_ef_ctrl_para_t *` | 时序参数结构体指针 |
+| `para` | `bflb_ef_ctrl_para_t *` | Pointer to timing parameter struct |
 
-**Returns:** `0` 成功
+**Returns:** `0` on success
 
-**说明:** 将时序参数写入 `EF_IF_CYC_0` 和 `EF_IF_CYC_1` 寄存器，用于调整 eFuse 编程/读取的时序。BL616 使用默认参数，BL616CL 会根据系统时钟动态计算 `pp` 值。
+**Description:** Writes timing parameters to the `EF_IF_CYC_0` and `EF_IF_CYC_1` registers for adjusting eFuse programming/read timing. BL616 uses default parameters; BL616CL dynamically calculates the `pp` value based on system clock.
 
 ---
 
-### 3. Direct 读写
+### 3. Direct Read/Write
 
 #### bflb_ef_ctrl_write_direct
 
-直接写入 eFuse 数据（可选择性烧录）。
+Directly write eFuse data (optionally program/burn).
 
 ```c
 void bflb_ef_ctrl_write_direct(struct bflb_device_s *dev, uint32_t offset, uint32_t *pword, uint32_t count, uint8_t program);
@@ -188,24 +188,24 @@ void bflb_ef_ctrl_write_direct(struct bflb_device_s *dev, uint32_t offset, uint3
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | eFuse 设备句柄 |
-| `offset` | `uint32_t` | eFuse 写入偏移地址（字节） |
-| `pword` | `uint32_t *` | 待写入数据缓冲区（word 对齐） |
-| `count` | `uint32_t` | 写入的 word 数量 |
-| `program` | `uint8_t` | `1` = 写入 Shadow Register 并烧录到 eFuse；`0` = 仅写 Shadow Register |
+| `dev` | `struct bflb_device_s *` | eFuse device handle |
+| `offset` | `uint32_t` | eFuse write offset address (bytes) |
+| `pword` | `uint32_t *` | Data buffer to write (word-aligned) |
+| `count` | `uint32_t` | Number of words to write |
+| `program` | `uint8_t` | `1` = write Shadow Register and program to eFuse; `0` = write Shadow Register only |
 
-**说明:** 
-- 在中断保护下执行
-- 自动处理跨 Region 写入
-- `program=1` 时会执行完整的编程流程（上电 → 编程 → 等待 busy → 断电）
-- 自动调用 `bflb_ef_ctrl_update_para()` 更新时序参数
-- 边界检查：超出范围时若 `program=1` 仅触发编程操作
+**Description:** 
+- Executed under interrupt protection
+- Automatically handles cross-Region writes
+- When `program=1`, executes the full programming flow (power-up → program → wait busy → power-down)
+- Automatically calls `bflb_ef_ctrl_update_para()` to update timing parameters
+- Boundary check: if out of range and `program=1`, only triggers the programming operation
 
 ---
 
 #### bflb_ef_ctrl_read_direct
 
-直接读取 eFuse 数据。
+Directly read eFuse data.
 
 ```c
 void bflb_ef_ctrl_read_direct(struct bflb_device_s *dev, uint32_t offset, uint32_t *pword, uint32_t count, uint8_t reload);
@@ -215,26 +215,26 @@ void bflb_ef_ctrl_read_direct(struct bflb_device_s *dev, uint32_t offset, uint32
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | eFuse 设备句柄 |
-| `offset` | `uint32_t` | eFuse 读取偏移地址（字节） |
-| `pword` | `uint32_t *` | 读取数据缓冲区（word 对齐） |
-| `count` | `uint32_t` | 读取的 word 数量 |
-| `reload` | `uint8_t` | `1` = 从 eFuse 重新加载后再读；`0` = 从 Shadow Register 读取 |
+| `dev` | `struct bflb_device_s *` | eFuse device handle |
+| `offset` | `uint32_t` | eFuse read offset address (bytes) |
+| `pword` | `uint32_t *` | Read data buffer (word-aligned) |
+| `count` | `uint32_t` | Number of words to read |
+| `reload` | `uint8_t` | `1` = reload from eFuse before reading; `0` = read from Shadow Register |
 
-**说明:**
-- 在中断保护下执行
-- 自动处理跨 Region 读取
-- `reload=1` 时触发完整的 Load 流程并等待 auto-load done
-- `reload=0` 时仅切换到 AHB Clock 后直接读取
-- 自动调用 `bflb_ef_ctrl_update_para()` 更新时序参数
+**Description:**
+- Executed under interrupt protection
+- Automatically handles cross-Region reads
+- When `reload=1`, triggers the full Load flow and waits for auto-load done
+- When `reload=0`, switches to AHB Clock only and reads directly
+- Automatically calls `bflb_ef_ctrl_update_para()` to update timing parameters
 
 ---
 
-### 4. Common Trim 读写
+### 4. Common Trim Read/Write
 
 #### bflb_ef_ctrl_read_common_trim
 
-按名称读取 eFuse Common Trim 参数。
+Read eFuse Common Trim parameters by name.
 
 ```c
 void bflb_ef_ctrl_read_common_trim(struct bflb_device_s *dev, char *name, bflb_ef_ctrl_com_trim_t *trim, uint8_t reload);
@@ -244,23 +244,23 @@ void bflb_ef_ctrl_read_common_trim(struct bflb_device_s *dev, char *name, bflb_e
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | eFuse 设备句柄 |
-| `name` | `char *` | Trim 参数名称（字符串匹配） |
-| `trim` | `bflb_ef_ctrl_com_trim_t *` | 输出：读取到的 trim 数据 |
-| `reload` | `uint8_t` | `1` = 重新加载；`0` = 直接读 Shadow Register |
+| `dev` | `struct bflb_device_s *` | eFuse device handle |
+| `name` | `char *` | Trim parameter name (string match) |
+| `trim` | `bflb_ef_ctrl_com_trim_t *` | Output: read trim data |
+| `reload` | `uint8_t` | `1` = reload; `0` = read Shadow Register directly |
 
-**说明:**
-- 通过 `bflb_ef_ctrl_get_common_trim_list()` 获取 trim 列表
-- 按 `name` 字符串精确匹配查找对应的 trim 配置
-- 自动解析跨 32-bit 边界的 value 字段（支持 64-bit 拼接）
-- 读取 en、parity、value 位段，并判断 empty 状态
-- 在中断保护下执行
+**Description:**
+- Obtains trim list via `bflb_ef_ctrl_get_common_trim_list()`
+- Searches for the matching trim config by exact `name` string match
+- Automatically parses the value field across 32-bit boundaries (supports 64-bit concatenation)
+- Reads en, parity, value bit segments and determines empty status
+- Executed under interrupt protection
 
 ---
 
 #### bflb_ef_ctrl_write_common_trim
 
-按名称写入 eFuse Common Trim 参数。
+Write eFuse Common Trim parameters by name.
 
 ```c
 void bflb_ef_ctrl_write_common_trim(struct bflb_device_s *dev, char *name, uint32_t value, uint8_t program);
@@ -270,25 +270,25 @@ void bflb_ef_ctrl_write_common_trim(struct bflb_device_s *dev, char *name, uint3
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | eFuse 设备句柄 |
-| `name` | `char *` | Trim 参数名称 |
-| `value` | `uint32_t` | 待写入的 trim 值 |
-| `program` | `uint8_t` | `1` = 烧录到 eFuse（一次性）；`0` = 仅写 Shadow Register |
+| `dev` | `struct bflb_device_s *` | eFuse device handle |
+| `name` | `char *` | Trim parameter name |
+| `value` | `uint32_t` | Trim value to write |
+| `program` | `uint8_t` | `1` = program to eFuse (one-time); `0` = write Shadow Register only |
 
-**说明:**
-- 自动计算 parity 位并一同写入
-- 设置 enable 位标记该 trim 有效
-- 处理跨 32-bit 边界的 value 写入
-- `program=1` 时执行 eFuse 编程流程（上电 → 编程 → 等待 → 断电）
-- 在中断保护下执行
+**Description:**
+- Automatically calculates and writes the parity bit
+- Sets the enable bit to mark the trim as valid
+- Handles value writes across 32-bit boundaries
+- When `program=1`, executes the eFuse programming flow (power-up → program → wait → power-down)
+- Executed under interrupt protection
 
 ---
 
-### 5. 状态与工具函数
+### 5. Status and Utility Functions
 
 #### bflb_ef_ctrl_busy
 
-检查 eFuse Region 0 是否忙碌。
+Check whether eFuse Region 0 is busy.
 
 ```c
 int bflb_ef_ctrl_busy(struct bflb_device_s *dev);
@@ -298,47 +298,47 @@ int bflb_ef_ctrl_busy(struct bflb_device_s *dev);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | eFuse 设备句柄 |
+| `dev` | `struct bflb_device_s *` | eFuse device handle |
 
 **Returns:**
 
-| 返回值 | 说明 |
+| Return Value | Description |
 |--------|------|
-| `1` | eFuse 忙碌 |
-| `0` | eFuse 空闲 |
+| `1` | eFuse busy |
+| `0` | eFuse idle |
 
-**说明:** 检查 `EF_CTRL_EF_IF_0_BUSY_MASK` 状态位。编程操作完成后需等待 busy 清除。
+**Description:** Checks the `EF_CTRL_EF_IF_0_BUSY_MASK` status bit. After programming, you must wait for busy to clear.
 
 ---
 
 #### bflb_ef_ctrl_busy_r1
 
-检查 eFuse Region 1 是否忙碌。
+Check whether eFuse Region 1 is busy.
 
 ```c
 int bflb_ef_ctrl_busy_r1(struct bflb_device_s *dev);
 ```
 
-> ⚠️ **条件:** 仅 `BL618DG && !CPU_MODEL_A0` 可用
+> ⚠️ **Condition:** Only available for `BL618DG && !CPU_MODEL_A0`
 
 **Parameters:**
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | eFuse 设备句柄 |
+| `dev` | `struct bflb_device_s *` | eFuse device handle |
 
 **Returns:**
 
-| 返回值 | 说明 |
+| Return Value | Description |
 |--------|------|
-| `1` | eFuse Region 1 忙碌 |
-| `0` | eFuse Region 1 空闲 |
+| `1` | eFuse Region 1 busy |
+| `0` | eFuse Region 1 idle |
 
 ---
 
 #### bflb_ef_ctrl_is_all_bits_zero
 
-检查一个值中指定位段是否全为零。
+Check whether a specified bit segment within a value is all zeros.
 
 ```c
 uint8_t bflb_ef_ctrl_is_all_bits_zero(uint32_t val, uint8_t start, uint8_t len);
@@ -348,17 +348,17 @@ uint8_t bflb_ef_ctrl_is_all_bits_zero(uint32_t val, uint8_t start, uint8_t len);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `val` | `uint32_t` | 待检查的值 |
-| `start` | `uint8_t` | 起始位位置 |
-| `len` | `uint8_t` | 检查的位长度 |
+| `val` | `uint32_t` | Value to check |
+| `start` | `uint8_t` | Start bit position |
+| `len` | `uint8_t` | Bit length to check |
 
-**Returns:** `1` = 全零，`0` = 存在非零位
+**Returns:** `1` = all zeros, `0` = non-zero bits present
 
 ---
 
 #### bflb_ef_ctrl_get_byte_zero_cnt
 
-统计一个字节中零位的个数。
+Count the number of zero bits in a byte.
 
 ```c
 uint32_t bflb_ef_ctrl_get_byte_zero_cnt(uint8_t val);
@@ -368,15 +368,15 @@ uint32_t bflb_ef_ctrl_get_byte_zero_cnt(uint8_t val);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `val` | `uint8_t` | 待统计的字节 |
+| `val` | `uint8_t` | Byte to count |
 
-**Returns:** 零位个数（0-8）
+**Returns:** Number of zero bits (0-8)
 
 ---
 
 #### bflb_ef_ctrl_get_trim_parity
 
-计算 Trim 值的奇偶校验位。
+Calculate the parity bit for a Trim value.
 
 ```c
 uint8_t bflb_ef_ctrl_get_trim_parity(uint32_t val, uint8_t len);
@@ -386,95 +386,95 @@ uint8_t bflb_ef_ctrl_get_trim_parity(uint32_t val, uint8_t len);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `val` | `uint32_t` | Trim 值 |
-| `len` | `uint8_t` | 参与校验的位长度 |
+| `val` | `uint32_t` | Trim value |
+| `len` | `uint8_t` | Bit length for parity calculation |
 
-**Returns:** 奇校验位（0 或 1）——1 的个数的 LSB
+**Returns:** Odd parity bit (0 or 1) — LSB of the count of 1s
 
-**说明:** 统计 `val` 的 `[0, len)` 位中 1 的个数，返回最低位。用于 eFuse trim 写入时自动填充 parity 位。
+**Description:** Counts the number of 1s in bits `[0, len)` of `val` and returns the LSB. Used to auto-fill the parity bit during eFuse trim writes.
 
 ---
 
-## 寄存器参考
+## Register Reference
 
-### Region 0 控制寄存器 (BL616: offset 0x800 from base)
+### Region 0 Control Register (BL616: offset 0x800 from base)
 
 **`EF_CTRL_EF_IF_CTRL_0` (0x800)**
 
 | Bits | Field | Description |
 |------|-------|-------------|
-| 0 | `AUTOLOAD_P1_DONE` | Phase 1 自动加载完成 |
-| 1 | `AUTOLOAD_DONE` | 自动加载完成 |
-| 2 | `BUSY` | eFuse 忙碌状态 |
-| 3 | `RW` | 读写选择 (0=读, 1=写) |
-| 4 | `TRIG` | 触发操作 |
-| 5 | `MANUAL_EN` | 手动模式使能 (0=自动模式) |
-| 6 | `CYC_MODIFY` | 时序参数修改使能 |
-| 8-15 | `PROT_CODE_CTRL` | 控制寄存器保护码 (需写入 0xBF) |
-| 16 | `POR_DIG` | 数字 POR 控制 |
-| 17 | `PCLK_FORCE_ON` | 强制开启 PCLK |
-| 18 | `AUTO_RD_EN` | 自动读取使能 |
-| 19 | `CYC_MODIFY_LOCK` | 时序修改锁定 |
-| 20 | `INT` | 中断状态 |
-| 21 | `INT_CLR` | 中断清除 |
-| 22 | `INT_SET` | 中断置位 |
-| 24-31 | `PROT_CODE_CYC` | 时序寄存器保护码 (需写入 0xBF) |
+| 0 | `AUTOLOAD_P1_DONE` | Phase 1 auto-load complete |
+| 1 | `AUTOLOAD_DONE` | Auto-load complete |
+| 2 | `BUSY` | eFuse busy status |
+| 3 | `RW` | Read/write select (0=read, 1=write) |
+| 4 | `TRIG` | Trigger operation |
+| 5 | `MANUAL_EN` | Manual mode enable (0=auto mode) |
+| 6 | `CYC_MODIFY` | Timing parameter modify enable |
+| 8-15 | `PROT_CODE_CTRL` | Control register protection code (must write 0xBF) |
+| 16 | `POR_DIG` | Digital POR control |
+| 17 | `PCLK_FORCE_ON` | Force PCLK on |
+| 18 | `AUTO_RD_EN` | Auto read enable |
+| 19 | `CYC_MODIFY_LOCK` | Timing modify lock |
+| 20 | `INT` | Interrupt status |
+| 21 | `INT_CLR` | Interrupt clear |
+| 22 | `INT_SET` | Interrupt set |
+| 24-31 | `PROT_CODE_CYC` | Timing register protection code (must write 0xBF) |
 
-### 时序配置寄存器
+### Timing Configuration Registers
 
 **`EF_CTRL_EF_IF_CYC_0` (0x804)**
 
 | Bits | Field | Description |
 |------|-------|-------------|
-| 0-5 | `RD_DMY` | 读取空周期 |
-| 6-11 | `RD_DAT` | 读取数据周期 |
-| 12-17 | `RD_ADR` | 读取地址周期 |
-| 18-23 | `CS` | CS 信号宽度 |
-| 24-31 | `PD_CS_S` | CS 建立时间 |
+| 0-5 | `RD_DMY` | Read dummy cycles |
+| 6-11 | `RD_DAT` | Read data cycles |
+| 12-17 | `RD_ADR` | Read address cycles |
+| 18-23 | `CS` | CS signal width |
+| 24-31 | `PD_CS_S` | CS setup time |
 
 **`EF_CTRL_EF_IF_CYC_1` (0x808)**
 
 | Bits | Field | Description |
 |------|-------|-------------|
-| 0-5 | `PI` | 编程间隔 |
-| 6-13 | `PP` | 编程脉冲宽度 |
-| 14-19 | `WR_ADR` | 写入地址周期 |
-| 20-25 | `PS_CS` | CS 间隔 |
-| 26-31 | `PD_CS_H` | CS 保持时间 |
+| 0-5 | `PI` | Programming interval |
+| 6-13 | `PP` | Programming pulse width |
+| 14-19 | `WR_ADR` | Write address cycles |
+| 20-25 | `PS_CS` | CS interval |
+| 26-31 | `PD_CS_H` | CS hold time |
 
-### eFuse 配置寄存器 (BL616)
+### eFuse Configuration Register (BL616)
 
 **`EF_CTRL_EF_IF_CFG_0` (0x814)**
 
 | Bits | Field | Description |
 |------|-------|-------------|
-| 0-1 | `SF_AES_MODE` | AES 加密模式 |
-| 2 | `AI_DIS` | AI 功能禁用 |
-| 3 | `CPU0_DIS` | CPU0 禁用 |
-| 4-5 | `SBOOT_EN` | Secure Boot 使能 |
-| 6-9 | `UART_DIS` | UART 禁用 |
-| 10 | `BUS_RMP_SW_EN` | Bus Remap 软件使能 |
-| 11 | `BUS_RMP_DIS` | Bus Remap 禁用 |
-| 12-13 | `SF_KEY_RE_SEL` | Flash Key Region 选择 |
-| 14 | `SDU_DIS` | SDU 禁用 |
-| 15 | `BTDM_DIS` | BTDM 禁用 |
-| 16 | `WIFI_DIS` | WiFi 禁用 |
-| 17 | `KEY_ENC_EN` | Key 加密使能 |
-| 18 | `CAM_DIS` | Camera 禁用 |
-| 19 | `M154_DIS` | 802.15.4 禁用 |
-| 20 | `CPU1_DIS` | CPU1 (NP) 禁用 |
-| 21 | `CPU_RST_DBG_DIS` | CPU Reset Debug 禁用 |
-| 22 | `SE_DBG_DIS` | SE Debug 禁用 |
-| 23 | `EFUSE_DBG_DIS` | eFuse Debug 禁用 |
-| 24-25 | `DBG_JTAG_1_DIS` | JTAG1 Debug 禁用 |
-| 26-27 | `DBG_JTAG_0_DIS` | JTAG0 Debug 禁用 |
-| 28-31 | `DBG_MODE` | Debug 模式 |
+| 0-1 | `SF_AES_MODE` | AES encryption mode |
+| 2 | `AI_DIS` | AI function disable |
+| 3 | `CPU0_DIS` | CPU0 disable |
+| 4-5 | `SBOOT_EN` | Secure Boot enable |
+| 6-9 | `UART_DIS` | UART disable |
+| 10 | `BUS_RMP_SW_EN` | Bus Remap software enable |
+| 11 | `BUS_RMP_DIS` | Bus Remap disable |
+| 12-13 | `SF_KEY_RE_SEL` | Flash Key Region select |
+| 14 | `SDU_DIS` | SDU disable |
+| 15 | `BTDM_DIS` | BTDM disable |
+| 16 | `WIFI_DIS` | WiFi disable |
+| 17 | `KEY_ENC_EN` | Key encryption enable |
+| 18 | `CAM_DIS` | Camera disable |
+| 19 | `M154_DIS` | 802.15.4 disable |
+| 20 | `CPU1_DIS` | CPU1 (NP) disable |
+| 21 | `CPU_RST_DBG_DIS` | CPU Reset Debug disable |
+| 22 | `SE_DBG_DIS` | SE Debug disable |
+| 23 | `EFUSE_DBG_DIS` | eFuse Debug disable |
+| 24-25 | `DBG_JTAG_1_DIS` | JTAG1 Debug disable |
+| 26-27 | `DBG_JTAG_0_DIS` | JTAG0 Debug disable |
+| 28-31 | `DBG_MODE` | Debug mode |
 
 ---
 
 ## Usage Examples
 
-### Example 1: 检查 eFuse 自动加载状态
+### Example 1: Check eFuse Auto-Load Status
 
 ```c
 #include "bflb_ef_ctrl.h"
@@ -486,7 +486,7 @@ void wait_efuse_autoload(void)
     
     ef_ctrl = bflb_device_get_by_name("ef_ctrl");
     
-    // 轮询等待 eFuse 自动加载完成
+    // Poll until eFuse auto-load completes
     while (!bflb_ef_ctrl_autoload_done(ef_ctrl)) {
         bflb_mtimer_delay_ms(1);
     }
@@ -495,7 +495,7 @@ void wait_efuse_autoload(void)
 }
 ```
 
-### Example 2: 读取 eFuse 原始数据
+### Example 2: Read eFuse Raw Data
 
 ```c
 #include "bflb_ef_ctrl.h"
@@ -507,7 +507,7 @@ void read_efuse_raw_data(void)
     
     ef_ctrl = bflb_device_get_by_name("ef_ctrl");
     
-    // 读取前 4 words (offset 0, 16 bytes)
+    // Read first 4 words (offset 0, 16 bytes)
     bflb_ef_ctrl_read_direct(ef_ctrl, 0, efuse_data, 4, 1);
     
     printf("eFuse[0x00]: 0x%08lx\n", efuse_data[0]);
@@ -517,7 +517,7 @@ void read_efuse_raw_data(void)
 }
 ```
 
-### Example 3: 读取 Common Trim 参数
+### Example 3: Read Common Trim Parameters
 
 ```c
 #include "bflb_ef_ctrl.h"
@@ -529,7 +529,7 @@ void read_adc_trim(void)
     
     ef_ctrl = bflb_device_get_by_name("ef_ctrl");
     
-    // 按名称读取 ADC offset trim (实际名称取决于芯片 trim 列表)
+    // Read ADC offset trim by name (actual name depends on chip trim list)
     bflb_ef_ctrl_read_common_trim(ef_ctrl, "adc_offset", &trim, 1);
     
     if (!trim.empty) {
@@ -544,7 +544,7 @@ void read_adc_trim(void)
 }
 ```
 
-### Example 4: 遍历所有 Common Trim 参数
+### Example 4: Iterate All Common Trim Parameters
 
 ```c
 #include "bflb_ef_ctrl.h"
@@ -557,7 +557,7 @@ void list_all_trims(void)
     
     ef_ctrl = bflb_device_get_by_name("ef_ctrl");
     
-    // 获取 trim 列表
+    // Get trim list
     trim_count = bflb_ef_ctrl_get_common_trim_list(&trim_list);
     
     printf("Total %lu common trim parameters:\n", trim_count);
@@ -574,7 +574,7 @@ void list_all_trims(void)
 }
 ```
 
-### Example 5: 写入并编程 eFuse（仅限开发/工厂使用）
+### Example 5: Write and Program eFuse (Development/Factory Use Only)
 
 ```c
 #include "bflb_ef_ctrl.h"
@@ -586,18 +586,18 @@ int program_efuse_example(void)
     
     ef_ctrl = bflb_device_get_by_name("ef_ctrl");
     
-    // ⚠️ 警告：eFuse 是一次性可编程存储器，编程后无法撤销！
-    
-    // 先检查 eFuse 是否忙碌
+    // ⚠️ Warning: eFuse is one-time programmable memory; programming cannot be undone!
+
+    // Check if eFuse is busy first
     if (bflb_ef_ctrl_busy(ef_ctrl)) {
         printf("eFuse is busy, cannot program now\n");
         return -1;
     }
     
-    // 写入 Shadow Register 并烧录到 eFuse (offset=0x20, 1 word)
+    // Write Shadow Register and program to eFuse (offset=0x20, 1 word)
     bflb_ef_ctrl_write_direct(ef_ctrl, 0x20, write_data, 1, 1);
     
-    // 等待编程完成
+    // Wait for programming to complete
     uint32_t timeout = 100000;
     while (bflb_ef_ctrl_busy(ef_ctrl)) {
         timeout--;
@@ -608,7 +608,7 @@ int program_efuse_example(void)
         bflb_mtimer_delay_us(10);
     }
     
-    // 验证写入
+    // Verify write
     uint32_t verify_data[1] = { 0 };
     bflb_ef_ctrl_read_direct(ef_ctrl, 0x20, verify_data, 1, 1);
     
@@ -623,58 +623,58 @@ int program_efuse_example(void)
 }
 ```
 
-### Example 6: 奇偶校验工具函数
+### Example 6: Parity Utility Functions
 
 ```c
 #include "bflb_ef_ctrl.h"
 
 void parity_example(void)
 {
-    uint32_t value = 0xA5;  // 二进制: 1010 0101, 4个1
+    uint32_t value = 0xA5;  // Binary: 1010 0101, 4 ones
     
-    // 计算奇校验位
+    // Calculate odd parity
     uint8_t parity = bflb_ef_ctrl_get_trim_parity(value, 8);
     printf("Value 0x%02lx: parity=%d\n", value, parity);
-    // 输出: parity=0 (偶数个1)
+    // Output: parity=0 (even number of ones)
     
-    uint32_t value2 = 0x07;  // 二进制: 0000 0111, 3个1
+    uint32_t value2 = 0x07;  // Binary: 0000 0111, 3 ones
     parity = bflb_ef_ctrl_get_trim_parity(value2, 8);
     printf("Value 0x%02lx: parity=%d\n", value2, parity);
-    // 输出: parity=1 (奇数个1, LSB of count)
+    // Output: parity=1 (odd number of ones, LSB of count)
     
-    // 检查特定位段是否全零
+    // Check if specific bit segment is all zero
     uint8_t all_zero = bflb_ef_ctrl_is_all_bits_zero(0x00FF0000, 16, 8);
     printf("Bits [23:16] all zero: %d\n", all_zero);
-    // 输出: 1 (true)
+    // Output: 1 (true)
     
-    // 统计零位个数
+    // Count zero bits
     uint32_t zero_cnt = bflb_ef_ctrl_get_byte_zero_cnt(0xF0);
     printf("0xF0 has %lu zero bits\n", zero_cnt);
-    // 输出: 4
+    // Output: 4
 }
 ```
 
 ---
 
-## 注意事项
+## Notes
 
-1. **一次编程:** eFuse 是一次性可编程存储器，bit 只能从 0 编程为 1，不能从 1 恢复为 0。编程操作需谨慎。
+1. **One-Time Programming:** eFuse is one-time programmable memory. Bits can only be programmed from 0 to 1 and cannot be restored from 1 to 0. Exercise caution with programming operations.
 
-2. **保护码:** 修改 eFuse 控制寄存器需要写入保护码 `0xBF` 到 `PROT_CODE_CTRL` 和 `PROT_CODE_CYC` 位段，防止误操作。
+2. **Protection Code:** Modifying eFuse control registers requires writing the protection code `0xBF` to the `PROT_CODE_CTRL` and `PROT_CODE_CYC` bit segments to prevent accidental operation.
 
-3. **中断保护:** 所有读写和编程函数都在 `bflb_irq_save()` / `bflb_irq_restore()` 保护下执行，确保操作原子性。
+3. **Interrupt Protection:** All read/write and programming functions are executed under `bflb_irq_save()` / `bflb_irq_restore()` protection to ensure atomicity.
 
-4. **Region 支持:** BL616 仅有 Region 0（512 bytes），BL618DG 非 A0 版本有 Region 0 和 Region 1。跨 Region 读写会自动处理。
+4. **Region Support:** BL616 has only Region 0 (512 bytes). BL618DG non-A0 versions have Region 0 and Region 1. Cross-Region read/write is handled automatically.
 
-5. **Shadow Register:** `program=0` 或 `reload=0` 时操作的是 Shadow Register（缓存副本），不会触发实际的 eFuse 硬件操作，速度快但断电丢失。上电后需等待 Auto-Load Done。
+5. **Shadow Register:** When `program=0` or `reload=0`, operations target the Shadow Register (cached copy) and will not trigger actual eFuse hardware operations. This is fast but lost on power-down. After power-up, wait for Auto-Load Done.
 
-6. **TCM 段:** 所有 API 函数位于 TCM 段（`ATTR_TCM_SECTION`），确保执行期间不受 Flash 访问延迟影响。
+6. **TCM Section:** All API functions are located in TCM section (`ATTR_TCM_SECTION`), ensuring they are not affected by Flash access latency during execution.
 
-7. **ROM API:** 函数内部优先调用 ROM API（`romapi_bflb_ef_ctrl_*`），减小代码体积。
+7. **ROM API:** Functions internally prioritize calling ROM API (`romapi_bflb_ef_ctrl_*`) to reduce code size.
 
-| 操作模式 | 参数设置 | 适用场景 |
+| Operation Mode | Parameter Setting | Use Case |
 |---------|---------|---------|
-| 只读不加载 | `reload=0` | 已知已完成自动加载，快速读取 |
-| 读取+加载 | `reload=1` | 不确定状态，保证读最新 |
-| 只写不编程 | `program=0` | 预写入，稍后统一编程 |
-| 写入+编程 | `program=1` | 直接烧录到 eFuse（一次性） |
+| Read only, no reload | `reload=0` | Auto-load already completed; fast read |
+| Read + reload | `reload=1` | Uncertain state; ensures reading latest data |
+| Write only, no programming | `program=0` | Pre-write, program later in batch |
+| Write + program | `program=1` | Directly burn to eFuse (one-time) |

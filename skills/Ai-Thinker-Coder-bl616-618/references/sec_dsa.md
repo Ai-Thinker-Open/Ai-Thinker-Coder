@@ -1,21 +1,21 @@
 # SEC_DSA API Reference (BL616/BL618)
 
 > **Source:** `bouffalo_sdk/drivers/lhal/include/bflb_sec_dsa.h`  
-> **Implementation:** `bouffalo_sdk/drivers/lhal/src/pka/libpka_bl616.a` (预编译 PKA 库)  
+> **Implementation:** `bouffalo_sdk/drivers/lhal/src/pka/libpka_bl616.a` (pre-compiled PKA library)  
 > **Hardware:** SEC_ENG PKA (Public Key Accelerator) @ `0x20004300`  
 > **Register Header:** `bouffalo_sdk/drivers/lhal/include/hardware/sec_eng_reg.h`
 
 ## Overview
 
-SEC_DSA 模块提供基于 **DSA (Digital Signature Algorithm)** 的数字签名和验证功能。该模块利用 SEC_ENG（安全引擎）中的 **PKA (Public Key Accelerator)** 硬件加速器执行大数模幂运算，支持 CRT (Chinese Remainder Theorem) 优化的 RSA/DSA 私钥操作。
+The SEC_DSA module provides digital signature and verification functionality based on **DSA (Digital Signature Algorithm)**. It leverages the **PKA (Public Key Accelerator)** hardware accelerator in SEC_ENG (Security Engine) for large-number modular exponentiation, supporting CRT (Chinese Remainder Theorem) optimized RSA/DSA private key operations.
 
-**主要特性：**
-- 基于硬件 PKA 的大数模幂运算加速
-- 支持 DSA 签名生成 (`bflb_sec_dsa_sign`)
-- 支持 DSA 签名验证 (`bflb_sec_dsa_verify`)
-- 支持 CRT 模式以加速私钥操作 (`bflb_dsa_crt_s`)
-- 支持可配置的密钥长度 (`size` / `crtSize`)
-- 底层通过 `libpka_bl616.a` 预编译库实现
+**Key Features:**
+- Hardware PKA-based large-number modular exponentiation acceleration
+- DSA signature generation (`bflb_sec_dsa_sign`)
+- DSA signature verification (`bflb_sec_dsa_verify`)
+- CRT mode support for accelerating private key operations (`bflb_dsa_crt_s`)
+- Configurable key length (`size` / `crtSize`)
+- Implemented via the `libpka_bl616.a` pre-compiled library
 
 ## Base Address
 
@@ -30,43 +30,43 @@ SEC_DSA 模块提供基于 **DSA (Digital Signature Algorithm)** 的数字签名
 
 ### bflb_dsa_s
 
-DSA 密钥与操作句柄。
+DSA key and operation handle.
 
 ```c
 struct bflb_dsa_s {
-    uint32_t size;               // 密钥大小（32-bit words 数）
-    uint32_t crtSize;            // CRT 参数大小（32-bit words 数）
-    uint32_t *n;                 // 模数 n 指针
-    uint32_t *e;                 // 公钥指数 e 指针
-    uint32_t *d;                 // 私钥指数 d 指针
-    struct bflb_dsa_crt_s crtCfg; // CRT 配置
+    uint32_t size;               // Key size (in 32-bit words)
+    uint32_t crtSize;            // CRT parameter size (in 32-bit words)
+    uint32_t *n;                 // Modulus n pointer
+    uint32_t *e;                 // Public key exponent e pointer
+    uint32_t *d;                 // Private key exponent d pointer
+    struct bflb_dsa_crt_s crtCfg; // CRT configuration
 };
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `size` | `uint32_t` | 密钥大小（以 32-bit word 为单位） |
-| `crtSize` | `uint32_t` | CRT 参数大小（以 32-bit word 为单位） |
-| `n` | `uint32_t *` | 模数 n（公钥和私钥共用） |
-| `e` | `uint32_t *` | 公钥指数 e |
-| `d` | `uint32_t *` | 私钥指数 d |
-| `crtCfg` | `struct bflb_dsa_crt_s` | CRT 加速参数配置 |
+| `size` | `uint32_t` | Key size (in 32-bit words) |
+| `crtSize` | `uint32_t` | CRT parameter size (in 32-bit words) |
+| `n` | `uint32_t *` | Modulus n (shared by public and private keys) |
+| `e` | `uint32_t *` | Public key exponent e |
+| `d` | `uint32_t *` | Private key exponent d |
+| `crtCfg` | `struct bflb_dsa_crt_s` | CRT acceleration parameter configuration |
 
 ### bflb_dsa_crt_s
 
-CRT (Chinese Remainder Theorem) 参数结构，用于加速私钥操作。
+CRT (Chinese Remainder Theorem) parameter structure for accelerating private key operations.
 
 ```c
 struct bflb_dsa_crt_s {
-    uint32_t *dP;        // CRT 指数 d mod (p-1)
-    uint32_t *dQ;        // CRT 指数 d mod (q-1)
-    uint32_t *qInv;      // q 的模逆元 q^(-1) mod p
-    uint32_t *p;         // 素数 p
-    uint32_t *invR_p;    // Montgomery R 的逆元 mod p
-    uint32_t *primeN_p;  // p 的素数 N (Montgomery 参数)
-    uint32_t *q;         // 素数 q
-    uint32_t *invR_q;    // Montgomery R 的逆元 mod q
-    uint32_t *primeN_q;  // q 的素数 N (Montgomery 参数)
+    uint32_t *dP;        // CRT exponent d mod (p-1)
+    uint32_t *dQ;        // CRT exponent d mod (q-1)
+    uint32_t *qInv;      // Modular inverse of q: q^(-1) mod p
+    uint32_t *p;         // Prime p
+    uint32_t *invR_p;    // Inverse of Montgomery R mod p
+    uint32_t *primeN_p;  // Prime N of p (Montgomery parameter)
+    uint32_t *q;         // Prime q
+    uint32_t *invR_q;    // Inverse of Montgomery R mod q
+    uint32_t *primeN_q;  // Prime N of q (Montgomery parameter)
 };
 ```
 
@@ -76,7 +76,7 @@ struct bflb_dsa_crt_s {
 
 ### bflb_sec_dsa_init
 
-初始化 DSA 句柄，分配硬件 PKA 资源并配置密钥参数。
+Initialize the DSA handle, allocate hardware PKA resources, and configure key parameters.
 
 ```c
 int bflb_sec_dsa_init(struct bflb_dsa_s *handle, uint32_t size);
@@ -86,18 +86,18 @@ int bflb_sec_dsa_init(struct bflb_dsa_s *handle, uint32_t size);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_dsa_s *` | DSA 句柄指针（含密钥参数） |
-| `size` | `uint32_t` | 密钥长度（以 32-bit word 为单位） |
+| `handle` | `struct bflb_dsa_s *` | DSA handle pointer (with key parameters) |
+| `size` | `uint32_t` | Key length (in 32-bit words) |
 
-**Returns:** `0` 成功，负值表示错误
+**Returns:** `0` on success, negative value on error
 
-**说明:** 调用前需填充 `handle->n`, `handle->e`, `handle->d` 及 `handle->crtCfg` 等密钥参数。
+**Note:** Before calling, populate key parameters such as `handle->n`, `handle->e`, `handle->d`, and `handle->crtCfg`.
 
 ---
 
 ### bflb_sec_dsa_sign
 
-使用 DSA 私钥对消息哈希进行签名。
+Sign a message hash using the DSA private key.
 
 ```c
 int bflb_sec_dsa_sign(struct bflb_dsa_s *handle, const uint32_t *hash,
@@ -108,18 +108,18 @@ int bflb_sec_dsa_sign(struct bflb_dsa_s *handle, const uint32_t *hash,
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_dsa_s *` | 已初始化的 DSA 句柄 |
-| `hash` | `const uint32_t *` | 消息哈希值（32-bit word 数组） |
-| `hashLenInWord` | `uint32_t` | 哈希长度（以 32-bit word 为单位） |
-| `s` | `uint32_t *` | 输出签名缓冲区 |
+| `handle` | `struct bflb_dsa_s *` | Initialized DSA handle |
+| `hash` | `const uint32_t *` | Message hash value (32-bit word array) |
+| `hashLenInWord` | `uint32_t` | Hash length (in 32-bit words) |
+| `s` | `uint32_t *` | Output signature buffer |
 
-**Returns:** `0` 成功，负值表示错误
+**Returns:** `0` on success, negative value on error
 
 ---
 
 ### bflb_sec_dsa_verify
 
-使用 DSA 公钥验证签名。
+Verify a signature using the DSA public key.
 
 ```c
 int bflb_sec_dsa_verify(struct bflb_dsa_s *handle, const uint32_t *hash,
@@ -130,43 +130,43 @@ int bflb_sec_dsa_verify(struct bflb_dsa_s *handle, const uint32_t *hash,
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_dsa_s *` | 已初始化的 DSA 句柄 |
-| `hash` | `const uint32_t *` | 消息哈希值（32-bit word 数组） |
-| `hashLenInWord` | `uint32_t` | 哈希长度（以 32-bit word 为单位） |
-| `s` | `const uint32_t *` | 待验证的签名 |
+| `handle` | `struct bflb_dsa_s *` | Initialized DSA handle |
+| `hash` | `const uint32_t *` | Message hash value (32-bit word array) |
+| `hashLenInWord` | `uint32_t` | Hash length (in 32-bit words) |
+| `s` | `const uint32_t *` | Signature to verify |
 
-**Returns:** `0` 验证通过，负值表示验证失败或错误
+**Returns:** `0` verification passed, negative value on verification failure or error
 
 ---
 
 ## Usage Examples
 
-### Example 1: DSA 签名与验证 (1024-bit)
+### Example 1: DSA Sign & Verify (1024-bit)
 
 ```c
 #include "bflb_sec_dsa.h"
-#include "bflb_sha.h"  // 用于生成哈希
+#include "bflb_sha.h"  // for hash generation
 
 void dsa_sign_verify_1024_example(void)
 {
     struct bflb_dsa_s dsa_handle;
     int ret;
 
-    // 1024-bit 密钥 = 32 个 32-bit word
+    // 1024-bit key = 32 32-bit words
     dsa_handle.size = 32;
-    dsa_handle.crtSize = 16;  // CRT 参数为 512-bit each
+    dsa_handle.crtSize = 16;  // CRT parameters are 512-bit each
 
-    // 注意: 实际应用中密钥应从安全存储加载
-    // 此处仅为示例占位
-    uint32_t n[32]  = { /* 模数 n */ };
-    uint32_t e[32]  = { /* 公钥指数 e */ };
-    uint32_t d[32]  = { /* 私钥指数 d */ };
+    // Note: In real applications, keys should be loaded from secure storage
+    // These are placeholder examples only
+    uint32_t n[32]  = { /* modulus n */ };
+    uint32_t e[32]  = { /* public key exponent e */ };
+    uint32_t d[32]  = { /* private key exponent d */ };
 
     dsa_handle.n = n;
     dsa_handle.e = e;
     dsa_handle.d = d;
 
-    // CRT 参数（可选，加速私钥操作）
+    // CRT parameters (optional, for accelerating private key operations)
     uint32_t p[16]     = { /* ... */ };
     uint32_t q[16]     = { /* ... */ };
     uint32_t dP[16]    = { /* ... */ };
@@ -187,26 +187,26 @@ void dsa_sign_verify_1024_example(void)
     dsa_handle.crtCfg.primeN_p = primeN_p;
     dsa_handle.crtCfg.primeN_q = primeN_q;
 
-    // 初始化 DSA
+    // Initialize DSA
     ret = bflb_sec_dsa_init(&dsa_handle, 32);
     if (ret != 0) {
         printf("DSA init failed: %d\n", ret);
         return;
     }
 
-    // 准备消息哈希
+    // Prepare message hash
     uint8_t message[] = "Hello, DSA!";
-    uint32_t hash[32] = {0};  // SHA-256 输出
-    // 实际应用中: bflb_sha256(hash, message, sizeof(message));
+    uint32_t hash[32] = {0};  // SHA-256 output
+    // In real application: bflb_sha256(hash, message, sizeof(message));
 
-    // 签名
+    // Sign
     uint32_t signature[32] = {0};
     ret = bflb_sec_dsa_sign(&dsa_handle, hash, 8, signature);  // SHA-256 = 8 words
     if (ret == 0) {
         printf("DSA sign success\n");
     }
 
-    // 验证
+    // Verify
     ret = bflb_sec_dsa_verify(&dsa_handle, hash, 8, signature);
     if (ret == 0) {
         printf("DSA verify PASSED\n");
@@ -216,7 +216,7 @@ void dsa_sign_verify_1024_example(void)
 }
 ```
 
-### Example 2: 仅验证模式（使用公钥）
+### Example 2: Verify-only mode (using public key)
 
 ```c
 #include "bflb_sec_dsa.h"
@@ -225,14 +225,14 @@ int dsa_verify_only_example(const uint32_t *hash, const uint32_t *signature)
 {
     struct bflb_dsa_s dsa_handle;
 
-    // 仅需公钥验证，私钥可置空
-    uint32_t n[32] = { /* 公钥模数 */ };
-    uint32_t e[32] = { /* 公钥指数 */ };
+    // Only public key needed for verification, private key can be NULL
+    uint32_t n[32] = { /* public key modulus */ };
+    uint32_t e[32] = { /* public key exponent */ };
 
     dsa_handle.size = 32;
     dsa_handle.n = n;
     dsa_handle.e = e;
-    dsa_handle.d = NULL;  // 仅验证不需要私钥
+    dsa_handle.d = NULL;  // Private key not needed for verify-only
 
     int ret = bflb_sec_dsa_init(&dsa_handle, 32);
     if (ret != 0) return ret;
@@ -245,36 +245,36 @@ int dsa_verify_only_example(const uint32_t *hash, const uint32_t *signature)
 
 ## Register-Level Reference
 
-DSA 操作通过 SEC_ENG PKA 子系统完成。PKA 寄存器位于 `SEC_ENG_BASE + 0x300`。
+DSA operations are performed through the SEC_ENG PKA subsystem. PKA registers are located at `SEC_ENG_BASE + 0x300`.
 
 ### PKA Register Offsets
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x300` | `SE_PKA_0_CTRL_0` | PKA 控制寄存器 0 |
-| `0x30C` | `SE_PKA_0_SEED` | PKA 随机种子 |
-| `0x310` | `SE_PKA_0_CTRL_1` | PKA 控制寄存器 1 |
-| `0x340` | `SE_PKA_0_RW` | PKA 数据读写端口 |
-| `0x360` | `SE_PKA_0_RW_BURST` | PKA 批量数据读写端口 |
-| `0x3FC` | `SE_PKA_0_CTRL_PROT` | PKA 访问保护 |
+| `0x300` | `SE_PKA_0_CTRL_0` | PKA Control Register 0 |
+| `0x30C` | `SE_PKA_0_SEED` | PKA Random Seed |
+| `0x310` | `SE_PKA_0_CTRL_1` | PKA Control Register 1 |
+| `0x340` | `SE_PKA_0_RW` | PKA Data Read/Write Port |
+| `0x360` | `SE_PKA_0_RW_BURST` | PKA Burst Data Read/Write Port |
+| `0x3FC` | `SE_PKA_0_CTRL_PROT` | PKA Access Protection |
 
 ### PKA Control Register 0 (0x300)
 
 | Bit(s) | Field | Description |
 |--------|-------|-------------|
-| 0 | `SE_PKA_0_DONE` | 操作完成标志 |
-| 1 | `SE_PKA_0_DONE_CLR_1T` | 写 1 清除完成标志 |
-| 2 | `SE_PKA_0_BUSY` | PKA 忙碌标志 |
-| 3 | `SE_PKA_0_EN` | PKA 使能 |
-| 7:4 | `SE_PKA_0_PROT_MD` | 保护模式选择 |
-| 8 | `SE_PKA_0_INT` | 中断标志 |
-| 9 | `SE_PKA_0_INT_CLR_1T` | 写 1 清除中断 |
-| 10 | `SE_PKA_0_INT_SET` | 中断使能 |
-| 11 | `SE_PKA_0_INT_MASK` | 中断屏蔽 |
-| 12 | `SE_PKA_0_ENDIAN` | 端序配置 |
-| 13 | `SE_PKA_0_RAM_CLR_MD` | RAM 清除模式 |
-| 15 | `SE_PKA_0_STATUS_CLR_1T` | 写 1 清除状态 |
-| 31:16 | `SE_PKA_0_STATUS` | PKA 状态码 |
+| 0 | `SE_PKA_0_DONE` | Operation complete flag |
+| 1 | `SE_PKA_0_DONE_CLR_1T` | Write 1 to clear complete flag |
+| 2 | `SE_PKA_0_BUSY` | PKA busy flag |
+| 3 | `SE_PKA_0_EN` | PKA enable |
+| 7:4 | `SE_PKA_0_PROT_MD` | Protection mode select |
+| 8 | `SE_PKA_0_INT` | Interrupt flag |
+| 9 | `SE_PKA_0_INT_CLR_1T` | Write 1 to clear interrupt |
+| 10 | `SE_PKA_0_INT_SET` | Interrupt enable |
+| 11 | `SE_PKA_0_INT_MASK` | Interrupt mask |
+| 12 | `SE_PKA_0_ENDIAN` | Endian configuration |
+| 13 | `SE_PKA_0_RAM_CLR_MD` | RAM clear mode |
+| 15 | `SE_PKA_0_STATUS_CLR_1T` | Write 1 to clear status |
+| 31:16 | `SE_PKA_0_STATUS` | PKA status code |
 
 ```c
 #define SEC_ENG_SE_PKA_0_DONE          (1 << 0U)
@@ -296,15 +296,15 @@ DSA 操作通过 SEC_ENG PKA 子系统完成。PKA 寄存器位于 `SEC_ENG_BASE
 
 | Bit(s) | Field | Description |
 |--------|-------|-------------|
-| 2:0 | `SE_PKA_0_HBURST` | AHB 突发传输长度 |
-| 3 | `SE_PKA_0_HBYPASS` | AHB 旁路模式 |
+| 2:0 | `SE_PKA_0_HBURST` | AHB burst transfer length |
+| 3 | `SE_PKA_0_HBYPASS` | AHB bypass mode |
 
 ---
 
 ## Architecture Notes
 
-- **实现方式:** DSA 功能通过预编译库 `libpka_bl616.a` 实现，无公开 .c 源码
-- **硬件依赖:** 依赖 SEC_ENG 中的 PKA 加速器 (`SEC_ENG_BASE + 0x300`)
-- **ROM API:** 部分芯片支持 `romapi_bflb_sec_dsa_*` 快速路径
-- **CRT 优化:** 建议填充 `crtCfg` 以启用 CRT 加速，可显著提升私钥签名性能
-- **密钥管理:** 所有密钥数据以 32-bit word 数组形式传入，调用者负责安全存储
+- **Implementation:** DSA functionality is implemented via the pre-compiled library `libpka_bl616.a`; no public `.c` source is available
+- **Hardware Dependency:** Depends on the PKA accelerator in SEC_ENG (`SEC_ENG_BASE + 0x300`)
+- **ROM API:** Some chips support `romapi_bflb_sec_dsa_*` fast paths
+- **CRT Optimization:** Populating `crtCfg` to enable CRT acceleration is recommended, as it can significantly improve private key signing performance
+- **Key Management:** All key data is passed in as 32-bit word arrays; callers are responsible for secure storage

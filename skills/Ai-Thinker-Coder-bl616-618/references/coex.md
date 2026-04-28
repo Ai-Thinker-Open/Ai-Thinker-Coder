@@ -1,35 +1,35 @@
-# Wi-Fi / BLE 共存（Coex）
+# Wi-Fi / BLE Coexistence (Coex)
 
-## 概述
+## Overview
 
-BL616/BL618 支持 Wi-Fi 与 BLE/Thread 同时工作，通过 `coex` 模块实现无线电资源的时间分片调度，避免相互干扰。该模块位于 `components/wireless/coex/`。
+BL616/BL618 supports simultaneous Wi-Fi and BLE/Thread operation. The `coex` module implements time-sliced scheduling of radio resources to avoid mutual interference. This module is located in `components/wireless/coex/`.
 
-## 头文件
+## Header File
 
 ```c
 #include "coex.h"
 ```
 
-## 共存模式
+## Coexistence Modes
 
 ```c
-#define COEX_MODE_TDMA    1  // 时分复用模式（默认）
-#define COEX_MODE_PTI     2  // 优先级时间片模式
+#define COEX_MODE_TDMA    1  // Time Division Multiple Access mode (default)
+#define COEX_MODE_PTI     2  // Priority Time Interval mode
 ```
 
-### TDMA 模式
+### TDMA Mode
 
-时分复用模式，将时间划分为固定Slot，Wi-Fi、BLE、Thread 按配置比例分配Tx/Rx时间。
+Time Division Multiple Access mode divides time into fixed slots. Wi-Fi, BLE, and Thread are allocated Tx/Rx time according to configured ratios.
 
-### PTI 模式
+### PTI Mode
 
-优先级时间片模式，通过 `coex_pti.c` 实现，支持优先级仲裁。
+Priority Time Interval mode, implemented via `coex_pti.c`, supports priority arbitration.
 
-## 共存角色
+## Coexistence Roles
 
 ```c
 enum coex_role {
-    COEX_ROLE_BT = 0,      // 蓝牙
+    COEX_ROLE_BT = 0,      // Bluetooth
     COEX_ROLE_WIFI,        // Wi-Fi
     COEX_ROLE_THREAD,      // Thread
     COEX_ROLE_DUMMY,
@@ -37,111 +37,111 @@ enum coex_role {
 };
 ```
 
-## 事件类型
+## Event Types
 
 ```c
 enum coex_event {
-    COEX_EVT_INIT = 0,           // 初始化无线模块
-    COEX_EVT_DEINIT,             // 去初始化无线模块
-    COEX_EVT_SET_ACTIVITY,       // 设置无线模块活动
-    COEX_EVT_GET_ACTIVITY,       // 获取共存模块活动
-    COEX_EVT_TMR_ISR_HANDLE,     // 定时器中断处理
-    COEX_EVT_FUNC_CALL,          // 在共存模块中调用函数
+    COEX_EVT_INIT = 0,           // Initialize wireless module
+    COEX_EVT_DEINIT,             // Deinitialize wireless module
+    COEX_EVT_SET_ACTIVITY,       // Set wireless module activity
+    COEX_EVT_GET_ACTIVITY,       // Get coexistence module activity
+    COEX_EVT_TMR_ISR_HANDLE,     // Timer interrupt handler
+    COEX_EVT_FUNC_CALL,          // Call function in coexistence module
     COEX_EVT_MAX,
 };
 ```
 
-## 活动类型（Activity）
+## Activity Types
 
-Wi-Fi、BLE、Thread 各自的活动事件，用于通知共存调度器：
+Activity events for Wi-Fi, BLE, and Thread, used to notify the coexistence scheduler:
 
 ```c
 enum coex_event_activity {
     /* BLE */
-    ACT_START_ADV,           // BLE 广播开始
+    ACT_START_ADV,           // BLE advertising started
 
     /* BT Classic */
-    ACT_BT_SCAN_START,       // BT 扫描开始
-    ACT_BT_SCAN_DONE,        // BT 扫描完成
-    ACT_BT_CONNECT_START,    // BT 连接开始
-    ACT_BT_CONNECT_DONE_OK,  // BT 连接成功
-    ACT_BT_CONNECT_DONE_FAIL,// BT 连接失败
-    ACT_BT_DISCONNECT_START, // BT 断开开始
-    ACT_BT_DISCONNECT_DONE,  // BT 断开完成
-    ACT_BT_A2DP_START,      // A2DP 音频开始
-    ACT_BT_A2DP_STOP,       // A2DP 音频停止
+    ACT_BT_SCAN_START,       // BT scan started
+    ACT_BT_SCAN_DONE,        // BT scan completed
+    ACT_BT_CONNECT_START,    // BT connection started
+    ACT_BT_CONNECT_DONE_OK,  // BT connection succeeded
+    ACT_BT_CONNECT_DONE_FAIL,// BT connection failed
+    ACT_BT_DISCONNECT_START, // BT disconnection started
+    ACT_BT_DISCONNECT_DONE,  // BT disconnection completed
+    ACT_BT_A2DP_START,      // A2DP audio started
+    ACT_BT_A2DP_STOP,       // A2DP audio stopped
 
     /* Wi-Fi STA */
-    ACT_STA_SCAN_START,       // Wi-Fi 扫描开始
-    ACT_STA_SCAN_DONE,       // Wi-Fi 扫描完成
-    ACT_STA_CONNECT_START,   // Wi-Fi 连接开始
-    ACT_STA_CONNECT_DONE_OK, // Wi-Fi 连接成功
-    ACT_STA_CONNECT_DONE_FAIL,// Wi-Fi 连接失败
-    ACT_STA_DISCONNECT_START,// Wi-Fi 断开开始
-    ACT_STA_DISCONNECT_DONE, // Wi-Fi 断开完成
-    ACT_STA_DPSM_START,      // 功耗状态机开始
-    ACT_STA_DPSM_YIELD,     // 功耗状态机让出
-    ACT_STA_DPSM_STOP,      // 功耗状态机停止
-    ACT_STA_ROC_REQ,        // Remain-on-Channel 请求
-    ACT_STA_TBTT_UPDATE,    // TBTT 更新（Beacon 同步）
+    ACT_STA_SCAN_START,       // Wi-Fi scan started
+    ACT_STA_SCAN_DONE,       // Wi-Fi scan completed
+    ACT_STA_CONNECT_START,   // Wi-Fi connection started
+    ACT_STA_CONNECT_DONE_OK, // Wi-Fi connection succeeded
+    ACT_STA_CONNECT_DONE_FAIL,// Wi-Fi connection failed
+    ACT_STA_DISCONNECT_START,// Wi-Fi disconnection started
+    ACT_STA_DISCONNECT_DONE, // Wi-Fi disconnection completed
+    ACT_STA_DPSM_START,      // Power save state machine started
+    ACT_STA_DPSM_YIELD,     // Power save state machine yield
+    ACT_STA_DPSM_STOP,      // Power save state machine stopped
+    ACT_STA_ROC_REQ,        // Remain-on-Channel request
+    ACT_STA_TBTT_UPDATE,    // TBTT update (Beacon sync)
 
     /* Wi-Fi AP */
-    ACT_SOFTAP_START,        // SoftAP 启动
-    ACT_SOFTAP_STOP,         // SoftAP 停止
-    ACT_SOFTAP_TBTT_UPDATE,  // AP TBTT 更新
+    ACT_SOFTAP_START,        // SoftAP started
+    ACT_SOFTAP_STOP,         // SoftAP stopped
+    ACT_SOFTAP_TBTT_UPDATE,  // AP TBTT update
 
     /* Thread */
-    ACT_START_PAN,           // PAN 启动
-    ACT_STOP_PAN,            // PAN 停止
+    ACT_START_PAN,           // PAN started
+    ACT_STOP_PAN,            // PAN stopped
 
     /* Dummy */
-    ACT_DUMMY_ADD_ACT,       // 虚拟活动添加
-    ACT_DUMMY_DEL_ACT,       // 虚拟活动删除
+    ACT_DUMMY_ADD_ACT,       // Dummy activity added
+    ACT_DUMMY_DEL_ACT,       // Dummy activity deleted
 };
 ```
 
-## 回调通知
+## Callback Notifications
 
-共存模块通过回调通知上层事件：
+The coexistence module notifies upper layers of events via callbacks:
 
 ```c
 struct coex_notify_args {
-    int event;      // @COEX_NTY_* 事件码
-    int duration;   // 持续时间（ms）
+    int event;      // @COEX_NTY_* event code
+    int duration;   // Duration (ms)
 };
 
 typedef void (*coex_notify_cb)(void *env, struct coex_notify_args *args);
 ```
 
-## 通知事件
+## Notification Events
 
 ```c
 enum coex_notify {
-    COEX_NTY_INITED = 0,      // 共存已初始化
-    COEX_NTY_DEINITED,        // 共存已去初始化
-    COEX_NTY_RF_PRESENCE,     // 射频正在使用
-    COEX_NTY_RF_ABSENCE,      // 射频空闲
+    COEX_NTY_INITED = 0,      // Coexistence initialized
+    COEX_NTY_DEINITED,        // Coexistence deinitialized
+    COEX_NTY_RF_PRESENCE,     // RF in use
+    COEX_NTY_RF_ABSENCE,      // RF idle
     COEX_NTY_MAX,
 };
 ```
 
-## 事件参数联合体
+## Event Argument Union
 
 ```c
 union evt_arg {
-    struct {              // INIT 事件
+    struct {              // INIT event
         coex_notify_cb cb;
         void *env;
     } init;
-    struct {              // SET_ACTIVITY 事件
-        int type;         // activity 类型 @ coex_event_activity
-        int now;          // 发生时间
+    struct {              // SET_ACTIVITY event
+        int type;         // Activity type @ coex_event_activity
+        int now;          // Occurrence time
     } set_act;
-    struct {              // TMR_ISR 事件
+    struct {              // TMR_ISR event
         uint64_t time;
         void *env;
     } tmr_isr;
-    struct {              // FUNC_CALL 事件
+    struct {              // FUNC_CALL event
         coex_func_call func;
         int arg[4];
     } func_call;
@@ -154,26 +154,26 @@ struct coex_evt_arg {
 };
 ```
 
-## 核心 API
+## Core API
 
-### 初始化 / 去初始化
+### Initialization / Deinitialization
 
 ```c
-int coex_init(void);    // 返回 COEX_OK (0) 或 COEX_FAIL (-1)
+int coex_init(void);    // Returns COEX_OK (0) or COEX_FAIL (-1)
 int coex_deinit(void);
 ```
 
-### 事件通知
+### Event Notification
 
 ```c
 int coex_event(struct coex_evt_arg *arg);
 ```
 
-向共存模块报告无线模块事件（Wi-Fi 扫描/BT 连接等），共存调度器据此调整时间片分配。
+Report wireless module events (Wi-Fi scan/BT connection, etc.) to the coexistence module. The coexistence scheduler adjusts time-slice allocation accordingly.
 
-## 工作代码示例
+## Working Code Examples
 
-### 基本初始化
+### Basic Initialization
 
 ```c
 #include "coex.h"
@@ -198,114 +198,114 @@ void coex_example(void)
     struct coex_evt_arg evt;
     int ret;
 
-    /* 初始化共存模块 */
+    /* Initialize coexistence module */
     ret = coex_init();
     if (ret != COEX_OK) {
         printf("coex init failed\r\n");
         return;
     }
 
-    /* 注册通知回调 */
+    /* Register notification callback */
     evt.role = COEX_ROLE_WIFI;
     evt.type = COEX_EVT_INIT;
     evt.arg.init.cb = coex_notify;
     evt.arg.init.env = NULL;
     coex_event(&evt);
 
-    /* ... Wi-Fi 和 BLE 业务逻辑 ... */
+    /* ... Wi-Fi and BLE business logic ... */
 
     coex_deinit();
 }
 ```
 
-### Wi-Fi 扫描时通知共存
+### Notifying Coex During Wi-Fi Scan
 
 ```c
 void wifi_scan_with_coex(void)
 {
     struct coex_evt_arg evt;
 
-    /* 通知 BLE：Wi-Fi 即将扫描 */
+    /* Notify BLE: Wi-Fi is about to scan */
     evt.role = COEX_ROLE_WIFI;
     evt.type = COEX_EVT_SET_ACTIVITY;
     evt.arg.set_act.type = ACT_STA_SCAN_START;
     evt.arg.set_act.now = 1;
     coex_event(&evt);
 
-    /* 执行 Wi-Fi 扫描 */
+    /* Execute Wi-Fi scan */
     wifi_mgmr_sta_scan(NULL);
 
-    /* 通知 BLE：Wi-Fi 扫描完成 */
+    /* Notify BLE: Wi-Fi scan complete */
     evt.arg.set_act.type = ACT_STA_SCAN_DONE;
     coex_event(&evt);
 }
 ```
 
-### BLE 连接时通知共存
+### Notifying Coex During BLE Connection
 
 ```c
 void ble_connect_with_coex(void)
 {
     struct coex_evt_arg evt;
 
-    /* 通知 Wi-Fi：BLE 即将连接 */
+    /* Notify Wi-Fi: BLE is about to connect */
     evt.role = COEX_ROLE_BT;
     evt.type = COEX_EVT_SET_ACTIVITY;
     evt.arg.set_act.type = ACT_BT_CONNECT_START;
     evt.arg.set_act.now = 1;
     coex_event(&evt);
 
-    /* 执行 BLE 连接 */
+    /* Execute BLE connection */
     ble_gap_connect(...);
 
-    /* 连接成功后通知 */
+    /* Notify on successful connection */
     evt.arg.set_act.type = ACT_BT_CONNECT_DONE_OK;
     coex_event(&evt);
 }
 ```
 
-### A2DP 音频播放时优先级处理
+### Priority Handling During A2DP Audio Playback
 
 ```c
 void a2dp_playback_with_coex(void)
 {
     struct coex_evt_arg evt;
 
-    /* A2DP 开始 — 分配较高优先级 */
+    /* A2DP start — assign higher priority */
     evt.role = COEX_ROLE_BT;
     evt.type = COEX_EVT_SET_ACTIVITY;
     evt.arg.set_act.type = ACT_BT_A2DP_START;
     evt.arg.set_act.now = 1;
     coex_event(&evt);
 
-    /* A2DP 流媒体传输期间，Wi-Fi 扫描会降低优先级 */
+    /* During A2DP streaming, Wi-Fi scan will have lower priority */
 
-    /* A2DP 停止 */
+    /* A2DP stop */
     evt.arg.set_act.type = ACT_BT_A2DP_STOP;
     coex_event(&evt);
 }
 ```
 
-## 配置宏
+## Configuration Macros
 
-通过 Kconfig 配置共存模式：
+Coexistence mode configured via Kconfig:
 
-| 宏 | 默认值 | 说明 |
+| Macro | Default | Description |
 |----|--------|------|
-| `CONFIG_COEX_WIFI_MODE` | `0` | Wi-Fi 共存模式（0=关闭，1=TDMA，2=PTI） |
-| `CONFIG_COEX_THREAD_MODE` | `0` | Thread 共存模式 |
-| `CONFIG_COEX_BT_MODE` | `0` | BT/BLE 共存模式 |
-| `CONFIG_COEX_TDMA_NONE` | `COEX_NONE_NULL` | 无活动时行为 |
+| `CONFIG_COEX_WIFI_MODE` | `0` | Wi-Fi coexistence mode (0=off, 1=TDMA, 2=PTI) |
+| `CONFIG_COEX_THREAD_MODE` | `0` | Thread coexistence mode |
+| `CONFIG_COEX_BT_MODE` | `0` | BT/BLE coexistence mode |
+| `CONFIG_COEX_TDMA_NONE` | `COEX_NONE_NULL` | Behavior when idle |
 
-## 共存调度策略
+## Coexistence Scheduling Policy
 
-1. **时间分片**：TDMA 模式下，调度器将时间划分为固定Slot，比例可在配置文件中指定
-2. **优先级仲裁**：PTI 模式下，高优先级活动（如 A2DP）可抢占低优先级活动（如 Wi-Fi 扫描）的时间片
-3. **活动通报**：Wi-Fi/BLE/Thread 驱动通过 `coex_event()` 报告当前活动，调度器据此动态调整
-4. **射频状态**：通过 `COEX_NTY_RF_PRESENCE/_ABSENCE` 通知上层，应用程序可据此决定是否发起新活动
+1. **Time Slicing**: In TDMA mode, the scheduler divides time into fixed slots; ratios can be specified in configuration files
+2. **Priority Arbitration**: In PTI mode, high-priority activities (such as A2DP) can preempt time slices from low-priority activities (such as Wi-Fi scan)
+3. **Activity Reporting**: Wi-Fi/BLE/Thread drivers report current activities via `coex_event()`, and the scheduler adjusts dynamically
+4. **RF Status**: Upper layers are notified via `COEX_NTY_RF_PRESENCE/_ABSENCE`, allowing applications to decide whether to initiate new activities
 
-## 相关文档
+## Related Documents
 
-- [wifi_mgmr](./wifi_mgmr.md) — Wi-Fi 管理器（内部调用 coex）
-- [BLE](./ble.md) — BLE 控制器
-- [bt_a2dp](./bt_a2dp.md) — A2DP 音频配置
+- [wifi_mgmr](./wifi_mgmr.md) — Wi-Fi Manager (internally calls coex)
+- [BLE](./ble.md) — BLE Controller
+- [bt_a2dp](./bt_a2dp.md) — A2DP Audio Configuration

@@ -1,62 +1,62 @@
-# BL618 音频编解码驱动
+# BL618 Audio Codec Driver
 
-## 概述
+## Overview
 
-BL618 音频驱动层位于 Bouffalo SDK 的 `multimedia` 组件中，主要包含两大模块：
+The BL618 audio driver layer resides in the `multimedia` component of Bouffalo SDK and mainly consists of two major modules:
 
-- **SndBl616 声卡驱动**：`drv_snd_bl616` 组件，提供 I2S/PCMDM/PDM 音频接口的声卡抽象
-- **AudioFlowctrlBridge 音频流桥接**：`audio_flowctrl_bridge` 组件，实现 SBC 解码到 PCM 的完整音频流处理
+- **SndBl616 Sound Card Driver**: the `drv_snd_bl616` component, providing sound card abstraction for I2S/PCMDM/PDM audio interfaces
+- **AudioFlowctrlBridge Audio Stream Bridge**: the `audio_flowctrl_bridge` component, implementing complete audio stream processing from SBC decoding to PCM
 
-这两层在架构上服务于上层的 `smart_audio`，为语音播放、音频录制等场景提供稳定的底层支撑。
+These two layers architecturally serve the upper-layer `smart_audio`, providing stable low-level support for scenarios such as voice playback and audio recording.
 
 ---
 
-## SndBl616 声卡驱动
+## SndBl616 Sound Card Driver
 
-### 头文件
+### Header File
 
 ```c
 #include <devices/drv_snd_bl616.h>
 ```
 
-### 配置结构体
+### Configuration Structure
 
-`snd_bl616_config_t` 用于初始化声卡驱动的增益参数：
+`snd_bl616_config_t` is used to initialize the gain parameters of the sound card driver:
 
 ```c
 typedef struct {
-    int audio_in_gain_list[3];   // 输入增益列表，支持 3 档增益配置
-    int audio_out_gain_list[2];  // 输出增益列表，支持 2 档增益配置
+    int audio_in_gain_list[3];   // Input gain list, supports 3-level gain configuration
+    int audio_out_gain_list[2];  // Output gain list, supports 2-level gain configuration
 } snd_bl616_config_t;
 ```
 
-> `audio_in_gain_list` 和 `audio_out_gain_list` 分别对应模拟/数字输入增益和输出增益的校准值，实际取值需根据硬件设计调优。
+> `audio_in_gain_list` and `audio_out_gain_list` correspond to analog/digital input gain and output gain calibration values respectively. Actual values must be tuned according to hardware design.
 
-### 注册与注销
+### Registration and Deregistration
 
 ```c
 void snd_card_bl616_register(void *config);
 void snd_card_bl616_unregister(void *config);
 ```
 
-- `snd_card_bl616_register()`：根据传入的配置参数注册声卡驱动，完成 I2S/PCMDM/PDM 硬件资源初始化
-- `snd_card_bl616_unregister()`：注销声卡，释放相关硬件资源
+- `snd_card_bl616_register()`: Registers the sound card driver based on the provided configuration parameters, completing I2S/PCMDM/PDM hardware resource initialization
+- `snd_card_bl616_unregister()`: Deregisters the sound card, releasing related hardware resources
 
-### I2S 输入/输出增益配置
+### I2S Input/Output Gain Configuration
 
-I2S 接口的输入增益通过 `audio_in_gain_list` 配置，支持 3 级增益调节，适用于不同灵敏度的麦克风输入。输出增益通过 `audio_out_gain_list` 配置，支持 2 级输出功率调节，用于驱动不同阻抗的扬声器或功放。
+The I2S interface input gain is configured via `audio_in_gain_list`, supporting 3-level gain adjustment suitable for microphones with different sensitivities. Output gain is configured via `audio_out_gain_list`, supporting 2-level output power adjustment for driving speakers or amplifiers with different impedances.
 
-声卡注册后，驱动会根据配置列表自动设置对应增益寄存器，无需用户手动干预。
+After the sound card is registered, the driver automatically sets the corresponding gain registers based on the configuration list, requiring no manual intervention from the user.
 
 ---
 
-## AudioFlowctrlBridge 音频流桥接
+## AudioFlowctrlBridge Audio Stream Bridge
 
-AudioFlowctrlBridge 实现了从 SBC 压缩音频数据到 PCM 原始音频数据的完整解码与播放链路，包含 `pcm_drv` 驱动抽象层和 `sbc2pcm` 高层接口两部分。
+AudioFlowctrlBridge implements a complete decode and playback chain from SBC compressed audio data to PCM raw audio data, consisting of two parts: the `pcm_drv` driver abstraction layer and the `sbc2pcm` high-level interface.
 
-### PCM 驱动层
+### PCM Driver Layer
 
-PCM 驱动抽象层 `pcm_drv` 定义了标准 PCM 设备的操作接口：
+The PCM driver abstraction layer `pcm_drv` defines the standard PCM device operation interface:
 
 ```c
 struct pcm_drv {
@@ -71,110 +71,110 @@ struct pcm_drv {
 const struct pcm_drv *pcm_drv_register(void);
 ```
 
-- `pcm_open`：以指定模式、采样率、通道数和格式打开 PCM 设备，返回句柄
-- `pcm_write`：向 PCM 设备写入音频数据（通常为 PCM 原始采样）
-- `pcm_start` / `pcm_stop`：启动/停止 PCM 数据流
-- `pcm_ioctl`：发送控制命令，可用于设置音量、切换数据源等
-- `pcm_close`：关闭 PCM 设备，释放句柄
-- `pcm_drv_register`：注册 PCM 驱动，返回驱动函数表
+- `pcm_open`: Opens a PCM device with the specified mode, sample rate, channel count, and format, returning a handle
+- `pcm_write`: Writes audio data to the PCM device (typically raw PCM samples)
+- `pcm_start` / `pcm_stop`: Starts/stops the PCM data stream
+- `pcm_ioctl`: Sends control commands, usable for setting volume, switching data sources, etc.
+- `pcm_close`: Closes the PCM device, releasing the handle
+- `pcm_drv_register`: Registers the PCM driver, returning the driver function table
 
-> `pcm_handle_t` 为 `void *` 类型句柄，用于唯一标识打开的 PCM 设备实例。
+> `pcm_handle_t` is a `void *` type handle used to uniquely identify an opened PCM device instance.
 
-### PCM 数据格式
+### PCM Data Format
 
-`format` 参数通常使用标准 ALSA 格式定义（如 `S16LE`、`S8` 等），`channels` 支持单声道（1）或立体声（2），`samplerate` 常见值为 8000/16000/44100/48000 Hz。
+The `format` parameter typically uses standard ALSA format definitions (such as `S16LE`, `S8`, etc.), `channels` supports mono (1) or stereo (2), and common `samplerate` values are 8000/16000/44100/48000 Hz.
 
-### sbc2pcm 库
+### sbc2pcm Library
 
-`sbc2pcm` 是构建在 `pcm_drv` 之上的高层封装，专门用于处理 SBC 蓝牙音频解码场景。它内部集成了 SBC 解码器，并将解码后的 PCM 数据通过底层 PCM 驱动输出。
+`sbc2pcm` is a high-level wrapper built on top of `pcm_drv`, specifically designed for handling SBC Bluetooth audio decoding scenarios. It internally integrates an SBC decoder and outputs decoded PCM data through the underlying PCM driver.
 
-#### 句柄类型
+#### Handle Types
 
 ```c
 typedef struct sbc2pcm_handle *sbc2pcm_player_handle_t;
 ```
 
-#### 打开与关闭
+#### Open and Close
 
 ```c
 sbc2pcm_player_handle_t sbc2pcm_player_open(int mode, int samplerate, int channels, int format);
 void sbc2pcm_player_close(sbc2pcm_player_handle_t handle);
 ```
 
-`mode` 参数指定播放模式，`samplerate` 和 `channels` 分别设置目标采样率和声道数，`format` 指定 PCM 采样格式。
+The `mode` parameter specifies the playback mode, `samplerate` and `channels` set the target sample rate and channel count respectively, and `format` specifies the PCM sample format.
 
-#### 写入数据
+#### Writing Data
 
 ```c
 int sbc2pcm_player_write(sbc2pcm_player_handle_t handle, const void *buf, unsigned int size);
 ```
 
-将 SBC 压缩数据写入解码队列，库内部会自动完成 SBC 解码并输出 PCM 数据。返回值通常为写入的字节数或错误码。
+Writes SBC compressed data into the decode queue. The library internally auto-completes SBC decoding and outputs PCM data. The return value is typically the number of bytes written or an error code.
 
-#### 启动与停止
+#### Start and Stop
 
 ```c
 int sbc2pcm_player_start(sbc2pcm_player_handle_t handle);
 int sbc2pcm_player_stop(sbc2pcm_player_handle_t handle);
 ```
 
-`start` 启动内部解码任务，开始从队列消费数据并推送至 PCM 驱动；`stop` 停止解码任务，数据流冻结但句柄保持有效。
+`start` starts the internal decode task, beginning to consume data from the queue and push it to the PCM driver. `stop` halts the decode task; the data stream freezes but the handle remains valid.
 
-#### SBC 解码初始化
+#### SBC Decode Initialization
 
 ```c
 int sbc2pcm_decode_init();
 ```
 
-在启动 sbc2pcm 播放之前需要调用此函数初始化解码器上下文，通常在系统初始化阶段执行一次即可。
+This function must be called to initialize the decoder context before starting sbc2pcm playback, typically executed once during system initialization.
 
-#### 事件机制
+#### Event Mechanism
 
-`sbc2pcm` 内部维护一个事件队列，通过 `PLAYER_EVENT_*` 系列事件类型通知上层：
+`sbc2pcm` internally maintains an event queue, notifying the upper layer via the `PLAYER_EVENT_*` series of event types:
 
-| 事件类型 | 说明 |
+| Event Type | Description |
 |---|---|
-| `PLAYER_EVENT_SBC_DATA` | 收到待解码的 SBC 数据 |
-| `PLAYER_EVENT_OPEN` | PCM 设备已打开 |
-| `PLAYER_EVENT_START` | 播放流已启动 |
-| `PLAYER_EVENT_STOP` | 播放流已停止 |
-| `PLAYER_EVENT_CLOSE` | PCM 设备已关闭 |
+| `PLAYER_EVENT_SBC_DATA` | Received SBC data to be decoded |
+| `PLAYER_EVENT_OPEN` | PCM device has been opened |
+| `PLAYER_EVENT_START` | Playback stream has started |
+| `PLAYER_EVENT_STOP` | Playback stream has stopped |
+| `PLAYER_EVENT_CLOSE` | PCM device has been closed |
 
-上层可以通过事件队列监听播放状态变化，实现同步控制逻辑。
+The upper layer can listen for playback state changes through the event queue to implement synchronous control logic.
 
-#### pcm_ioctl 控制命令
+#### pcm_ioctl Control Commands
 
-通过 `pcm_ioctl` 可以向 PCM 驱动发送特定控制命令，常见的命令包括：
+Specific control commands can be sent to the PCM driver via `pcm_ioctl`. Common commands include:
 
-- 音量调节
-- 静音切换
-- 数据源切换
-- 采样率变更
+- Volume adjustment
+- Mute toggle
+- Data source switching
+- Sample rate change
 
-具体命令编号和参数格式由具体实现定义，通常 `cmd` 为命令枚举，`arg` 为参数结构体指针。
-
----
-
-## 与 smart_audio 的关系
-
-`smart_audio` 是 BL618 音频方案的上层应用框架，封装了音频播放、录制、编解码等业务逻辑。SndBl616 声卡驱动和 AudioFlowctrlBridge 共同构成其底层支撑：
-
-```
-smart_audio（上层应用）
-    └── AudioFlowctrlBridge（sbc2pcm / pcm_drv）
-            └── SndBl616 声卡驱动（drv_snd_bl616）
-                    └── 硬件（I2S / PCMDM / PDM）
-```
-
-当 smart_audio 需要播放 SBC 音频流时，数据经 `sbc2pcm` 解码为 PCM，再由 `pcm_drv` 传递给 `snd_bl616` 声卡驱动，最终通过 I2S/PCMDM/PDM 接口输出到音频编解码器或功放。
-
-声卡驱动的增益配置（`audio_in_gain_list` / `audio_out_gain_list`）也直接影响 smart_audio 的音频质量表现。
+Specific command numbers and parameter formats are defined by the concrete implementation. Typically, `cmd` is a command enum and `arg` is a parameter structure pointer.
 
 ---
 
-## 代码示例
+## Relationship with smart_audio
 
-### 注册声卡
+`smart_audio` is the upper-layer application framework of the BL618 audio solution, encapsulating business logic such as audio playback, recording, and codec operations. SndBl616 sound card driver and AudioFlowctrlBridge together form its low-level support:
+
+```
+smart_audio (upper-layer application)
+    └── AudioFlowctrlBridge (sbc2pcm / pcm_drv)
+            └── SndBl616 Sound Card Driver (drv_snd_bl616)
+                    └── Hardware (I2S / PCMDM / PDM)
+```
+
+When smart_audio needs to play SBC audio streams, the data is decoded to PCM by `sbc2pcm`, then passed by `pcm_drv` to the `snd_bl616` sound card driver, and finally output through the I2S/PCMDM/PDM interface to the audio codec or amplifier.
+
+The sound card driver's gain configuration (`audio_in_gain_list` / `audio_out_gain_list`) also directly affects the audio quality performance of smart_audio.
+
+---
+
+## Code Examples
+
+### Register Sound Card
 
 ```c
 #include <devices/drv_snd_bl616.h>
@@ -182,15 +182,15 @@ smart_audio（上层应用）
 void audio_init(void)
 {
     snd_bl616_config_t cfg = {
-        .audio_in_gain_list  = {0, 10, 20},  // 输入增益 3 档
-        .audio_out_gain_list = {0, 15},      // 输出增益 2 档
+        .audio_in_gain_list  = {0, 10, 20},  // 3-level input gain
+        .audio_out_gain_list = {0, 15},      // 2-level output gain
     };
 
     snd_card_bl616_register(&cfg);
 }
 ```
 
-### 播放 PCM 数据（通过 sbc2pcm）
+### Play PCM Data (via sbc2pcm)
 
 ```c
 #include "sbc2pcm.h"
@@ -199,32 +199,32 @@ void audio_playback_example(void)
 {
     sbc2pcm_player_handle_t player;
 
-    /* 初始化 SBC 解码器 */
+    /* Initialize SBC decoder */
     sbc2pcm_decode_init();
 
-    /* 打开播放器：模式 0，16kHz 采样，单声道，S16LE 格式 */
+    /* Open player: mode 0, 16kHz sample rate, mono, S16LE format */
     player = sbc2pcm_player_open(0, 16000, 1, 16);
     if (!player) {
         return;
     }
 
-    /* 启动播放 */
+    /* Start playback */
     sbc2pcm_player_start(player);
 
-    /* 写入 SBC 数据并自动解码播放 */
+    /* Write SBC data and auto-decode playback */
     uint8_t sbc_data[512];
     int len = read(sbc_fd, sbc_data, sizeof(sbc_data));
     if (len > 0) {
         sbc2pcm_player_write(player, sbc_data, len);
     }
 
-    /* 停止并关闭 */
+    /* Stop and close */
     sbc2pcm_player_stop(player);
     sbc2pcm_player_close(player);
 }
 ```
 
-### 直接使用 PCM 驱动播放 PCM
+### Direct PCM Playback Using PCM Driver
 
 ```c
 #include "pcm_drv.h"
@@ -236,7 +236,7 @@ void pcm_playback_example(void)
         return;
     }
 
-    /* 打开 PCM：模式 0，48kHz 采样，立体声，S16LE */
+    /* Open PCM: mode 0, 48kHz sample rate, stereo, S16LE */
     pcm_handle_t pcm = drv->pcm_open(0, 48000, 2, 16);
     if (!pcm) {
         return;
@@ -244,23 +244,23 @@ void pcm_playback_example(void)
 
     drv->pcm_start(pcm);
 
-    /* 写入 PCM 原始数据 */
+    /* Write raw PCM data */
     int16_t pcm_samples[1024];
     int len = read(pcm_fd, pcm_samples, sizeof(pcm_samples));
     if (len > 0) {
         drv->pcm_write(pcm, pcm_samples, len);
     }
 
-    /* 静音控制 */
+    /* Mute control */
     int mute = 0;
-    drv->pcm_ioctl(pcm, 3, &mute);  /* 命令 3 设置静音状态 */
+    drv->pcm_ioctl(pcm, 3, &mute);  /* Command 3 sets mute state */
 
     drv->pcm_stop(pcm);
     drv->pcm_close(pcm);
 }
 ```
 
-### 注销声卡
+### Deregister Sound Card
 
 ```c
 void audio_deinit(void)
@@ -272,18 +272,18 @@ void audio_deinit(void)
 
 ---
 
-## 注意事项
+## Notes
 
-1. **初始化顺序**：使用 sbc2pcm 前必须先调用 `sbc2pcm_decode_init()`，确保解码器上下文就绪。
-2. **增益配置**：输入/输出增益列表的值应与硬件设计匹配，错误的增益可能导致声音失真或音量过大/过小。
-3. **采样率匹配**：上层写入的 SBC 数据采样率应与 `sbc2pcm_player_open` 时指定的采样率一致，避免输出音调异常。
-4. **线程安全**：`sbc2pcm` 内部使用独立任务和消息队列处理解码，不在中断上下文中调用 `sbc2pcm_player_write`。
-5. **资源释放**：声卡注销前应确保所有 PCM 设备已关闭，避免使用已释放的硬件资源。
+1. **Initialization Order**: `sbc2pcm_decode_init()` must be called before using sbc2pcm to ensure the decoder context is ready.
+2. **Gain Configuration**: Input/output gain list values should match the hardware design. Incorrect gain may cause sound distortion or excessive/insufficient volume.
+3. **Sample Rate Matching**: The sample rate of SBC data written by the upper layer should match the sample rate specified when calling `sbc2pcm_player_open` to avoid abnormal output pitch.
+4. **Thread Safety**: `sbc2pcm` internally uses independent tasks and message queues for decoding. Do not call `sbc2pcm_player_write` from interrupt context.
+5. **Resource Release**: Ensure all PCM devices are closed before deregistering the sound card to avoid using released hardware resources.
 
 ---
 
-## 参考
+## References
 
-- [drv_snd_bl616.h - SndBl616 声卡驱动头文件](../../../../workspase/BL618Claw/bouffalo_sdk/components/multimedia/drv_snd_bl616/include/devices/drv_snd_bl616.h)
-- [pcm_drv.h - PCM 驱动抽象层头文件](../../../../workspase/BL618Claw/bouffalo_sdk/components/multimedia/audio_flowctrl_bridge/include/pcm_drv.h)
-- [sbc2pcm.h - SBC 转 PCM 播放库头文件](../../../../workspase/BL618Claw/bouffalo_sdk/components/multimedia/audio_flowctrl_bridge/include/sbc2pcm.h)
+- [drv_snd_bl616.h - SndBl616 Sound Card Driver Header](../../../../workspase/BL618Claw/bouffalo_sdk/components/multimedia/drv_snd_bl616/include/devices/drv_snd_bl616.h)
+- [pcm_drv.h - PCM Driver Abstraction Layer Header](../../../../workspase/BL618Claw/bouffalo_sdk/components/multimedia/audio_flowctrl_bridge/include/pcm_drv.h)
+- [sbc2pcm.h - SBC to PCM Playback Library Header](../../../../workspase/BL618Claw/bouffalo_sdk/components/multimedia/audio_flowctrl_bridge/include/sbc2pcm.h)

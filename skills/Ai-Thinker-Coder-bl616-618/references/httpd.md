@@ -1,29 +1,29 @@
 # lwIP HTTPD Server API Reference (BL616/BL618)
 
-## 概述
+## Overview
 
-BL616/BL618 的 bouffalo_sdk 在 `components/net/lwip/` 中内置了 lwIP HTTPD Server，支持 **HTTP 服务器**、**CGI 动态路由**、**SSI 标签替换**、**POST 数据接收** 等完整功能。该实现基于瑞典计算机科学研究所的轻量级 HTTPd，经过 Texas Instruments 扩展了 SSI/CGI 能力。
+The bouffalo_sdk for BL616/BL618 includes the lwIP HTTPD Server built into `components/net/lwip/`, supporting a full range of features including **HTTP server**, **CGI dynamic routing**, **SSI tag replacement**, and **POST data reception**. This implementation is based on the lightweight HTTPd from the Swedish Institute of Computer Science, extended by Texas Instruments with SSI/CGI capabilities.
 
-**所在路径**：`components/net/lwip/lwip/src/include/lwip/apps/`
+**Location:** `components/net/lwip/lwip/src/include/lwip/apps/`
 
 ---
 
-## 头文件
+## Header Files
 
-| 文件 | 说明 |
+| File | Description |
 |------|------|
-| `lwip/apps/httpd.h` | HTTPD 核心 API（CGI/SSI/HTTP Server） |
-| `lwip/apps/httpd_opts.h` | 功能开关和配置宏 |
-| `lwip/apps/fs.h` | 文件系统抽象层（fs_open/fs_read/fs_close） |
-| `lwip/apps/fs.c` | 默认 RAM 文件系统实现 |
+| `lwip/apps/httpd.h` | HTTPD core API (CGI/SSI/HTTP Server) |
+| `lwip/apps/httpd_opts.h` | Feature switches and configuration macros |
+| `lwip/apps/fs.h` | Filesystem abstraction layer (fs_open/fs_read/fs_close) |
+| `lwip/apps/fs.c` | Default RAM filesystem implementation |
 
 ---
 
-## 初始化
+## Initialization
 
 ### httpd_init()
 
-启动 HTTP 服务器（监听 80 端口）：
+Start the HTTP server (listening on port 80):
 
 ```c
 #include "lwip/apps/httpd.h"
@@ -31,26 +31,26 @@ BL616/BL618 的 bouffalo_sdk 在 `components/net/lwip/` 中内置了 lwIP HTTPD 
 void httpd_init(void);
 ```
 
-**示例**：
+**Example:**
 
 ```c
 void app_main(void)
 {
-    // 初始化 LwIP 协议栈（参考 lwip.md）
+    // Initialize LwIP protocol stack (see lwip.md)
     tcpip_init(lwip_init_done, NULL);
 }
 
 static void lwip_init_done(void *arg)
 {
-    // LwIP 初始化完成后启动 HTTP 服务器
+    // Start HTTP server after LwIP initialization is complete
     httpd_init();
     printf("HTTP server started on port 80\r\n");
 }
 ```
 
-### httpd_inits() — HTTPS 服务器
+### httpd_inits() — HTTPS Server
 
-启动带 TLS 加密的 HTTPS 服务器：
+Start an HTTPS server with TLS encryption:
 
 ```c
 #include "lwip/apps/httpd.h"
@@ -59,16 +59,16 @@ static void lwip_init_done(void *arg)
 void httpd_inits(struct altcp_tls_config *conf);
 ```
 
-**参数**：
-- `conf` — mbedtls TLS 配置（通过 `altcp_tls_create_config_server()` 创建）
+**Parameters:**
+- `conf` — mbedtls TLS configuration (created via `altcp_tls_create_config_server()`)
 
 ---
 
-## CGI — Common Gateway Interface（动态 URL）
+## CGI — Common Gateway Interface (Dynamic URLs)
 
-CGI 用于处理**动态 URL 路由**，例如 `/api/led/on`、`/api/sensor/read`。
+CGI is used to handle **dynamic URL routing**, such as `/api/led/on`, `/api/sensor/read`.
 
-### tCGIHandler — CGI 处理函数类型
+### tCGIHandler — CGI Handler Function Type
 
 ```c
 typedef const char *(*tCGIHandler)(int iIndex,
@@ -77,15 +77,15 @@ typedef const char *(*tCGIHandler)(int iIndex,
                                    char *pcValue[]);
 ```
 
-**参数**：
-- `iIndex` — CGI 处理器索引（对应注册顺序）
-- `iNumParams` — URI 参数个数
-- `pcParam[]` — 参数名数组（如 `"state"`）
-- `pcValue[]` — 参数值数组（如 `"on"`）
+**Parameters:**
+- `iIndex` — CGI handler index (corresponding to registration order)
+- `iNumParams` — Number of URI parameters
+- `pcParam[]` — Parameter name array (e.g., `"state"`)
+- `pcValue[]` — Parameter value array (e.g., `"on"`)
 
-**返回值**：要返回的页面路径，如 `"/thanks.html"` 或 `"/response/error.ssi"`
+**Return value:** Page path to return, such as `"/thanks.html"` or `"/response/error.ssi"`
 
-**示例**：
+**Example:**
 
 ```c
 const char *handle_led_control(int iIndex, int iNumParams,
@@ -94,9 +94,9 @@ const char *handle_led_control(int iIndex, int iNumParams,
     for (int i = 0; i < iNumParams; i++) {
         if (strcmp(pcParam[i], "state") == 0) {
             if (strcmp(pcValue[i], "on") == 0) {
-                bflb_gpio_set(gpio, GPIO_PIN_0);  // LED 亮
+                bflb_gpio_set(gpio, GPIO_PIN_0);  // LED on
             } else {
-                bflb_gpio_reset(gpio, GPIO_PIN_0);  // LED 灭
+                bflb_gpio_reset(gpio, GPIO_PIN_0);  // LED off
             }
         }
     }
@@ -104,22 +104,22 @@ const char *handle_led_control(int iIndex, int iNumParams,
 }
 ```
 
-### tCGI — CGI 路由结构
+### tCGI — CGI Route Structure
 
 ```c
 typedef struct {
-    const char *pcCGIName;     // URL 路径，如 "/api/led"
-    tCGIHandler pfnCGIHandler; // 处理函数
+    const char *pcCGIName;     // URL path, e.g., "/api/led"
+    tCGIHandler pfnCGIHandler; // Handler function
 } tCGI;
 ```
 
-### http_set_cgi_handlers() — 注册 CGI 路由
+### http_set_cgi_handlers() — Register CGI Routes
 
 ```c
 void http_set_cgi_handlers(const tCGI *pCGIs, int iNumHandlers);
 ```
 
-**示例**：
+**Example:**
 
 ```c
 const tCGI httpRouter[] = {
@@ -138,30 +138,30 @@ void app_main(void)
 
 ---
 
-## SSI — Server Side Include（嵌入式标签）
+## SSI — Server Side Include (Embedded Tags)
 
-SSI 用于在 **HTML 文件中嵌入动态变量**，标签形式为 `<!--#varname-->`。
+SSI is used to **embed dynamic variables in HTML files**, with tags in the form `<!--#varname-->`.
 
-### tSSIHandler — SSI 标签回调类型
+### tSSIHandler — SSI Tag Callback Type
 
 ```c
 typedef u16_t (*tSSIHandler)(
 #if LWIP_HTTPD_SSI_RAW
-    const char *ssi_tag_name,  // 标签名（非数组索引）
+    const char *ssi_tag_name,  // Tag name (not array index)
 #else
-    int iIndex,               // 标签在数组中的索引
+    int iIndex,               // Tag index in array
 #endif
-    char *pcInsert,           // 输出缓冲区（填入替换文本）
-    int iInsertLen           // 输出缓冲区长度
-    /* ... 可选参数 ... */
+    char *pcInsert,           // Output buffer (fill with replacement text)
+    int iInsertLen           // Output buffer length
+    /* ... optional parameters ... */
 );
 ```
 
-**返回值**：
-- 写入 `pcInsert` 的字符数（不含 `\0`）
-- `HTTPD_SSI_TAG_UNKNOWN (0xFFFF)` — 标签未识别
+**Return values:**
+- Number of characters written to `pcInsert` (excluding `\0`)
+- `HTTPD_SSI_TAG_UNKNOWN (0xFFFF)` — Tag not recognized
 
-**示例**：
+**Example:**
 
 ```c
 static const char *ssi_tags[] = { "UPTIME", "TEMP", "LED_STATE" };
@@ -190,7 +190,7 @@ void app_main(void)
 }
 ```
 
-**HTML 中使用**：
+**Usage in HTML:**
 
 ```html
 <!-- index.shtml -->
@@ -207,7 +207,7 @@ void app_main(void)
 </html>
 ```
 
-### http_set_ssi_handler() — 注册 SSI 处理器
+### http_set_ssi_handler() — Register SSI Handler
 
 ```c
 void http_set_ssi_handler(tSSIHandler pfnSSIHandler,
@@ -217,9 +217,9 @@ void http_set_ssi_handler(tSSIHandler pfnSSIHandler,
 
 ---
 
-## POST 请求处理
+## POST Request Handling
 
-### httpd_post_begin() — POST 请求开始
+### httpd_post_begin() — POST Request Begin
 
 ```c
 err_t httpd_post_begin(void *connection,
@@ -232,26 +232,26 @@ err_t httpd_post_begin(void *connection,
                        u8_t *post_auto_wnd);
 ```
 
-**返回值**：`ERR_OK` 接受请求，其他拒绝。
+**Return value:** `ERR_OK` to accept the request, otherwise reject.
 
-### httpd_post_receive_data() — 接收 POST 数据
+### httpd_post_receive_data() — Receive POST Data
 
 ```c
 err_t httpd_post_receive_data(void *connection, struct pbuf *p);
 ```
 
-**注意**：收到数据后**必须自行释放 pbuf**：
+**Note:** After receiving data, you **must release the pbuf yourself**:
 
 ```c
 err_t httpd_post_receive_data(void *connection, struct pbuf *p)
 {
-    // 处理 p->payload 中的数据
-    pbuf_free(p);  // 必须释放
+    // Process data in p->payload
+    pbuf_free(p);  // Must release
     return ERR_OK;
 }
 ```
 
-### httpd_post_finished() — POST 完成
+### httpd_post_finished() — POST Complete
 
 ```c
 void httpd_post_finished(void *connection,
@@ -259,55 +259,55 @@ void httpd_post_finished(void *connection,
                          u16_t response_uri_len);
 ```
 
-**说明**：在 `response_uri` 中填入响应页面路径，如 `"/upload_ok.html"`。
+**Description:** Fill `response_uri` with the response page path, such as `"/upload_ok.html"`.
 
 ---
 
-## 文件系统抽象层（fs.h）
+## Filesystem Abstraction Layer (fs.h)
 
-HTTPD 通过文件系统抽象层提供静态文件，CGI/SSI 处理完成后也需要返回文件给客户端。
+HTTPD serves static files through the filesystem abstraction layer. CGI/SSI processing also needs to return files to the client upon completion.
 
-### fs_open() — 打开文件
+### fs_open() — Open File
 
 ```c
 #include "lwip/apps/fs.h"
 
 struct fs_file {
-    const void *data;   // 文件数据指针
-    size_t len;         // 文件长度
-    int index;          // 当前读取位置
-    void *state;       // 状态指针（用于自定义数据）
+    const void *data;   // File data pointer
+    size_t len;         // File length
+    int index;          // Current read position
+    void *state;       // State pointer (for custom data)
     // ...
 };
 
 err_t fs_open(struct fs_file *file, const char *name);
 ```
 
-**返回**：`ERR_OK` 成功，其他失败。
+**Returns:** `ERR_OK` on success, otherwise failure.
 
-### fs_read() — 读取文件
+### fs_read() — Read File
 
 ```c
 int fs_read(struct fs_file *file, char *buffer, int count);
 ```
 
-**返回**：实际读取的字节数，0 表示文件结束，-1 表示错误。
+**Returns:** Actual number of bytes read, 0 indicates end of file, -1 indicates error.
 
-### fs_close() — 关闭文件
+### fs_close() — Close File
 
 ```c
 void fs_close(struct fs_file *file);
 ```
 
-### 使用 netconn 发送文件
+### Sending Files Using netconn
 
-SDK 常用模式（CGI 处理完后发送文件）：
+Common SDK pattern (sending files after CGI processing):
 
 ```c
 #include "lwip/apps/fs.h"
 #include "lwip/netconn.h"
 
-struct netconn *http_active_conn;  // 全局或通过 connection_state 传递
+struct netconn *http_active_conn;  // Global or passed via connection_state
 
 void send_file_to_client(const char *path)
 {
@@ -324,58 +324,58 @@ void send_file_to_client(const char *path)
 
 ---
 
-## 配置选项（lwipopts_user.h）
+## Configuration Options (lwipopts_user.h)
 
-在 `lwipopts_user.h` 中启用 HTTPD 相关功能：
+Enable HTTPD-related features in `lwipopts_user.h`:
 
 ```c
-// ==================== HTTPD 配置 ====================
+// ==================== HTTPD Configuration ====================
 
-// 启用 CGI（动态 URL）
+// Enable CGI (dynamic URLs)
 #define LWIP_HTTPD_CGI           1
 
-// 启用 SSI（服务器端标签）
+// Enable SSI (server-side tags)
 #define LWIP_HTTPD_SSI           1
 
-// 启用 POST 请求支持
+// Enable POST request support
 #define LWIP_HTTPD_SUPPORT_POST   1
 
-// POST 手动窗口管理（throttle 接收速度）
+// POST manual window management (throttle receive speed)
 #define LWIP_HTTPD_POST_MANUAL_WND  1
 
-// 最大 CGI 参数个数
+// Maximum number of CGI parameters
 #define LWIP_HTTPD_MAX_CGI_PARAMETERS  16
 
-// SSI 最大标签数
+// SSI maximum tag count
 #define LWIP_HTTPD_MAX_SSI_TAGS        8
 
-// HTTP 服务器监听端口
+// HTTP server listening port
 #define LWIP_HTTPD_SERVER_PORT          80
 
-// 启用 HTTPS
+// Enable HTTPS
 #define HTTPD_ENABLE_HTTPS              1
 
-// 文件系统根目录（RAM 文件系统使用）
+// Filesystem root directory (for RAM filesystem)
 #define LWIP_HTTPD_FSDATA_TYPE          1
 
-// 最大 URI 长度
+// Maximum URI length
 #define LWIP_HTTPD_MAX_URI_LENGTH       256
 
-// TCP 发送缓冲（影响大文件传输）
+// TCP send buffer (affects large file transfers)
 #define HTTP_MAX_OUTPUT_LEN             4096
 ```
 
-**注意**：启用 CGI/SSI 后必须**注册对应的处理函数**，否则访问对应 URL 会返回 404。
+**Note:** After enabling CGI/SSI, **corresponding handler functions must be registered**, otherwise accessing those URLs will return 404.
 
 ---
 
-## 完整示例：从 Flash 提供 HTML 页面
+## Complete Example: Serving HTML Pages from Flash
 
-### 1. 准备 HTML 文件（放入 fsdata.c）
+### 1. Prepare HTML Files (place in fsdata.c)
 
-通常使用 Python 工具将 HTML/CSS/JS 打包为 `fsdata.c`（参考 `tools/makefsdata`）。简化方案：用 RAM 文件系统。
+Typically, a Python tool is used to package HTML/CSS/JS into `fsdata.c` (refer to `tools/makefsdata`). Simplified approach: use RAM filesystem.
 
-### 2. 代码实现
+### 2. Code Implementation
 
 ```c
 #include "FreeRTOS.h"
@@ -388,7 +388,7 @@ void send_file_to_client(const char *path)
 
 static struct netif *sta_netif;
 
-// ==================== CGI 处理器 ====================
+// ==================== CGI Handlers ====================
 const char *cgi_led_handler(int iIndex, int iNumParams,
                             char *pcParam[], char *pcValue[])
 {
@@ -408,7 +408,7 @@ const tCGI cgi_handlers[] = {
     { "/api/led", cgi_led_handler },
 };
 
-// ==================== SSI 处理器 ====================
+// ==================== SSI Handlers ====================
 static const char *ssi_tags[] = { "IP", "STATUS" };
 
 u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen)
@@ -424,10 +424,10 @@ u16_t ssi_handler(int iIndex, char *pcInsert, int iInsertLen)
     }
 }
 
-// ==================== 任务 ====================
+// ==================== Task ====================
 static void web_server_task(void *param)
 {
-    vTaskDelay(pdMS_TO_TICKS(500));  // 等待网络就绪
+    vTaskDelay(pdMS_TO_TICKS(500));  // Wait for network readiness
 
     httpd_init();
     http_set_cgi_handlers(cgi_handlers,
@@ -443,15 +443,15 @@ static void web_server_task(void *param)
 
 void app_main(void)
 {
-    // ... Wi-Fi 连接代码 ...
+    // ... Wi-Fi connection code ...
     // wifi_mgmr_sta_connect(...);
 
-    // 创建 HTTP 服务器任务
+    // Create HTTP server task
     xTaskCreate(web_server_task, "httpd", 1024, NULL, 5, NULL);
 }
 ```
 
-### 3. HTML 页面示例（index.shtml）
+### 3. HTML Page Example (index.shtml)
 
 ```html
 <!DOCTYPE html>
@@ -482,19 +482,19 @@ void app_main(void)
 
 ---
 
-## SDK 示例路径
+## SDK Example Paths
 
-| 示例 | 路径 |
+| Example | Path |
 |------|------|
 | EMAC HTTP Server | `examples/peripherals/emac/lwip_http_server/` |
 | Wi-Fi RESTful API | `examples/wifi/sta/http_restful_api/` |
 
 ---
 
-## 注意事项
+## Notes
 
-1. **必须先 `httpd_init()` 再注册 CGI/SSI**：否则路由不会生效
-2. **RAM 文件系统限制**：默认 `fsdata.c` 中的文件编译进固件，文件太大会占满 Flash
-3. **Wi-Fi 模式下**：需确保 `netif` 已 up 且获取到 IP 后再启动 HTTP 服务器
-4. **lwIP 线程安全**：HTTPD 在 TCPIP 线程中运行，注册 CGI/SSI 需在 `httpd_init()` 前完成
-5. **POST 需要手动 `pbuf_free`**：收到数据后必须释放，否则内存泄漏
+1. **Must call `httpd_init()` before registering CGI/SSI:** Otherwise routes won't take effect
+2. **RAM filesystem limitation:** By default, files in `fsdata.c` are compiled into firmware; files that are too large will fill up Flash
+3. **Wi-Fi mode:** Ensure the `netif` is up and has obtained an IP before starting the HTTP server
+4. **lwIP thread safety:** HTTPD runs in the TCPIP thread; CGI/SSI registration must be completed before `httpd_init()`
+5. **POST requires manual `pbuf_free`:** After receiving data, you must release it or memory will leak

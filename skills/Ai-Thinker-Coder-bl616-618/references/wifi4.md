@@ -1,373 +1,373 @@
-# Wi-Fi 4 (802.11n) 技术参考
+# Wi-Fi 4 (802.11n) Technical Reference
 
-## 概述
+## Overview
 
-Wi-Fi 4 是基于 IEEE 802.11n 标准的无线网络协议，又称 HT（High Throughput）模式。该模式主要用于兼容老旧 802.11b/g 设备，或在 Wi-Fi 6（802.11ax）环境中作为降级模式使用。在 Bouffalo Lab SDK 中，Wi-Fi 4 由 `wifi4` 组件实现，支持 2.4GHz 和 5GHz 双频段工作。
+Wi-Fi 4 is a wireless networking protocol based on the IEEE 802.11n standard, also known as HT (High Throughput) mode. This mode is primarily used for compatibility with legacy 802.11b/g devices, or as a fallback mode in Wi-Fi 6 (802.11ax) environments. In the Bouffalo Lab SDK, Wi-Fi 4 is implemented by the `wifi4` component, supporting both 2.4GHz and 5GHz dual-band operation.
 
-802.11n 在物理层引入多项增强技术，显著提升了吞吐量与覆盖范围。相比 802.11g 的 54Mbps 理论速率，802.11n 在 40MHz 带宽和 Short GI 条件下可达 150Mbps（单空间流）。对于嵌入式设备而言，Wi-Fi 4 提供了良好的性价比——既满足主流 IoT 设备带宽需求，又保持较低的硬件成本和功耗。
+802.11n introduces several enhancement technologies at the physical layer, significantly improving throughput and coverage. Compared to 802.11g's theoretical rate of 54Mbps, 802.11n can reach 150Mbps (single spatial stream) with 40MHz bandwidth and Short GI. For embedded devices, Wi-Fi 4 offers good cost-effectiveness — meeting mainstream IoT device bandwidth demands while maintaining low hardware cost and power consumption.
 
-## 802.11n 核心特性
+## 802.11n Core Features
 
-### MIMO 1x1 与空间流
+### MIMO 1x1 and Spatial Streams
 
-802.11n 引入多输入多输出（MIMO）技术，通过多天线实现空间复用。本芯片平台在 Wi-Fi 4 模式下仅使用单空间流（1x1 MIMO），即一根天线用于发送、一根用于接收。虽然无法利用多空间流提升峰值速率，但 MIMO 仍带来了分集增益，提升了信号稳定性与覆盖效果。
+802.11n introduces MIMO (Multiple Input Multiple Output) technology, achieving spatial multiplexing through multiple antennas. This chip platform uses only a single spatial stream (1x1 MIMO) in Wi-Fi 4 mode, meaning one antenna for transmission and one for reception. While multi-spatial-stream peak rate enhancement is unavailable, MIMO still provides diversity gain, improving signal stability and coverage.
 
-若系统配置有多根天线，可在 Wi-Fi 6 模式下启用 2x2 或更高阶 MIMO。Wi-Fi 4 的 1x1 约束使其更适合对功耗敏感的电池供电设备。
+If the system is configured with multiple antennas, 2x2 or higher-order MIMO can be enabled in Wi-Fi 6 mode. Wi-Fi 4's 1x1 constraint makes it more suitable for power-sensitive battery-powered devices.
 
-### Short GI（Short Guard Interval）
+### Short GI (Short Guard Interval)
 
-guard interval（保护间隔）是 OFDM 符号之间的时间缓冲，用于避免符号间干扰。标准 GI 为 800ns，Short GI 缩短至 400ns，使每个符号传输时间从 4μs 降至 3.6μs。Short GI 可将吞吐量提升约 11%，但对信道条件要求更高，适用于短距离、低干扰场景。
+The guard interval is the time buffer between OFDM symbols, used to avoid inter-symbol interference. Standard GI is 800ns, while Short GI is shortened to 400ns, reducing each symbol's transmission time from 4μs to 3.6μs. Short GI can improve throughput by approximately 11%, but requires better channel conditions and is suitable for short-range, low-interference scenarios.
 
-在 SDK 中通过 `bl_mod_params.sgi` 参数控制 Short GI 开关：
+In the SDK, Short GI is controlled via the `bl_mod_params.sgi` parameter:
 
 ```c
-// 启用 Short GI
+// Enable Short GI
 bl_mod_params.sgi = true;
 
-// 禁用 Short GI（使用标准 800ns GI）
+// Disable Short GI (use standard 800ns GI)
 bl_mod_params.sgi = false;
 ```
 
-### 40MHz 带宽
+### 40MHz Bandwidth
 
-802.11n 支持将两个 20MHz 信道捆绑为 40MHz 带宽使用，使子载波数量从 52 增加到 108，从而将单空间流速率从 72.2Mbps 提升至 150Mbps。40MHz 带宽仅在 2.4GHz 的非拥挤信道上推荐使用（避免与相邻 20MHz 频道冲突），在 5GHz 频段则更为常用。
+802.11n supports bundling two 20MHz channels into a single 40MHz bandwidth, increasing the number of subcarriers from 52 to 108, thereby raising the single spatial stream rate from 72.2Mbps to 150Mbps. 40MHz bandwidth is only recommended on uncongested 2.4GHz channels (to avoid conflicts with adjacent 20MHz channels) and is more commonly used in the 5GHz band.
 
-40MHz 配置通过 `bl_mod_params.use_2040` 参数启用：
+40MHz configuration is enabled via the `bl_mod_params.use_2040` parameter:
 
 ```c
-// 启用 40MHz 带宽支持
+// Enable 40MHz bandwidth support
 bl_mod_params.use_2040 = true;
 ```
 
-需要注意的是，40MHz 操作需要在 AP 和 STA 双方均支持的情况下协商成功才能生效。
+Note that 40MHz operation requires negotiation success with both AP and STA supporting it to take effect.
 
-### MCS 调制与编码方案
+### MCS Modulation and Coding Scheme
 
-MCS（Modulation and Coding Scheme）索引定义了 802.11n 中的调制方式与码率组合。Wi-Fi 4 支持 MCS 0 至 MCS 15，每个索引对应特定的调制阶数和码率：
+The MCS (Modulation and Coding Scheme) index defines modulation type and code rate combinations in 802.11n. Wi-Fi 4 supports MCS 0 through MCS 15, with each index corresponding to a specific modulation order and code rate:
 
-| MCS 索引 | 调制方式 | 码率 | 40MHz 单空间流速率 |
-|---------|---------|------|-------------------|
-| MCS 0   | BPSK    | 1/2  | 15 Mbps           |
-| MCS 1   | QPSK    | 1/2  | 30 Mbps           |
-| MCS 2   | QPSK    | 3/4  | 45 Mbps           |
-| MCS 3   | 16-QAM  | 1/2  | 60 Mbps           |
-| MCS 4   | 16-QAM  | 3/4  | 90 Mbps           |
-| MCS 5   | 64-QAM  | 2/3  | 120 Mbps          |
-| MCS 6   | 64-QAM  | 3/4  | 135 Mbps          |
-| MCS 7   | 64-QAM  | 5/6  | 150 Mbps          |
-| MCS 8   | 256-QAM | 3/4  | 180 Mbps (需芯片支持) |
-| MCS 9   | 256-QAM | 5/6  | 200 Mbps (需芯片支持) |
+| MCS Index | Modulation | Code Rate | 40MHz Single Stream Rate |
+|-----------|------------|-----------|--------------------------|
+| MCS 0     | BPSK       | 1/2       | 15 Mbps                  |
+| MCS 1     | QPSK       | 1/2       | 30 Mbps                  |
+| MCS 2     | QPSK       | 3/4       | 45 Mbps                  |
+| MCS 3     | 16-QAM     | 1/2       | 60 Mbps                  |
+| MCS 4     | 16-QAM     | 3/4       | 90 Mbps                  |
+| MCS 5     | 64-QAM     | 2/3       | 120 Mbps                 |
+| MCS 6     | 64-QAM     | 3/4       | 135 Mbps                 |
+| MCS 7     | 64-QAM     | 5/6       | 150 Mbps                 |
+| MCS 8     | 256-QAM    | 3/4       | 180 Mbps (chip support required) |
+| MCS 9     | 256-QAM    | 5/6       | 200 Mbps (chip support required) |
 
-默认 MCS 映射通过 `bl_mod_params.mcs_map` 配置。MCS 8 和 MCS 9 依赖 256-QAM 调制，仅在信噪比良好的环境下启用。
+The default MCS mapping is configured via `bl_mod_params.mcs_map`. MCS 8 and MCS 9 rely on 256-QAM modulation and are only enabled in high-SNR environments.
 
-## bl_wifi_driver 架构
+## bl_wifi_driver Architecture
 
-### LMAC 消息队列概述
+### LMAC Message Queue Overview
 
-Wi-Fi 驱动采用 LMAC（Lower MAC）架构，将协议栈分为 Host（驱动）侧和 Firmware（固件）侧。两者通过消息队列（Message Queue）进行通信，Host 侧发送请求消息（REQ），Firmware 侧返回确认消息（CFM）或异步指示消息（IND）。
+The Wi-Fi driver uses the LMAC (Lower MAC) architecture, dividing the protocol stack into Host (driver) side and Firmware side. The two sides communicate via message queues: the Host side sends request messages (REQ), and the Firmware side returns confirmation messages (CFM) or asynchronous indication messages (IND).
 
-消息结构定义在 `lmac_msg.h` 中：
+The message structure is defined in `lmac_msg.h`:
 
 ```c
 struct lmac_msg {
-    ke_msg_id_t     id;         // 消息 ID
-    ke_task_id_t    dest_id;    // 目标任务 ID
-    ke_task_id_t    src_id;     // 源任务 ID
-    u32             param_len;  // 参数长度
-    u32             param[];    // 参数数组（字对齐）
+    ke_msg_id_t     id;         // Message ID
+    ke_task_id_t    dest_id;    // Destination task ID
+    ke_task_id_t    src_id;     // Source task ID
+    u32             param_len;  // Parameter length
+    u32             param[];    // Parameter array (word-aligned)
 };
 ```
 
-消息 ID 由宏 `MSG_T(msg)` 和 `MSG_I(msg)` 解析，分别提取消息类型和实例编号。驱动任务 ID 预定义为 `DRV_TASK_ID (100)`。
+The message ID is parsed by the macros `MSG_T(msg)` and `MSG_I(msg)`, which extract the message type and instance number respectively. The driver task ID is predefined as `DRV_TASK_ID (100)`.
 
-### 关键消息类型
+### Key Message Types
 
 #### MM_START_REQ / MM_START_CFM
 
-MAC 层启动请求，用于初始化 Wi-Fi 固件。包含 PHY 配置、超时参数和本地时钟精度：
+MAC layer start request, used to initialize Wi-Fi firmware. Contains PHY configuration, timeout parameters, and local clock accuracy:
 
 ```c
 struct mm_start_req {
-    struct phy_cfg_tag phy_cfg;     // PHY 配置
-    u32_l              uapsd_timeout; // UAPSD 超时（毫秒）
-    u16_l              lp_clk_accuracy; // LP 时钟精度（ppm）
+    struct phy_cfg_tag phy_cfg;     // PHY config
+    u32_l              uapsd_timeout; // UAPSD timeout (ms)
+    u16_l              lp_clk_accuracy; // LP clock accuracy (ppm)
 };
 ```
 
 #### MM_SET_CHANNEL_REQ
 
-设置工作信道与带宽类型。信道类型定义包括 20MHz、40MHz、80MHz 等：
+Set operating channel and bandwidth type. Channel type definitions include 20MHz, 40MHz, 80MHz, etc.:
 
 ```c
 struct mm_set_channel_req {
-    u8_l    band;        // 频段：2.4GHz 或 5GHz
-    u8_l    type;        // 信道类型：20/40/80/160MHz
-    u16_l   prim20_freq; // 主 20MHz 信道频率（MHz）
-    u16_l   center1_freq; // 中心频率 1
-    u16_l   center2_freq; // 中心频率 2（用于 80+80）
-    u8_l    index;       // RF 索引（主或副）
-    s8_l    tx_power;    // 最大发射功率（dBm）
+    u8_l    band;        // Band: 2.4GHz or 5GHz
+    u8_l    type;        // Channel type: 20/40/80/160MHz
+    u16_l   prim20_freq; // Primary 20MHz channel frequency (MHz)
+    u16_l   center1_freq; // Center frequency 1
+    u16_l   center2_freq; // Center frequency 2 (for 80+80)
+    u8_l    index;       // RF index (primary or secondary)
+    s8_l    tx_power;    // Max TX power (dBm)
 };
 ```
 
 #### MM_SET_PS_MODE_REQ
 
-电源管理模式切换，参数 `new_state` 可选 `MM_PS_MODE_OFF`、`MM_PS_MODE_ON` 或 `MM_PS_MODE_ON_DYN`（动态）。
+Power management mode switch. Parameter `new_state` can be `MM_PS_MODE_OFF`, `MM_PS_MODE_ON`, or `MM_PS_MODE_ON_DYN` (dynamic).
 
 #### SCAN_START_REQ / SCANU_START_REQ
 
-发起网络扫描请求，支持多信道、多 SSID 被动或主动扫描：
+Initiate a network scan request, supporting multi-channel, multi-SSID passive or active scanning:
 
 ```c
 struct scan_start_req {
-    struct scan_chan_tag chan[SCAN_CHANNEL_MAX]; // 信道列表
-    struct mac_ssid      ssid[SCAN_SSID_MAX];    // SSID 列表
-    struct mac_addr      bssid;                  // BSSID 过滤
-    struct mac_addr      mac;                   // 发送源 MAC
-    u32_l                add_ies;               // 额外 IEs 指针
-    u16_l                add_ie_len;            // 额外 IEs 长度
-    u8_l                 vif_idx;               // VIF 索引
-    u8_l                 chan_cnt;              // 信道数量
-    u8_l                 ssid_cnt;              // SSID 数量
-    bool                 no_cck;                // 禁止 CCK 速率
+    struct scan_chan_tag chan[SCAN_CHANNEL_MAX]; // Channel list
+    struct mac_ssid      ssid[SCAN_SSID_MAX];    // SSID list
+    struct mac_addr      bssid;                  // BSSID filter
+    struct mac_addr      mac;                   // Source MAC for transmission
+    u32_l                add_ies;               // Additional IEs pointer
+    u16_l                add_ie_len;            // Additional IEs length
+    u8_l                 vif_idx;               // VIF index
+    u8_l                 chan_cnt;              // Channel count
+    u8_l                 ssid_cnt;              // SSID count
+    bool                 no_cck;                // Disable CCK rates
 };
 ```
 
-### 接口类型
+### Interface Types
 
-系统支持多种接口类型，通过 `mm_add_if_req` 结构中的 `type` 字段指定：
+The system supports multiple interface types, specified by the `type` field in the `mm_add_if_req` structure:
 
-- `MM_STA`：基础服务集（ESS）Station 接口，最常用模式
-- `MM_IBSS`：独立基础服务集（Ad-Hoc）接口
-- `MM_AP`：接入点（Access Point）接口
-- `MM_MESH_POINT`：Mesh 节点接口
+- `MM_STA`: Basic Service Set (ESS) Station interface, most common mode
+- `MM_IBSS`: Independent Basic Service Set (Ad-Hoc) interface
+- `MM_AP`: Access Point interface
+- `MM_MESH_POINT`: Mesh node interface
 
-## bl_mod_params_t 参数配置
+## bl_mod_params_t Parameter Configuration
 
-`bl_mod_params` 结构体集中管理 Wi-Fi 4 的功能开关与性能参数，位于 `bl_mod_params.h`：
+The `bl_mod_params` structure centrally manages Wi-Fi 4 feature switches and performance parameters, located in `bl_mod_params.h`:
 
 ```c
 struct bl_mod_params {
-    bool ht_on;           // HT（802.11n）使能
-    bool vht_on;          // VHT（802.11ac）使能（本芯片不支持）
-    int  mcs_map;         // MCS 映射配置
-    int  phy_cfg;         // PHY 配置索引
-    int  uapsd_timeout;   // UAPSD 超时时间（毫秒）
-    bool sgi;             // Short GI 使能
-    bool sgi80;           // 80MHz Short GI 使能
-    bool use_2040;        // 40MHz 带宽使能
-    int  listen_itv;      // 监听间隔
-    bool listen_bcmc;     // 监听广播/多播帧
-    int  lp_clk_ppm;      // 低功耗时钟精度（ppm）
-    bool ps_on;           // 电源管理使能
-    int  tx_lft;          // 传输帧寿命（TUs）
-    int  amsdu_maxnb;     // A-MSDU 最大数量
-    int  uapsd_queues;    // UAPSD 队列掩码
+    bool ht_on;           // HT (802.11n) enable
+    bool vht_on;          // VHT (802.11ac) enable (not supported by this chip)
+    int  mcs_map;         // MCS mapping configuration
+    int  phy_cfg;         // PHY config index
+    int  uapsd_timeout;   // UAPSD timeout (ms)
+    bool sgi;             // Short GI enable
+    bool sgi80;           // 80MHz Short GI enable
+    bool use_2040;        // 40MHz bandwidth enable
+    int  listen_itv;      // Listen interval
+    bool listen_bcmc;     // Listen for broadcast/multicast frames
+    int  lp_clk_ppm;      // LP clock accuracy (ppm)
+    bool ps_on;           // Power management enable
+    int  tx_lft;          // Transmit frame lifetime (TUs)
+    int  amsdu_maxnb;     // A-MSDU max count
+    int  uapsd_queues;    // UAPSD queue mask
 };
 ```
 
-### 功率配置
+### Power Configuration
 
-发射功率通过 `mm_set_power_req` 消息动态调整：
+TX power is dynamically adjusted via the `mm_set_power_req` message:
 
 ```c
 struct mm_set_power_req {
-    u8_l inst_nbr;  // 接口编号
-    s8_l power;     // 发射功率（dBm）
+    u8_l inst_nbr;  // Interface number
+    s8_l power;     // TX power (dBm)
 };
 ```
 
-典型值范围为 0dBm 至 20dBm，具体取决于硬件能力与法规限制。
+Typical values range from 0dBm to 20dBm, depending on hardware capabilities and regulatory limits.
 
-### 速率配置
+### Rate Configuration
 
-基础速率集通过 `mm_set_basic_rates_req` 设置，用于控制管理帧和广播帧的发送速率：
+The basic rate set is configured via `mm_set_basic_rates_req`, used to control management frame and broadcast frame transmission rates:
 
 ```c
 struct mm_set_basic_rates_req {
-    u32_l rates;     // 基础速率掩码（对应 bssBasicRateSet 寄存器）
-    u8_l  inst_nbr;  // 接口编号
-    u8_l  band;      // 频段
+    u32_l rates;     // Basic rate mask (maps to bssBasicRateSet register)
+    u8_l  inst_nbr;  // Interface number
+    u8_l  band;      // Band
 };
 ```
 
-### 天线配置
+### Antenna Configuration
 
-天线选择在 PHY 配置中完成，支持多路径映射与分集。天线配置由 `phy_trd_cfg_tag` 或 `phy_karst_cfg_tag` 结构定义，包含 RF 路径映射和 IQ 补偿参数。
+Antenna selection is done within the PHY configuration, supporting multi-path mapping and diversity. Antenna configuration is defined by the `phy_trd_cfg_tag` or `phy_karst_cfg_tag` structure, including RF path mapping and IQ compensation parameters.
 
-## Wi-Fi 4 节能机制
+## Wi-Fi 4 Power Saving Mechanisms
 
-### APSD（Automatic Power Save Delivery）
+### APSD (Automatic Power Save Delivery)
 
-U-APSD（Unscheduled Automatic Power Save Delivery）是 802.11n 推荐的节能机制，允许 AP 通过触发帧（Trigger Frame）唤醒 STA 接收下行业务。U-APSD 特别适用于 VoIP、视频流等对延迟敏感的应用场景。
+U-APSD (Unscheduled Automatic Power Save Delivery) is the recommended power saving mechanism for 802.11n, allowing the AP to wake the STA via trigger frames to receive downlink traffic. U-APSD is particularly suitable for latency-sensitive applications such as VoIP and video streaming.
 
-APSD 配置通过以下参数控制：
+APSD configuration is controlled by the following parameters:
 
-- `bl_mod_params.uapsd_timeout`：U-APSD 超时时间，决定 STA 在无数据交互后返回休眠的等待时长
-- `bl_mod_params.uapsd_queues`：使能 U-APSD 的 AC 队列掩码（bit0=VO, bit1=VI, bit2=BK, bit3=BE）
-- `bl_mod_params.ps_on`：全局电源管理开关
+- `bl_mod_params.uapsd_timeout`: U-APSD timeout, determines how long the STA waits after no data interaction before returning to sleep
+- `bl_mod_params.uapsd_queues`: AC queue mask enabling U-APSD (bit0=VO, bit1=VI, bit2=BK, bit3=BE)
+- `bl_mod_params.ps_on`: Global power management switch
 
 ```c
-// 配置 U-APSD：使能 VO 和 VI 队列的自动节能
+// Configure U-APSD: enable automatic power saving for VO and VI queues
 bl_mod_params.uapsd_queues = 0x03;  // VO(0x01) | VI(0x02)
-bl_mod_params.uapsd_timeout = 300;  // 300ms 无数据后进入休眠
+bl_mod_params.uapsd_timeout = 300;  // Enter sleep after 300ms of no data
 bl_mod_params.ps_on = true;
 ```
 
-### 动态电源管理
+### Dynamic Power Management
 
-`MM_PS_MODE_ON_DYN` 模式支持动态切换：STA 根据业务流量自动在激活与休眠状态间转换。当无数据到达时进入休眠以节省功耗，当检测到业务时快速唤醒。
+The `MM_PS_MODE_ON_DYN` mode supports dynamic switching: the STA automatically transitions between active and sleep states based on traffic. When no data arrives, it enters sleep to save power; when traffic is detected, it quickly wakes up.
 
-监听间隔（Listen Interval）控制 STA 唤醒接收 Beacon 的频率：
+Listen Interval controls how often the STA wakes up to receive Beacons:
 
 ```c
 struct mm_set_ps_options_req {
-    u8_l  vif_index;           // VIF 索引
-    u16_l listen_interval;     // 监听间隔（Beacon 周期数，0 表示基于 DTIM）
-    bool_l dont_listen_bc_mc;  // 是否忽略广播/多播
+    u8_l  vif_index;           // VIF index
+    u16_l listen_interval;     // Listen interval (Beacon periods, 0 means DTIM-based)
+    bool_l dont_listen_bc_mc;  // Whether to ignore broadcast/multicast
 };
 ```
 
-较长的监听间隔可降低功耗，但可能导致错过下行的广播/多播数据。
+Longer listen intervals reduce power consumption but may miss downlink broadcast/multicast data.
 
-### 电源管理状态指示
+### Power Management State Indication
 
-Firmware 通过 `mm_ps_change_ind` 消息通知 Host 对端 STA 的电源状态变化：
+The Firmware notifies the Host of peer STA power state changes via the `mm_ps_change_ind` message:
 
 ```c
 struct mm_ps_change_ind {
-    u8_l sta_idx;     // 站点索引
-    u8_l ps_state;    // 电源状态：0=激活，1=休眠
+    u8_l sta_idx;     // Station index
+    u8_l ps_state;    // Power state: 0=active, 1=sleep
 };
 ```
 
-## Wi-Fi 4 与 Wi-Fi 6 的关系
+## Relationship Between Wi-Fi 4 and Wi-Fi 6
 
-Wi-Fi 6（802.11ax）在本平台 SDK 中以独立组件 `wifi6` 实现，而 `wifi4` 组件是整个无线栈的基础实现层。两者的关系体现在以下几个方面：
+Wi-Fi 6 (802.11ax) is implemented as a separate `wifi6` component in this platform's SDK, while the `wifi4` component serves as the foundational implementation layer of the entire wireless stack. Their relationship is reflected in the following aspects:
 
-### 代码复用
+### Code Reuse
 
-Wi-Fi 4 的 LMAC 消息队列、扫描机制、电源管理框架被 Wi-Fi 6 直接复用。Wi-Fi 6 在此基础上增加了 OFDMA、1024-QAM、BSS Coloring 等新特性，但底层帧交换、PHY 配置流程与 Wi-Fi 4 保持一致。
+Wi-Fi 4's LMAC message queues, scanning mechanisms, and power management framework are directly reused by Wi-Fi 6. Wi-Fi 6 adds new features such as OFDMA, 1024-QAM, and BSS Coloring on top of this, but the underlying frame exchange and PHY configuration flow remain consistent with Wi-Fi 4.
 
-### 协商降级
+### Negotiation Fallback
 
-当 Wi-Fi 6 STA 关联到仅支持 Wi-Fi 4 的 AP 时，系统会自动协商至 802.11n 模式。反之，在高密度部署环境中，为兼容老旧设备或降低功耗，Wi-Fi 6 AP 可配置为仅允许 Wi-Fi 4 客户端关联。
+When a Wi-Fi 6 STA associates with an AP that only supports Wi-Fi 4, the system automatically negotiates down to 802.11n mode. Conversely, in high-density deployment environments, to accommodate legacy devices or reduce power consumption, a Wi-Fi 6 AP can be configured to only allow Wi-Fi 4 client associations.
 
-### 参数继承
+### Parameter Inheritance
 
-`bl_mod_params.ht_on` 控制 802.11n 功能，Wi-Fi 6 模式下应保持 `ht_on = true`（因为 802.11ax 需向后兼容 802.11n）。`mcs_map` 参数同样影响 Wi-Fi 6 的基础速率配置。
+`bl_mod_params.ht_on` controls 802.11n functionality. In Wi-Fi 6 mode, `ht_on = true` should be maintained (because 802.11ax must be backward compatible with 802.11n). The `mcs_map` parameter also affects Wi-Fi 6's basic rate configuration.
 
-### 共存机制
+### Coexistence Mechanism
 
-Wi-Fi 4 和 Wi-Fi 6 可通过双频并发（Dual-Band Concurrent）实现共存：一个频段以 Wi-Fi 4 模式连接老旧设备，另一个频段以 Wi-Fi 6 提供高速接入。这需要 RF 硬件支持双前端。
+Wi-Fi 4 and Wi-Fi 6 can coexist via Dual-Band Concurrent operation: one band operates in Wi-Fi 4 mode to connect legacy devices, while another band provides high-speed access via Wi-Fi 6. This requires RF hardware support for dual front-ends.
 
-## 代码示例
+## Code Examples
 
-### Wi-Fi 4 模式连接示例
+### Wi-Fi 4 Mode Connection Example
 
-以下代码演示如何配置并启动 Wi-Fi 4（802.11n）连接：
+The following code demonstrates how to configure and start a Wi-Fi 4 (802.11n) connection:
 
 ```c
 #include "bl_wifi_driver.h"
 #include "bl_mod_params.h"
 #include "lmac_msg.h"
 
-// 初始化 Wi-Fi 4 参数
+// Initialize Wi-Fi 4 parameters
 void wifi4_connect_init(void)
 {
-    // 使能 802.11n，禁用 802.11ac
+    // Enable 802.11n, disable 802.11ac
     bl_mod_params.ht_on = true;
     bl_mod_params.vht_on = false;
 
-    // 配置 MCS 映射：允许 MCS 0-7（64-QAM 最高）
-    bl_mod_params.mcs_map = 0xFFF2;  // MCS 0-7 支持，MCS 8-9 不支持
+    // Configure MCS mapping: allow MCS 0-7 (up to 64-QAM)
+    bl_mod_params.mcs_map = 0xFFF2;  // MCS 0-7 supported, MCS 8-9 not supported
 
-    // 启用 Short GI
+    // Enable Short GI
     bl_mod_params.sgi = true;
 
-    // 禁用 40MHz（使用 20MHz 信道以提高兼容性）
+    // Disable 40MHz (use 20MHz channel for better compatibility)
     bl_mod_params.use_2040 = false;
 
-    // 配置监听间隔：每 3 个 Beacon 周期唤醒一次
+    // Configure listen interval: wake every 3 Beacon periods
     bl_mod_params.listen_itv = 3;
 
-    // 启用电源管理
+    // Enable power management
     bl_mod_params.ps_on = true;
 
-    // 配置 U-APSD：使能语音和视频队列
+    // Configure U-APSD: enable voice and video queues
     bl_mod_params.uapsd_queues = 0x03;
     bl_mod_params.uapsd_timeout = 100;
 }
 
-// 连接到 Wi-Fi 4 AP
+// Connect to Wi-Fi 4 AP
 int wifi4_sta_connect(const char *ssid, const char *psk)
 {
     wifi4_connect_init();
 
-    // 添加 Station 接口
+    // Add Station interface
     struct mm_add_if_req add_if_req = {
         .type = MM_STA,
         .p2p = false,
     };
-    // mac_addr 需根据实际 MAC 地址填充
-    // 发送 MM_ADD_IF_REQ 消息至 LMAC
+    // mac_addr should be populated with the actual MAC address
+    // Send MM_ADD_IF_REQ message to LMAC
 
-    // 配置信道（以 2.4GHz 信道 6 为例）
+    // Configure channel (using 2.4GHz channel 6 as example)
     struct mm_set_channel_req chan_req = {
         .band = 0,              // 2.4GHz
-        .type = 20,             // 20MHz 带宽
+        .type = 20,             // 20MHz bandwidth
         .prim20_freq = 2437,    // 2437 MHz
         .center1_freq = 2437,
         .tx_power = 18,         // 18 dBm
     };
-    // 发送 MM_SET_CHANNEL_REQ 消息
+    // Send MM_SET_CHANNEL_REQ message
 
-    // 发起扫描
+    // Initiate scan
     struct scan_start_req scan_req = {
         .vif_idx = 0,
         .chan_cnt = 1,
-        // 填充信道信息
+        // Fill channel info
     };
-    // 发送 SCAN_START_REQ 消息
+    // Send SCAN_START_REQ message
 
-    // 扫描结果返回后，调用连接流程
-    // 连接流程涉及 802.11 认证与关联帧交换
+    // After scan results return, invoke connection flow
+    // Connection flow involves 802.11 authentication and association frame exchange
 
     return 0;
 }
 ```
 
-### 40MHz 带宽配置示例
+### 40MHz Bandwidth Configuration Example
 
-以下代码演示如何将 Wi-Fi 4 配置为 40MHz 带宽模式：
+The following code demonstrates how to configure Wi-Fi 4 for 40MHz bandwidth mode:
 
 ```c
 void wifi4_enable_40MHz(void)
 {
-    // 启用 40MHz 信道带宽
+    // Enable 40MHz channel bandwidth
     bl_mod_params.use_2040 = true;
 
-    // 配置主信道和中心频率
-    // 以 2.4GHz 信道 6（主）+ 信道 10（辅）为例
+    // Configure primary channel and center frequency
+    // Using 2.4GHz channel 6 (primary) + channel 10 (secondary) as example
     struct mm_set_channel_req chan_req = {
-        .band = 0,                // 2.4GHz 频段
-        .type = 40,               // 40MHz 带宽
-        .prim20_freq = 2437,      // 主 20MHz 信道：2437 MHz (CH 6)
-        .center1_freq = 2447,     // 中心频率：2447 MHz
-        .center2_freq = 0,        // 80+80 模式使用
-        .tx_power = 18,           // 发射功率
+        .band = 0,                // 2.4GHz band
+        .type = 40,               // 40MHz bandwidth
+        .prim20_freq = 2437,      // Primary 20MHz channel: 2437 MHz (CH 6)
+        .center1_freq = 2447,     // Center frequency: 2447 MHz
+        .center2_freq = 0,        // Used for 80+80 mode
+        .tx_power = 18,           // TX power
     };
 
-    // 发送 MM_SET_CHANNEL_REQ 至 LMAC
-    // 固件将协商 HT 40MHz 操作
+    // Send MM_SET_CHANNEL_REQ to LMAC
+    // Firmware will negotiate HT 40MHz operation
 }
 
 void wifi4_disable_40MHz(void)
 {
-    // 禁用 40MHz，回退至 20MHz
+    // Disable 40MHz, fall back to 20MHz
     bl_mod_params.use_2040 = false;
 
-    // 重新配置信道为 20MHz
+    // Reconfigure channel for 20MHz
     struct mm_set_channel_req chan_req = {
         .band = 0,
         .type = 20,
@@ -376,54 +376,54 @@ void wifi4_disable_40MHz(void)
         .tx_power = 18,
     };
 
-    // 发送 MM_SET_CHANNEL_REQ
+    // Send MM_SET_CHANNEL_REQ
 }
 ```
 
-### 电源管理配置示例
+### Power Management Configuration Example
 
 ```c
 void wifi4_power_save_config(void)
 {
-    // 全局电源管理使能
+    // Enable global power management
     bl_mod_params.ps_on = true;
 
-    // 配置监听间隔：每 10 个 Beacon 周期唤醒一次
+    // Configure listen interval: wake every 10 Beacon periods
     bl_mod_params.listen_itv = 10;
 
-    // 忽略广播/多播（节省接收功耗）
+    // Ignore broadcast/multicast (save receive power)
     bl_mod_params.listen_bcmc = false;
 
-    // 配置 U-APSD
-    bl_mod_params.uapsd_queues = 0x0F;  // 所有队列使能 U-APSD
-    bl_mod_params.uapsd_timeout = 200;  // 200ms 超时
+    // Configure U-APSD
+    bl_mod_params.uapsd_queues = 0x0F;  // Enable U-APSD for all queues
+    bl_mod_params.uapsd_timeout = 200;  // 200ms timeout
 
-    // 设置 LP 时钟精度（影响 DTIM 计算）
+    // Set LP clock accuracy (affects DTIM calculation)
     bl_mod_params.lp_clk_ppm = 100;  // 100 ppm
 
-    // 发送 MM_SET_PS_MODE_REQ，启用动态电源管理
+    // Send MM_SET_PS_MODE_REQ, enable dynamic power management
     struct mm_set_ps_mode_req ps_req = {
         .new_state = MM_PS_MODE_ON_DYN,
     };
-    // 发送消息至 LMAC
+    // Send message to LMAC
 }
 ```
 
-## 限制与注意事项
+## Limitations and Notes
 
-1. **40MHz 在 2.4GHz 频段**：2.4GHz 频段仅有 3 个非重叠信道（1、6、11），40MHz 带宽会占用相邻信道，实际部署中应确保信道无干扰。
+1. **40MHz in 2.4GHz band**: The 2.4GHz band has only 3 non-overlapping channels (1, 6, 11). 40MHz bandwidth occupies adjacent channels, so ensure the channel is interference-free in actual deployment.
 
-2. **Short GI 可靠性**：Short GI 对多径敏感，在复杂室内环境中可能导致包错误率上升。若连接不稳定，应禁用 Short GI。
+2. **Short GI reliability**: Short GI is sensitive to multipath and may cause increased packet error rates in complex indoor environments. If the connection is unstable, disable Short GI.
 
-3. **MCS 协商**：实际使用的 MCS 索引由 AP 与 STA 双方能力集协商决定，Host 端配置仅为请求值。
+3. **MCS negotiation**: The actual MCS index used is determined by capability set negotiation between AP and STA; the Host-side configuration is only a requested value.
 
-4. **电源管理与延迟**：启用深度节能会引入额外唤醒延迟，对实时语音或游戏等低延迟应用不利。
+4. **Power management and latency**: Enabling deep power saving introduces additional wake-up latency, which is detrimental to low-latency applications such as real-time voice or gaming.
 
-5. **VHT 参数**：本芯片 `vht_on` 应始终保持 `false`，因为硬件不支持 802.11ac VHT。
+5. **VHT parameters**: This chip's `vht_on` should always remain `false`, as the hardware does not support 802.11ac VHT.
 
-## 参考
+## References
 
 - IEEE Std 802.11n-2009: Amendment 5: Enhancements for Higher Throughput
-- `lmac_msg.h`: LMAC 消息结构与枚举定义
-- `bl_mod_params.h`: Wi-Fi 驱动参数配置结构
-- `bl_platform.h`: 平台硬件抽象层定义
+- `lmac_msg.h`: LMAC message structures and enum definitions
+- `bl_mod_params.h`: Wi-Fi driver parameter configuration structure
+- `bl_platform.h`: Platform hardware abstraction layer definitions

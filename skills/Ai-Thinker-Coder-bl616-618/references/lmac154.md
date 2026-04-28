@@ -1,18 +1,18 @@
-# lmac154 技术文档
+# lmac154 Technical Documentation
 
-## 概述
+## Overview
 
-lmac154 是博流（Bouffalo）芯片系列中实现的 IEEE 802.15.4 MAC 层协议栈，为 Thread 和 Zigbee 等低速无线个人局域网（LR-WPAN）协议提供物理层和媒体访问控制层抽象。该模块工作在 2.4GHz ISM 频段，支持频道 11 至频道 26（共 16 个频道），符合 802.15.4-2015 标准。
+lmac154 is the IEEE 802.15.4 MAC layer protocol stack implemented in the Bouffalo chip series, providing physical layer and media access control layer abstraction for low-rate wireless personal area network (LR-WPAN) protocols such as Thread and Zigbee. This module operates in the 2.4GHz ISM band, supporting channels 11 through 26 (16 channels total), compliant with the 802.15.4-2015 standard.
 
-lmac154 驱动版本为 1.7.4，提供完整的帧收发、射频状态管理、地址配置、CCA（Clear Channel Assessment）以及 AES-CCM 加密等核心功能。该模块是 Thread 协议的物理层和 MAC 层抽象基础，上层协议栈（如 OpenThread）通过 lmac154 提供的接口完成无线通信。
+lmac154 driver version is 1.7.4, providing complete core functionality including frame transmission and reception, RF state management, address configuration, CCA (Clear Channel Assessment), and AES-CCM encryption. This module is the physical layer and MAC layer abstraction foundation for the Thread protocol; upper-layer protocol stacks (such as OpenThread) perform wireless communication through the interfaces provided by lmac154.
 
 ---
 
-## 核心数据类型
+## Core Data Types
 
-### 频道类型 `lmac154_channel_t`
+### Channel Type `lmac154_channel_t`
 
-定义 802.15.4 工作频道，范围从频道 11 到频道 26：
+Defines the 802.15.4 operating channel, ranging from channel 11 to channel 26:
 
 ```c
 typedef enum {
@@ -36,9 +36,9 @@ typedef enum {
 } lmac154_channel_t;
 ```
 
-### 发射功率类型 `lmac154_tx_power_t`
+### Transmit Power Type `lmac154_tx_power_t`
 
-定义 8 级发射功率等级，从 0 dBm 到 7 dBm：
+Defines 8 levels of transmit power, from 0 dBm to 7 dBm:
 
 ```c
 typedef enum {
@@ -53,103 +53,103 @@ typedef enum {
 } lmac154_tx_power_t;
 ```
 
-### 中断回调类型 `lmac154_isr_t`
+### Interrupt Callback Type `lmac154_isr_t`
 
-用于注册硬件中断处理回调函数：
+Used to register hardware interrupt handler callback functions:
 
 ```c
 typedef void (*lmac154_isr_t)(void);
 ```
 
-### 数据速率类型 `lmac154_data_rate_t`
+### Data Rate Type `lmac154_data_rate_t`
 
-支持四种数据速率模式：
+Supports four data rate modes:
 
 ```c
 typedef enum {
-    LMAC154_DATA_RATE_250K = 0,  // 250 kbps（默认）
+    LMAC154_DATA_RATE_250K = 0,  // 250 kbps (default)
     LMAC154_DATA_RATE_500K = 1,  // 500 kbps
     LMAC154_DATA_RATE_1M   = 2,  // 1 Mbps
     LMAC154_DATA_RATE_2M   = 3,  // 2 Mbps
 } lmac154_data_rate_t;
 ```
 
-### CCA 模式类型 `lmac154_cca_mode_t`
+### CCA Mode Type `lmac154_cca_mode_t`
 
-定义信道空闲评估模式：
+Defines Clear Channel Assessment modes:
 
 ```c
 typedef enum {
-    LMAC154_CCA_MODE_ED        = 0,  // 能量检测
-    LMAC154_CCA_MODE_CS        = 1,  // 载波侦听
-    LMAC154_CCA_MODE_ED_AND_CS = 2,  // 能量检测与载波侦听（默认）
-    LMAC154_CCA_MODE_ED_OR_CS  = 3,  // 能量检测或载波侦听
+    LMAC154_CCA_MODE_ED        = 0,  // Energy Detection
+    LMAC154_CCA_MODE_CS        = 1,  // Carrier Sense
+    LMAC154_CCA_MODE_ED_AND_CS = 2,  // Energy Detection AND Carrier Sense (default)
+    LMAC154_CCA_MODE_ED_OR_CS  = 3,  // Energy Detection OR Carrier Sense
 } lmac154_cca_mode_t;
 ```
 
-### 帧类型 `lmac154_frame_type_t`
+### Frame Type `lmac154_frame_type_t`
 
 ```c
 typedef enum {
-    LMAC154_FRAME_TYPE_BEACON = 0x01,  // 信标帧
-    LMAC154_FRAME_TYPE_DATA   = 0x02,  // 数据帧
-    LMAC154_FRAME_TYPE_ACK    = 0x04,  // 确认帧
-    LMAC154_FRAME_TYPE_CMD    = 0x08,  // 命令帧
-    LMAC154_FRAME_TYPE_MPP    = 0x10,  // 多用途帧
+    LMAC154_FRAME_TYPE_BEACON = 0x01,  // Beacon frame
+    LMAC154_FRAME_TYPE_DATA   = 0x02,  // Data frame
+    LMAC154_FRAME_TYPE_ACK    = 0x04,  // Acknowledgment frame
+    LMAC154_FRAME_TYPE_CMD    = 0x08,  // Command frame
+    LMAC154_FRAME_TYPE_MPP    = 0x10,  // Multipurpose frame
 } lmac154_frame_type_t;
 ```
 
-### 射频状态类型 `lmac154_rf_state_t`
+### RF State Type `lmac154_rf_state_t`
 
 ```c
 typedef enum {
-    LMAC154_RF_STATE_RX_TRIG   = 1,  // RX 触发状态
-    LMAC154_RF_STATE_RX        = 2,  // RX 运行状态
-    LMAC154_RF_STATE_RX_DOING  = 3,  // RX 进行中
-    LMAC154_RF_STATE_ACK_DOING = 4,  // ACK 发送中
-    LMAC154_RF_STATE_TX        = 5,  // TX 运行状态
-    LMAC154_RF_STATE_CSMA      = 6,  // CSMA/CA 运行中
-    LMAC154_RF_STATE_IDLE      = 7,  // 空闲状态
+    LMAC154_RF_STATE_RX_TRIG   = 1,  // RX trigger state
+    LMAC154_RF_STATE_RX        = 2,  // RX running state
+    LMAC154_RF_STATE_RX_DOING  = 3,  // RX in progress
+    LMAC154_RF_STATE_ACK_DOING = 4,  // ACK sending
+    LMAC154_RF_STATE_TX        = 5,  // TX running state
+    LMAC154_RF_STATE_CSMA      = 6,  // CSMA/CA in progress
+    LMAC154_RF_STATE_IDLE      = 7,  // Idle state
 } lmac154_rf_state_t;
 ```
 
-### 发送状态类型 `lmac154_tx_status_t`
+### Transmit Status Type `lmac154_tx_status_t`
 
 ```c
 typedef enum {
-    LMAC154_TX_STATUS_TX_FINISHED = 0,  // 发送完成
-    LMAC154_TX_STATUS_CSMA_FAILED = 1,  // CSMA 失败
-    LMAC154_TX_STATUS_TX_ABORTED  = 2,  // 发送中止
-    LMAC154_TX_STATUS_HW_ERROR    = 3,  // 硬件错误
-    LMAC154_TX_STATUS_DELAY_ERROR = 4,  // 延迟错误
-    LMAC154_TX_STATUS_NO_ACK      = 5,  // 未收到 ACK
-    LMAC154_TX_STATUS_ACKED       = 6,  // 已确认
-    LMAC154_TX_STATUS_CCA_FAILED  = 7,  // CCA 失败
+    LMAC154_TX_STATUS_TX_FINISHED = 0,  // Transmission finished
+    LMAC154_TX_STATUS_CSMA_FAILED = 1,  // CSMA failed
+    LMAC154_TX_STATUS_TX_ABORTED  = 2,  // Transmission aborted
+    LMAC154_TX_STATUS_HW_ERROR    = 3,  // Hardware error
+    LMAC154_TX_STATUS_DELAY_ERROR = 4,  // Delay error
+    LMAC154_TX_STATUS_NO_ACK      = 5,  // No ACK received
+    LMAC154_TX_STATUS_ACKED       = 6,  // Acknowledged
+    LMAC154_TX_STATUS_CCA_FAILED  = 7,  // CCA failed
     LMAC154_TX_STATUS_MAX         = 8,
 } lmac154_tx_status_t;
 ```
 
-### 接收状态类型 `lmac154_rx_status_t`
+### Receive Status Type `lmac154_rx_status_t`
 
 ```c
 typedef enum {
-    LMAC154_RX_STATUS_NONE     = 0,  // 无事件
-    LMAC154_RX_STATUS_RX_DONE  = 1,  // 接收完成
-    LMAC154_RX_STATUS_ACK_SENT = 2,  // ACK 已发送
-    LMAC154_RX_STATUS_ACK_ERR  = 3,  // ACK 错误
+    LMAC154_RX_STATUS_NONE     = 0,  // No event
+    LMAC154_RX_STATUS_RX_DONE  = 1,  // Reception complete
+    LMAC154_RX_STATUS_ACK_SENT = 2,  // ACK sent
+    LMAC154_RX_STATUS_ACK_ERR  = 3,  // ACK error
 } lmac154_rx_status_t;
 ```
 
-### 回调函数类型
+### Callback Function Types
 
-发送完成回调：
+Transmit done callback:
 
 ```c
 typedef void (*lmac154_txDoneCallback_t)(lmac154_tx_status_t status, 
                                           uint32_t *extra, uint32_t extra_len);
 ```
 
-接收完成回调：
+Receive done callback:
 
 ```c
 typedef void (*lmac154_rxDoneCallback_t)(lmac154_rx_status_t status, 
@@ -158,21 +158,21 @@ typedef void (*lmac154_rxDoneCallback_t)(lmac154_rx_status_t status,
 
 ---
 
-## 寄存器操作宏
+## Register Operation Macros
 
-lmac154 提供一组寄存器访问宏，用于直接读写硬件寄存器：
+lmac154 provides a set of register access macros for direct hardware register read/write:
 
-### 基本读写宏
+### Basic Read/Write Macros
 
 ```c
 #define M154_RD_WORD(addr)      (*((volatile uint32_t *)(uintptr_t)(addr)))
 #define M154_WR_WORD(addr, val) ((*(volatile uint32_t *)(uintptr_t)(addr)) = (val))
 ```
 
-- `M154_RD_WORD(addr)`：从指定地址读取 32 位数据
-- `M154_WR_WORD(addr, val)`：向指定地址写入 32 位数据
+- `M154_RD_WORD(addr)`: Read 32-bit data from the specified address
+- `M154_WR_WORD(addr, val)`: Write 32-bit data to the specified address
 
-### 寄存器域操作宏
+### Register Field Operation Macros
 
 ```c
 #define M154_SET_REG_BIT(val, bitname)    ((val) | (1U << bitname##_POS))
@@ -183,22 +183,22 @@ lmac154 提供一组寄存器访问宏，用于直接读写硬件寄存器：
 #define M154_IS_REG_BIT_SET(val, bitname) (((val) & (1U << (bitname##_POS))) != 0)
 ```
 
-- `M154_SET_REG_BIT`：设置特定位
-- `M154_CLR_REG_BIT`：清除特定位
-- `M154_GET_REG_BITS_VAL`：获取寄存器域值
-- `M154_SET_REG_BITS_VAL`：设置寄存器域值
-- `M154_IS_REG_BIT_SET`：检测特定位是否设置
+- `M154_SET_REG_BIT`: Set a specific bit
+- `M154_CLR_REG_BIT`: Clear a specific bit
+- `M154_GET_REG_BITS_VAL`: Get register field value
+- `M154_SET_REG_BITS_VAL`: Set register field value
+- `M154_IS_REG_BIT_SET`: Check if a specific bit is set
 
 ---
 
-## 802.15.4 帧结构
+## 802.15.4 Frame Structure
 
-### 帧控制字段（Frame Control Field）
+### Frame Control Field
 
-帧控制字段占 2 字节，包含帧类型、安全启用、地址模式等关键信息。lmac154_frame.h 中定义了丰富的帧解析宏：
+The Frame Control Field occupies 2 bytes and contains key information such as frame type, security enable, and address mode. Rich frame parsing macros are defined in lmac154_frame.h:
 
 ```c
-// 帧类型
+// Frame type
 #define LMAC154_FRAME_CONTROL_FRAME_TYPE_MASK    (7)
 #define LMAC154_FRAME_CONTROL_FRAME_TYPE_BEACON (0)
 #define LMAC154_FRAME_CONTROL_FRAME_TYPE_DATA   (1)
@@ -206,41 +206,41 @@ lmac154 提供一组寄存器访问宏，用于直接读写硬件寄存器：
 #define LMAC154_FRAME_CONTROL_FRAME_TYPE_CMD   (3)
 #define LMAC154_FRAME_CONTROL_FRAME_TYPE_MPP    (5)
 
-// 安全与pending位
+// Security and pending bits
 #define LMAC154_FRAME_SECURITY_MASK            (1 << 3)
 #define LMAC154_FRAME_FRAME_PENDING_MASK       (1 << 4)
 #define LMAC154_FRAME_ACK_REQUEST_MASK         (1 << 5)
 #define LMAC154_FRAME_PANID_COMPRESSION       (1 << 6)
 
-// 地址模式
-#define LMAC154_FRAME_ADDR_DEST_NONE   (0 << 10)   // 无目标地址
-#define LMAC154_FRAME_ADDR_DEST_SHORT  (2 << 10)   // 短地址
-#define LMAC154_FRAME_ADDR_DEST_EXT    (3 << 10)    // 扩展地址
+// Address mode
+#define LMAC154_FRAME_ADDR_DEST_NONE   (0 << 10)   // No destination address
+#define LMAC154_FRAME_ADDR_DEST_SHORT  (2 << 10)   // Short address
+#define LMAC154_FRAME_ADDR_DEST_EXT    (3 << 10)    // Extended address
 
 #define LMAC154_FRAME_ADDR_SRC_NONE    (0 << 14)
 #define LMAC154_FRAME_ADDR_SRC_SHORT   (2 << 14)
 #define LMAC154_FRAME_ADDR_SRC_EXT     (3 << 14)
 
-// 帧版本
+// Frame version
 #define LMAC154_FRAME_VERSION_MASK     (3 << 12)
 #define LMAC154_FRAME_VERSION_2006     (0 << 12)
 #define LMAC154_FRAME_VERSION_2011     (1 << 12)
 #define LMAC154_FRAME_VERSION_2015     (2 << 12)
 ```
 
-### 帧结构常量
+### Frame Structure Constants
 
 ```c
-#define LMAC154_LIFS                    40   // 长帧间间隔（符号数）
-#define LMAC154_SIFS                    12   // 短帧间间隔（符号数）
-#define LMAC154_PKT_MAX_LEN             127  // 最大 MPDU 长度
-#define LMAC154_PREAMBLE_LEN             8    // 前导码长度
-#define LMAC154_US_PER_SYMBOL            16   // 每符号微秒数
+#define LMAC154_LIFS                    40   // Long inter-frame spacing (in symbols)
+#define LMAC154_SIFS                    12   // Short inter-frame spacing (in symbols)
+#define LMAC154_PKT_MAX_LEN             127  // Maximum MPDU length
+#define LMAC154_PREAMBLE_LEN             8    // Preamble length
+#define LMAC154_US_PER_SYMBOL            16   // Microseconds per symbol
 ```
 
-### MHR 解析函数
+### MHR Parsing Function
 
-`lmac154_parse_mhr()` 是优化过的 32 位 MAC 头解析函数，用于快速提取帧中的地址信息：
+`lmac154_parse_mhr()` is an optimized 32-bit MAC header parsing function for quickly extracting address information from frames:
 
 ```c
 static inline uint32_t lmac154_parse_mhr(uint8_t *pr, uint8_t **a_dest_panid,
@@ -248,17 +248,17 @@ static inline uint32_t lmac154_parse_mhr(uint8_t *pr, uint8_t **a_dest_panid,
                                  uint8_t **a_src_sa, uint8_t **a_src_xa);
 ```
 
-该函数一次性读取 32 位数据，解析帧控制字段、序列号、目标 PAN ID、目标地址、源 PAN ID 和源地址，返回 MAC 头长度。
+This function reads 32-bit data at once, parsing the frame control field, sequence number, destination PAN ID, destination address, source PAN ID, and source address, and returns the MAC header length.
 
 ---
 
-## 核心 API 函数
+## Core API Functions
 
-### 初始化与复位
+### Initialization and Reset
 
 #### `lmac154_init()`
 
-初始化 lmac154 硬件模块。在使用任何其他 API 之前必须先调用此函数。
+Initializes the lmac154 hardware module. This function must be called before using any other APIs.
 
 ```c
 void lmac154_init(void);
@@ -266,7 +266,7 @@ void lmac154_init(void);
 
 #### `lmac154_reset()`
 
-复位 lmac154 模块，将所有寄存器恢复至默认状态。
+Resets the lmac154 module, restoring all registers to their default state.
 
 ```c
 void lmac154_reset(void);
@@ -274,7 +274,7 @@ void lmac154_reset(void);
 
 #### `lmac154_resetTx()`
 
-复位发送状态机，用于中止正在进行的发送操作。
+Resets the transmit state machine, used to abort an ongoing transmission.
 
 ```c
 void lmac154_resetTx(void);
@@ -282,7 +282,7 @@ void lmac154_resetTx(void);
 
 #### `lmac154_resetRx()`
 
-复位接收状态机。
+Resets the receive state machine.
 
 ```c
 void lmac154_resetRx(void);
@@ -290,20 +290,20 @@ void lmac154_resetRx(void);
 
 ---
 
-### 频道与功率配置
+### Channel and Power Configuration
 
 #### `lmac154_set_channel()`
 
-设置工作频道。默认值为 `LMAC154_CHANNEL_11`。
+Sets the operating channel. Default value is `LMAC154_CHANNEL_11`.
 
 ```c
 void lmac154_setChannel(lmac154_channel_t ch_ind);
 ```
 
-**参数：**
-- `ch_ind`：频道索引，取值 `LMAC154_CHANNEL_11` 至 `LMAC154_CHANNEL_26`
+**Parameters:**
+- `ch_ind`: Channel index, values from `LMAC154_CHANNEL_11` to `LMAC154_CHANNEL_26`
 
-**示例：**
+**Example:**
 
 ```c
 lmac154_setChannel(LMAC154_CHANNEL_15);
@@ -311,27 +311,27 @@ lmac154_setChannel(LMAC154_CHANNEL_15);
 
 #### `lmac154_get_channel()`
 
-获取当前工作频道。
+Gets the current operating channel.
 
 ```c
 lmac154_channel_t lmac154_getChannel(void);
 ```
 
-**返回值：**
-- 当前频道索引
+**Return Value:**
+- Current channel index
 
 #### `lmac154_set_tx_power()`
 
-设置发射功率。默认无默认值，使用前必须设置。
+Sets the transmit power. Has no default; must be set before use.
 
 ```c
 void lmac154_setTxPower(lmac154_tx_power_t power_dbm);
 ```
 
-**参数：**
-- `power_dbm`：发射功率等级，取值 `LMAC154_TX_POWER_0dBm` 至 `LMAC154_TX_POWER_7dBm`
+**Parameters:**
+- `power_dbm`: Transmit power level, values from `LMAC154_TX_POWER_0dBm` to `LMAC154_TX_POWER_7dBm`
 
-**示例：**
+**Example:**
 
 ```c
 lmac154_setTxPower(LMAC154_TX_POWER_5dBm);
@@ -339,7 +339,7 @@ lmac154_setTxPower(LMAC154_TX_POWER_5dBm);
 
 #### `lmac154_get_tx_power()`
 
-获取当前发射功率设置。
+Gets the current transmit power setting.
 
 ```c
 lmac154_tx_power_t lmac154_getTxPower(void);
@@ -347,110 +347,110 @@ lmac154_tx_power_t lmac154_getTxPower(void);
 
 ---
 
-### 帧收发
+### Frame Transmission and Reception
 
 #### `lmac154_send()`
 
-发送 802.15.4 数据帧。这是最基本的发送接口。
+Sends an 802.15.4 data frame. This is the most basic transmit interface.
 
 ```c
 void lmac154_send(uint8_t *data, uint16_t length);
 ```
 
-**参数：**
-- `data`：指向数据缓冲区的指针
-- `length`：数据长度（字节）
+**Parameters:**
+- `data`: Pointer to data buffer
+- `length`: Data length (in bytes)
 
-**备注：**
-该函数内部自动添加 MHR（MAC 头），实际发送的 MPDU 长度不能超过 127 字节。
+**Note:**
+This function internally adds the MHR (MAC Header). The actual transmitted MPDU length must not exceed 127 bytes.
 
 #### `lmac154_trigger_tx()`
 
-触发发送，可选择是否使用 CSMA/CA。
+Triggers transmission, optionally using CSMA/CA.
 
 ```c
 void lmac154_triggerTx(uint8_t *DataPtr, uint8_t length, uint8_t csma);
 ```
 
-**参数：**
-- `DataPtr`：数据缓冲区指针
-- `length`：数据长度
-- `csma`：0 表示不使用 CSMA/CA，1 表示使用 CSMA/CA
+**Parameters:**
+- `DataPtr`: Data buffer pointer
+- `length`: Data length
+- `csma`: 0 to not use CSMA/CA, 1 to use CSMA/CA
 
 #### `lmac154_register_cb()`
 
-注册接收中断回调函数。每当收到完整帧时，该回调会被调用。
+Registers a receive interrupt callback function. This callback is invoked whenever a complete frame is received.
 
 ```c
 void lmac154_register_cb(lmac154_rxDoneCallback_t callback);
 ```
 
-**参数：**
-- `callback`：接收完成回调函数指针
+**Parameters:**
+- `callback`: Receive done callback function pointer
 
 #### `lmac154_register_event_callback()`
 
-注册指定协议栈的接收事件回调，支持双协议栈模式。
+Registers a receive event callback for a specified protocol stack, supporting dual stack mode.
 
 ```c
 bool lmac154_registerEventCallback(lmac154_stack_idx_t stack_idx,
                                     lmac154_rxDoneCallback_t stack_rxDoneCallback);
 ```
 
-**参数：**
-- `stack_idx`：协议栈索引（`LMAC154_STACK_1` 或 `LMAC154_STACK_2`）
-- `stack_rxDoneCallback`：接收完成回调
+**Parameters:**
+- `stack_idx`: Protocol stack index (`LMAC154_STACK_1` or `LMAC154_STACK_2`)
+- `stack_rxDoneCallback`: Receive done callback
 
 ---
 
-### 地址配置
+### Address Configuration
 
-#### PAN ID 配置
+#### PAN ID Configuration
 
 ```c
-void lmac154_setPanId(uint16_t pid);   // 设置 PAN ID
-uint16_t lmac154_getPanId(void);       // 获取 PAN ID
+void lmac154_setPanId(uint16_t pid);   // Set PAN ID
+uint16_t lmac154_getPanId(void);       // Get PAN ID
 ```
 
-#### 短地址配置
+#### Short Address Configuration
 
 ```c
-void lmac154_setShortAddr(uint16_t sadr);  // 设置 16 位短地址
-uint16_t lmac154_getShortAddr(void);       // 获取短地址
+void lmac154_setShortAddr(uint16_t sadr);  // Set 16-bit short address
+uint16_t lmac154_getShortAddr(void);       // Get short address
 ```
 
-#### 扩展地址配置
+#### Extended Address Configuration
 
 ```c
-void lmac154_setLongAddr(uint8_t *ladr);   // 设置 64 位扩展地址
-void lmac154_getLongAddr(uint8_t *ladr);   // 获取扩展地址
+void lmac154_setLongAddr(uint8_t *ladr);   // Set 64-bit extended address
+void lmac154_getLongAddr(uint8_t *ladr);   // Get extended address
 ```
 
 ---
 
-### 接收控制
+### Receive Control
 
-#### 使能/禁用接收
+#### Enable/Disable Receive
 
 ```c
-void lmac154_enableRx(void);    // 使能接收（默认禁用）
-void lmac154_disableRx(void);   // 禁用接收
+void lmac154_enableRx(void);    // Enable receive (disabled by default)
+void lmac154_disableRx(void);   // Disable receive
 bool lmac154_isRxStateWhenIdle(void);
 void lmac154_setRxStateWhenIdle(bool isRxOnWhenIdle);
 ```
 
-#### 混杂模式
+#### Promiscuous Mode
 
 ```c
 void lmac154_enableRxPromiscuousMode(uint8_t enhanced_mode, uint8_t ignore_mpdu);
 void lmac154_disableRxPromiscuousMode(void);
 ```
 
-**参数说明：**
-- `enhanced_mode`：0 标准模式，1 增强模式
-- `ignore_mpdu`：0 从寄存器读取 MPDU，1 不读取
+**Parameter Description:**
+- `enhanced_mode`: 0 standard mode, 1 enhanced mode
+- `ignore_mpdu`: 0 read MPDU from register, 1 do not read
 
-#### 帧类型过滤
+#### Frame Type Filtering
 
 ```c
 void lmac154_enableFrameTypeFiltering(uint8_t frame_types);
@@ -459,80 +459,80 @@ void lmac154_disableFrameTypeFiltering(void);
 
 ---
 
-### CCA 与射频状态
+### CCA and RF State
 
-#### 设置 CCA 模式
+#### Set CCA Mode
 
 ```c
 void lmac154_setCCAMode(lmac154_cca_mode_t mode);
-lmac154_cca_mode_t mode = LMAC154_CCA_MODE_ED_AND_CS;  // 默认
+lmac154_cca_mode_t mode = LMAC154_CCA_MODE_ED_AND_CS;  // Default
 lmac154_setCCAMode(mode);
 ```
 
-#### 设置 ED 阈值
+#### Set ED Threshold
 
 ```c
-void lmac154_setEDThreshold(int threshold);  // 默认 -71 dBm
+void lmac154_setEDThreshold(int threshold);  // Default -71 dBm
 int threshold = -70;
 lmac154_setEDThreshold(threshold);
 ```
 
-#### 运行 CCA 检测
+#### Run CCA Detection
 
 ```c
 uint8_t lmac154_runCCA(int *rssi);
 ```
 
-**返回值：**
-- 0：信道空闲
-- 1：信道忙碌
+**Return Value:**
+- 0: Channel idle
+- 1: Channel busy
 
-#### 获取射频状态
+#### Get RF State
 
 ```c
 lmac154_rf_state_t lmac154_getRFState(void);
 ```
 
-#### 获取 RSSI 和 LQI
+#### Get RSSI and LQI
 
 ```c
-int lmac154_getRSSI(void);  // 获取 RSSI（dBm）
-int lmac154_getLQI(void);   // 获取 LQI
+int lmac154_getRSSI(void);  // Get RSSI (dBm)
+int lmac154_getLQI(void);   // Get LQI
 ```
 
 ---
 
-### 其他配置 API
+### Other Configuration APIs
 
-#### 数据速率
+#### Data Rate
 
 ```c
-void lmac154_setTxDataRate(lmac154_data_rate_t rate);  // 默认 250K
+void lmac154_setTxDataRate(lmac154_data_rate_t rate);  // Default 250K
 void lmac154_enableAutoRxDataRate(void);
 void lmac154_disableAutoRxDataRate(void);
 ```
 
-#### 重传次数
+#### Retry Count
 
 ```c
-void lmac154_setTxRetry(uint32_t num);  // 默认 0 次
+void lmac154_setTxRetry(uint32_t num);  // Default 0 retries
 ```
 
-#### 中断处理
+#### Interrupt Handling
 
 ```c
 lmac154_isr_t lmac154_getInterruptHandler(void);
 lmac154_isr_t lmac154_getInterruptCallback(void);
 ```
 
-#### 版本信息
+#### Version Information
 
 ```c
 uint32_t lmac154_getVersionNumber(void);
 char *lmac154_getVersionString(void);
 ```
 
-#### 国家码与功率限制
+#### Country Code and Power Limits
 
 ```c
 bool lmac154_setCountryCode(const char *country_code);
@@ -543,27 +543,27 @@ void lmac154_setTxPowerWithPowerLimit(lmac154_tx_power_t power_dbm,
 
 ---
 
-## 与 Thread 协议的关系
+## Relationship with Thread Protocol
 
-lmac154 是 Thread 协议的物理层和 MAC 层抽象。在 Thread 协议栈中，lmac154 负责：
+lmac154 is the physical layer and MAC layer abstraction for the Thread protocol. In the Thread protocol stack, lmac154 is responsible for:
 
-- **物理层操作**：射频频道切换、发射功率控制、收发切换
-- **MAC 层功能**：帧收发、CSMA/CA、ACK 处理、地址匹配
-- **安全支撑**：AES-CCM 加密/解密支持，为 Thread 的 MAC 层安全提供基础
+- **Physical Layer Operations**: RF channel switching, transmit power control, TX/RX switching
+- **MAC Layer Functions**: Frame transmission/reception, CSMA/CA, ACK handling, address matching
+- **Security Support**: AES-CCM encryption/decryption support, providing the foundation for Thread's MAC layer security
 
-Thread 协议运行在 lmac154 之上，通过调用 lmac154 提供的发送和接收接口完成 MAC 帧的交互。lmac154 支持 802.15.4-2015 标准特性，包括增强型确认（Enhanced ACK）和信息元素（IE），这些都是 Thread 协议所需的特性。
+The Thread protocol runs on top of lmac154, performing MAC frame interactions by calling the transmit and receive interfaces provided by lmac154. lmac154 supports 802.15.4-2015 standard features, including Enhanced ACK and Information Elements (IE), both of which are required by the Thread protocol.
 
 ---
 
-## 代码示例
+## Code Examples
 
-### 基本初始化与发送流程
+### Basic Initialization and Send Flow
 
 ```c
 #include "lmac154.h"
 #include "lmac154_frame.h"
 
-// 接收回调函数
+// Receive callback function
 void my_rx_callback(lmac154_rx_status_t status, 
                     lmac154_receiveInfo_t *info, 
                     uint32_t *mpdu)
@@ -572,78 +572,78 @@ void my_rx_callback(lmac154_rx_status_t status,
         uint8_t *data = (uint8_t *)mpdu;
         uint16_t len = info->rx_length;
         
-        // 处理接收到的数据
+        // Process received data
         // ...
     }
 }
 
 void app_main(void)
 {
-    // 1. 初始化 lmac154
+    // 1. Initialize lmac154
     lmac154_init();
     
-    // 2. 设置 PAN ID 和短地址
+    // 2. Set PAN ID and short address
     lmac154_setPanId(0x1234);
     lmac154_setShortAddr(0x0001);
     
-    // 3. 设置工作频道
+    // 3. Set operating channel
     lmac154_setChannel(LMAC154_CHANNEL_15);
     
-    // 4. 设置发射功率
+    // 4. Set transmit power
     lmac154_setTxPower(LMAC154_TX_POWER_5dBm);
     
-    // 5. 注册接收回调
+    // 5. Register receive callback
     lmac154_registerEventCallback(LMAC154_STACK_1, my_rx_callback);
     
-    // 6. 使能接收
+    // 6. Enable receive
     lmac154_enableRx();
     
-    // 7. 发送数据帧
+    // 7. Send data frame
     uint8_t tx_data[] = {
-        0x12, 0x34,  // 目标 PAN ID
-        0x00, 0x00,  // 目标地址（广播）
-        0xFE, 0xCA,  // 源 PAN ID
-        0x00, 0x01,  // 源地址
-        0x01,        // 序列号
-        0x02,        // 帧类型=数据, 协议版本=2006
-        0x00,        // 安全关闭
-        // ... 应用数据
+        0x12, 0x34,  // Destination PAN ID
+        0x00, 0x00,  // Destination address (broadcast)
+        0xFE, 0xCA,  // Source PAN ID
+        0x00, 0x01,  // Source address
+        0x01,        // Sequence number
+        0x02,        // Frame type=Data, Protocol version=2006
+        0x00,        // Security disabled
+        // ... application data
     };
     
     lmac154_send(tx_data, sizeof(tx_data));
     
     while (1) {
-        // 主循环
+        // Main loop
     }
 }
 ```
 
-### 高级发送（带参数）
+### Advanced Send (with Parameters)
 
 ```c
 void advanced_send_example(void)
 {
-    // 配置发送参数
+    // Configure send parameters
     lmac154_txParam_t tx_param = {0};
     
-    uint8_t packet[] = { /* 帧数据 */ };
+    uint8_t packet[] = { /* frame data */ };
     
     tx_param.pkt = (uint32_t *)packet;
     tx_param.pkt_length = sizeof(packet);
     tx_param.tx_channel = LMAC154_CHANNEL_20 - LMAC154_CHANNEL_11;
-    tx_param.is_cca = 1;                    // 启用 CCA
-    tx_param.is_ack_required = 1;           // 请求 ACK
-    tx_param.csma_ca_max_backoff = 4;       // 最大退避次数
+    tx_param.is_cca = 1;                    // Enable CCA
+    tx_param.is_ack_required = 1;           // Request ACK
+    tx_param.csma_ca_max_backoff = 4;       // Max backoff count
     
-    // 触发发送
+    // Trigger transmission
     int ret = lmac154_triggerParamTx(&tx_param);
     if (ret != 0) {
-        // 发送失败处理
+        // Handle transmission failure
     }
 }
 ```
 
-### CCA 信道检测
+### CCA Channel Detection
 
 ```c
 void cca_check_example(void)
@@ -652,19 +652,19 @@ void cca_check_example(void)
     uint8_t result = lmac154_runCCA(&rssi);
     
     if (result == 0) {
-        // 信道空闲，可以发送
+        // Channel idle, can send
         lmac154_send(data, len);
     } else {
-        // 信道忙碌，等待后重试
+        // Channel busy, wait and retry
     }
 }
 ```
 
 ---
 
-## 帧结构图示
+## Frame Structure Diagram
 
-### 802.15.4 MAC 帧格式
+### 802.15.4 MAC Frame Format
 
 ```
 +--------+--------+------+----------+--------+--------+--------+------+
@@ -677,20 +677,20 @@ void cca_check_example(void)
  |<---------- MAC Header (MHR) -------------------->|<---- MDS ---->|
 ```
 
-- **FCF**：帧控制字段，2 字节
-- **Seq Num**：序列号，1 字节
-- **Dst PAN/Addr**：目标 PAN ID 和地址
-- **Src PAN/Addr**：源 PAN ID 和地址
-- **Aux Sec Header**：辅助安全头（当安全启用时）
-- **Payload**：MAC 服务数据单元
+- **FCF**: Frame Control Field, 2 bytes
+- **Seq Num**: Sequence Number, 1 byte
+- **Dst PAN/Addr**: Destination PAN ID and address
+- **Src PAN/Addr**: Source PAN ID and address
+- **Aux Sec Header**: Auxiliary Security Header (when security is enabled)
+- **Payload**: MAC Service Data Unit
 
 ---
 
-## 参考
+## References
 
 - IEEE 802.15.4-2015 Standard
 - Bouffalo SDK lmac154 Component v1.7.4
-- 源码文件：
-  - `lmac154.h` - 主头文件
-  - `lmac154_frame.h` - 帧结构定义
-  - `lmac154_fpt.h` - 帧等待表相关定义
+- Source files:
+  - `lmac154.h` - Main header file
+  - `lmac154_frame.h` - Frame structure definitions
+  - `lmac154_fpt.h` - Frame pending table related definitions

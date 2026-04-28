@@ -1,22 +1,22 @@
 # SEC_ECDSA API Reference (BL616/BL618)
 
 > **Source:** `bouffalo_sdk/drivers/lhal/include/bflb_sec_ecdsa.h`  
-> **Implementation:** `bouffalo_sdk/drivers/lhal/src/pka/libpka_bl616.a` (预编译 PKA 库)  
+> **Implementation:** `bouffalo_sdk/drivers/lhal/src/pka/libpka_bl616.a` (pre-compiled PKA library)  
 > **Hardware:** SEC_ENG PKA (Public Key Accelerator) @ `0x20004300`  
 > **Register Header:** `bouffalo_sdk/drivers/lhal/include/hardware/sec_eng_reg.h`
 
 ## Overview
 
-SEC_ECDSA 模块提供基于 **ECDSA (Elliptic Curve Digital Signature Algorithm)** 的椭圆曲线数字签名和验证功能，以及 **ECDH (Elliptic Curve Diffie-Hellman)** 密钥交换功能。该模块利用 SEC_ENG 中的 **PKA (Public Key Accelerator)** 硬件加速器执行椭圆曲线点乘运算。
+The SEC_ECDSA module provides elliptic curve digital signature and verification based on **ECDSA (Elliptic Curve Digital Signature Algorithm)**, as well as **ECDH (Elliptic Curve Diffie-Hellman)** key exchange functionality. It leverages the **PKA (Public Key Accelerator)** hardware accelerator in SEC_ENG for elliptic curve point multiplication.
 
-**主要特性：**
-- ECDSA 签名生成 (`bflb_sec_ecdsa_sign`)
-- ECDSA 签名验证 (`bflb_sec_ecdsa_verify`)
-- ECDH 密钥交换 (`bflb_sec_ecdh_get_encrypt_key`)
-- 密钥对生成与管理 (`bflb_sec_ecdsa_get_private_key`, `bflb_sec_ecdsa_get_public_key`)
-- 硬件随机数生成 (`bflb_sec_ecc_get_random_value`)
-- 支持多种标准椭圆曲线
-- 基于 `libpka_bl616.a` 预编译库实现
+**Key Features:**
+- ECDSA signature generation (`bflb_sec_ecdsa_sign`)
+- ECDSA signature verification (`bflb_sec_ecdsa_verify`)
+- ECDH key exchange (`bflb_sec_ecdh_get_encrypt_key`)
+- Key pair generation and management (`bflb_sec_ecdsa_get_private_key`, `bflb_sec_ecdsa_get_public_key`)
+- Hardware random number generation (`bflb_sec_ecc_get_random_value`)
+- Support for multiple standard elliptic curves
+- Implemented via the `libpka_bl616.a` pre-compiled library
 
 ## Base Address
 
@@ -32,7 +32,7 @@ SEC_ECDSA 模块提供基于 **ECDSA (Elliptic Curve Digital Signature Algorithm
 ```c
 #define ECP_SECP256R1 0    // NIST P-256 / secp256r1
 #define ECP_SECP256K1 1    // secp256k1 (Bitcoin curve)
-#define ECP_SECP384R1 2    // NIST P-384 / secp384r1 (需 ECP_SUPPORT_384=1)
+#define ECP_SECP384R1 2    // NIST P-384 / secp384r1 (requires ECP_SUPPORT_384=1)
 ```
 
 | Macro | Value | Curve | Key Size |
@@ -41,7 +41,7 @@ SEC_ECDSA 模块提供基于 **ECDSA (Elliptic Curve Digital Signature Algorithm
 | `ECP_SECP256K1` | 1 | secp256k1 | 256-bit |
 | `ECP_SECP384R1` | 2 | NIST P-384 | 384-bit |
 
-> **注意:** `ECP_SECP384R1` 仅在启用 `ECP_SUPPORT_384` (定义为 1) 时可用。
+> **Note:** `ECP_SECP384R1` is only available when `ECP_SUPPORT_384` is enabled (defined as 1).
 
 ---
 
@@ -49,39 +49,39 @@ SEC_ECDSA 模块提供基于 **ECDSA (Elliptic Curve Digital Signature Algorithm
 
 ### bflb_ecdsa_s
 
-ECDSA 操作句柄，持有密钥指针和曲线选择。
+ECDSA operation handle, holding key pointers and curve selection.
 
 ```c
 struct bflb_ecdsa_s {
-    uint8_t ecpId;           // 椭圆曲线 ID (ECP_SECP256R1 / ECP_SECP256K1 / ECP_SECP384R1)
-    uint8_t pad[3];          // 对齐填充
-    uint32_t *privateKey;    // 私钥指针 (32-bit word 数组)
-    uint32_t *publicKeyx;    // 公钥 X 坐标指针
-    uint32_t *publicKeyy;    // 公钥 Y 坐标指针
+    uint8_t ecpId;           // Elliptic curve ID (ECP_SECP256R1 / ECP_SECP256K1 / ECP_SECP384R1)
+    uint8_t pad[3];          // Alignment padding
+    uint32_t *privateKey;    // Private key pointer (32-bit word array)
+    uint32_t *publicKeyx;    // Public key X coordinate pointer
+    uint32_t *publicKeyy;    // Public key Y coordinate pointer
 };
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `ecpId` | `uint8_t` | 椭圆曲线 ID |
-| `pad[3]` | `uint8_t[3]` | 内存对齐填充 |
-| `privateKey` | `uint32_t *` | 私钥缓冲区指针 |
-| `publicKeyx` | `uint32_t *` | 公钥 X 坐标缓冲区指针 |
-| `publicKeyy` | `uint32_t *` | 公钥 Y 坐标缓冲区指针 |
+| `ecpId` | `uint8_t` | Elliptic curve ID |
+| `pad[3]` | `uint8_t[3]` | Memory alignment padding |
+| `privateKey` | `uint32_t *` | Private key buffer pointer |
+| `publicKeyx` | `uint32_t *` | Public key X coordinate buffer pointer |
+| `publicKeyy` | `uint32_t *` | Public key Y coordinate buffer pointer |
 
 ### bflb_ecdh_s
 
-ECDH 密钥交换句柄。
+ECDH key exchange handle.
 
 ```c
 struct bflb_ecdh_s {
-    uint8_t ecpId;    // 椭圆曲线 ID
+    uint8_t ecpId;    // Elliptic curve ID
 };
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `ecpId` | `uint8_t` | 椭圆曲线 ID |
+| `ecpId` | `uint8_t` | Elliptic curve ID |
 
 ---
 
@@ -91,7 +91,7 @@ struct bflb_ecdh_s {
 
 #### bflb_sec_ecdsa_init
 
-初始化 ECDSA 句柄，分配 PKA 硬件资源。
+Initialize the ECDSA handle and allocate PKA hardware resources.
 
 ```c
 int bflb_sec_ecdsa_init(struct bflb_ecdsa_s *handle, uint8_t id);
@@ -101,16 +101,16 @@ int bflb_sec_ecdsa_init(struct bflb_ecdsa_s *handle, uint8_t id);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_ecdsa_s *` | ECDSA 句柄指针 |
-| `id` | `uint8_t` | 椭圆曲线 ID (`ECP_SECP256R1` 等) |
+| `handle` | `struct bflb_ecdsa_s *` | ECDSA handle pointer |
+| `id` | `uint8_t` | Elliptic curve ID (`ECP_SECP256R1`, etc.) |
 
-**Returns:** `0` 成功，负值表示错误
+**Returns:** `0` on success, negative value on error
 
 ---
 
 #### bflb_sec_ecdsa_deinit
 
-释放 ECDSA 句柄占用的 PKA 硬件资源。
+Release PKA hardware resources held by the ECDSA handle.
 
 ```c
 int bflb_sec_ecdsa_deinit(struct bflb_ecdsa_s *handle);
@@ -120,15 +120,15 @@ int bflb_sec_ecdsa_deinit(struct bflb_ecdsa_s *handle);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_ecdsa_s *` | ECDSA 句柄指针 |
+| `handle` | `struct bflb_ecdsa_s *` | ECDSA handle pointer |
 
-**Returns:** `0` 成功，负值表示错误
+**Returns:** `0` on success, negative value on error
 
 ---
 
 #### bflb_sec_ecdsa_sign
 
-使用 ECDSA 私钥对消息哈希进行签名。
+Sign a message hash using the ECDSA private key.
 
 ```c
 int bflb_sec_ecdsa_sign(struct bflb_ecdsa_s *handle, const uint32_t *random_k,
@@ -140,22 +140,22 @@ int bflb_sec_ecdsa_sign(struct bflb_ecdsa_s *handle, const uint32_t *random_k,
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_ecdsa_s *` | 已初始化的 ECDSA 句柄 |
-| `random_k` | `const uint32_t *` | ECDSA 签名所需的随机数 k |
-| `hash` | `const uint32_t *` | 消息哈希值（32-bit word 数组） |
-| `hashLenInWord` | `uint32_t` | 哈希长度（以 32-bit word 为单位） |
-| `r` | `uint32_t *` | 输出: 签名 r 分量 |
-| `s` | `uint32_t *` | 输出: 签名 s 分量 |
+| `handle` | `struct bflb_ecdsa_s *` | Initialized ECDSA handle |
+| `random_k` | `const uint32_t *` | Random number k required for ECDSA signing |
+| `hash` | `const uint32_t *` | Message hash value (32-bit word array) |
+| `hashLenInWord` | `uint32_t` | Hash length (in 32-bit words) |
+| `r` | `uint32_t *` | Output: signature r component |
+| `s` | `uint32_t *` | Output: signature s component |
 
-**Returns:** `0` 成功，负值表示错误
+**Returns:** `0` on success, negative value on error
 
-**说明:** `random_k` 必须为安全随机数，每次签名必须唯一。可使用 `bflb_sec_ecc_get_random_value()` 生成。
+**Note:** `random_k` must be a secure random number and must be unique for each signature. It can be generated using `bflb_sec_ecc_get_random_value()`.
 
 ---
 
 #### bflb_sec_ecdsa_verify
 
-使用 ECDSA 公钥验证签名。
+Verify a signature using the ECDSA public key.
 
 ```c
 int bflb_sec_ecdsa_verify(struct bflb_ecdsa_s *handle, const uint32_t *hash,
@@ -166,19 +166,19 @@ int bflb_sec_ecdsa_verify(struct bflb_ecdsa_s *handle, const uint32_t *hash,
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_ecdsa_s *` | 已初始化的 ECDSA 句柄 |
-| `hash` | `const uint32_t *` | 消息哈希值 |
-| `hashLen` | `uint32_t` | 哈希长度（以 32-bit word 为单位） |
-| `r` | `const uint32_t *` | 签名 r 分量 |
-| `s` | `const uint32_t *` | 签名 s 分量 |
+| `handle` | `struct bflb_ecdsa_s *` | Initialized ECDSA handle |
+| `hash` | `const uint32_t *` | Message hash value |
+| `hashLen` | `uint32_t` | Hash length (in 32-bit words) |
+| `r` | `const uint32_t *` | Signature r component |
+| `s` | `const uint32_t *` | Signature s component |
 
-**Returns:** `0` 验证通过，负值表示验证失败
+**Returns:** `0` verification passed, negative value on verification failure
 
 ---
 
 #### bflb_sec_ecdsa_get_private_key
 
-获取或生成 ECDSA 私钥。
+Get or generate an ECDSA private key.
 
 ```c
 int bflb_sec_ecdsa_get_private_key(struct bflb_ecdsa_s *handle, uint32_t *private_key);
@@ -188,16 +188,16 @@ int bflb_sec_ecdsa_get_private_key(struct bflb_ecdsa_s *handle, uint32_t *privat
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_ecdsa_s *` | 已初始化的 ECDSA 句柄 |
-| `private_key` | `uint32_t *` | 输出缓冲区（接收私钥） |
+| `handle` | `struct bflb_ecdsa_s *` | Initialized ECDSA handle |
+| `private_key` | `uint32_t *` | Output buffer (receives the private key) |
 
-**Returns:** `0` 成功
+**Returns:** `0` on success
 
 ---
 
 #### bflb_sec_ecdsa_get_public_key
 
-根据私钥计算 ECDSA 公钥。
+Compute the ECDSA public key from the private key.
 
 ```c
 int bflb_sec_ecdsa_get_public_key(struct bflb_ecdsa_s *handle,
@@ -209,14 +209,14 @@ int bflb_sec_ecdsa_get_public_key(struct bflb_ecdsa_s *handle,
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_ecdsa_s *` | 已初始化的 ECDSA 句柄 |
-| `private_key` | `const uint32_t *` | 私钥 |
-| `pRx` | `const uint32_t *` | 输出: 公钥 X 坐标 |
-| `pRy` | `const uint32_t *` | 输出: 公钥 Y 坐标 |
+| `handle` | `struct bflb_ecdsa_s *` | Initialized ECDSA handle |
+| `private_key` | `const uint32_t *` | Private key |
+| `pRx` | `const uint32_t *` | Output: public key X coordinate |
+| `pRy` | `const uint32_t *` | Output: public key Y coordinate |
 
-**Returns:** `0` 成功
+**Returns:** `0` on success
 
-> **注意:** 参数声明为 `const uint32_t *` 但实际用于输出。在调用时传入可写缓冲区。
+> **Note:** Parameters are declared as `const uint32_t *` but are actually used for output. Pass writable buffers when calling.
 
 ---
 
@@ -224,7 +224,7 @@ int bflb_sec_ecdsa_get_public_key(struct bflb_ecdsa_s *handle,
 
 #### bflb_sec_ecdh_init
 
-初始化 ECDH 密钥交换句柄。
+Initialize the ECDH key exchange handle.
 
 ```c
 int bflb_sec_ecdh_init(struct bflb_ecdh_s *handle, uint8_t id);
@@ -234,28 +234,28 @@ int bflb_sec_ecdh_init(struct bflb_ecdh_s *handle, uint8_t id);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_ecdh_s *` | ECDH 句柄指针 |
-| `id` | `uint8_t` | 椭圆曲线 ID |
+| `handle` | `struct bflb_ecdh_s *` | ECDH handle pointer |
+| `id` | `uint8_t` | Elliptic curve ID |
 
-**Returns:** `0` 成功
+**Returns:** `0` on success
 
 ---
 
 #### bflb_sec_ecdh_deinit
 
-释放 ECDH 句柄资源。
+Release ECDH handle resources.
 
 ```c
 int bflb_sec_ecdh_deinit(struct bflb_ecdh_s *handle);
 ```
 
-**Returns:** `0` 成功
+**Returns:** `0` on success
 
 ---
 
 #### bflb_sec_ecdh_get_encrypt_key
 
-执行 ECDH 密钥交换，计算共享密钥。
+Perform ECDH key exchange and compute the shared key.
 
 ```c
 int bflb_sec_ecdh_get_encrypt_key(struct bflb_ecdh_s *handle,
@@ -268,20 +268,20 @@ int bflb_sec_ecdh_get_encrypt_key(struct bflb_ecdh_s *handle,
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_ecdh_s *` | ECDH 句柄 |
-| `pkX` | `const uint32_t *` | 对方公钥 X 坐标 |
-| `pkY` | `const uint32_t *` | 对方公钥 Y 坐标 |
-| `private_key` | `const uint32_t *` | 己方私钥 |
-| `pRx` | `const uint32_t *` | 输出: 共享密钥 X 坐标 |
-| `pRy` | `const uint32_t *` | 输出: 共享密钥 Y 坐标 |
+| `handle` | `struct bflb_ecdh_s *` | ECDH handle |
+| `pkX` | `const uint32_t *` | Peer's public key X coordinate |
+| `pkY` | `const uint32_t *` | Peer's public key Y coordinate |
+| `private_key` | `const uint32_t *` | Own private key |
+| `pRx` | `const uint32_t *` | Output: shared key X coordinate |
+| `pRy` | `const uint32_t *` | Output: shared key Y coordinate |
 
-**Returns:** `0` 成功
+**Returns:** `0` on success
 
 ---
 
 #### bflb_sec_ecdh_get_public_key
 
-根据私钥计算 ECDH 公钥。
+Compute the ECDH public key from the private key.
 
 ```c
 int bflb_sec_ecdh_get_public_key(struct bflb_ecdh_s *handle,
@@ -293,12 +293,12 @@ int bflb_sec_ecdh_get_public_key(struct bflb_ecdh_s *handle,
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `handle` | `struct bflb_ecdh_s *` | ECDH 句柄 |
-| `private_key` | `const uint32_t *` | 私钥 |
-| `pRx` | `const uint32_t *` | 输出: 公钥 X 坐标 |
-| `pRy` | `const uint32_t *` | 输出: 公钥 Y 坐标 |
+| `handle` | `struct bflb_ecdh_s *` | ECDH handle |
+| `private_key` | `const uint32_t *` | Private key |
+| `pRx` | `const uint32_t *` | Output: public key X coordinate |
+| `pRy` | `const uint32_t *` | Output: public key Y coordinate |
 
-**Returns:** `0` 成功
+**Returns:** `0` on success
 
 ---
 
@@ -306,7 +306,7 @@ int bflb_sec_ecdh_get_public_key(struct bflb_ecdh_s *handle,
 
 #### bflb_sec_ecc_get_random_value
 
-生成 ECC 安全随机数（用于签名随机数 k 等）。
+Generate a secure random number for ECC (used for signature random k, etc.).
 
 ```c
 int bflb_sec_ecc_get_random_value(uint32_t *data, uint32_t *max_ref, uint32_t size);
@@ -316,19 +316,19 @@ int bflb_sec_ecc_get_random_value(uint32_t *data, uint32_t *max_ref, uint32_t si
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `data` | `uint32_t *` | 输出随机数缓冲区 |
-| `max_ref` | `uint32_t *` | 最大值参考（生成的随机数 < max_ref） |
-| `size` | `uint32_t` | 数据大小（32-bit word 数） |
+| `data` | `uint32_t *` | Output random number buffer |
+| `max_ref` | `uint32_t *` | Maximum value reference (generated random < max_ref) |
+| `size` | `uint32_t` | Data size (in 32-bit words) |
 
-**Returns:** `0` 成功
+**Returns:** `0` on success
 
-**说明:** 该函数用于生成 ECDSA 签名所需的随机数 k。通常 `max_ref` 设为椭圆曲线的阶 n。
+**Note:** This function is used to generate the random number k required for ECDSA signing. Typically, `max_ref` is set to the elliptic curve's order n.
 
 ---
 
 ## Usage Examples
 
-### Example 1: ECDSA 签名与验证 (secp256r1)
+### Example 1: ECDSA Sign & Verify (secp256r1)
 
 ```c
 #include "bflb_sec_ecdsa.h"
@@ -339,19 +339,19 @@ void ecdsa_sign_verify_example(void)
     struct bflb_ecdsa_s ecdsa;
     int ret;
 
-    // P-256: 私钥/公钥各 256-bit = 8 个 32-bit word
+    // P-256: private/public key each 256-bit = 8 32-bit words
     uint32_t private_key[8] = {0};
     uint32_t public_key_x[8] = {0};
     uint32_t public_key_y[8] = {0};
 
-    // 初始化 ECDSA (secp256r1)
+    // Initialize ECDSA (secp256r1)
     ret = bflb_sec_ecdsa_init(&ecdsa, ECP_SECP256R1);
     if (ret != 0) {
         printf("ECDSA init failed: %d\n", ret);
         return;
     }
 
-    // 生成密钥对
+    // Generate key pair
     ret = bflb_sec_ecdsa_get_private_key(&ecdsa, private_key);
     if (ret != 0) {
         printf("Generate private key failed\n");
@@ -364,18 +364,18 @@ void ecdsa_sign_verify_example(void)
         return;
     }
 
-    // 设置密钥到句柄
+    // Set keys in handle
     ecdsa.privateKey = private_key;
     ecdsa.publicKeyx = public_key_x;
     ecdsa.publicKeyy = public_key_y;
 
-    // 准备消息哈希 (SHA-256 = 8 words)
+    // Prepare message hash (SHA-256 = 8 words)
     uint8_t message[] = "ECDSA test message";
     uint32_t hash[8] = {0};
     // bflb_sha256(hash, message, sizeof(message));
 
-    // 生成签名随机数 k
-    // 注意: secp256r1 的阶 n 需从标准文档获取，此处为示意
+    // Generate signature random number k
+    // Note: secp256r1 order n must be obtained from standard documents; shown here for illustration
     uint32_t n_order[8] = {
         0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF,
         0xBCE6FAAD, 0xA7179E84, 0xF3B9CAC2, 0xFC632551
@@ -388,7 +388,7 @@ void ecdsa_sign_verify_example(void)
         return;
     }
 
-    // ECDSA 签名
+    // ECDSA sign
     uint32_t r[8] = {0};
     uint32_t s[8] = {0};
 
@@ -401,7 +401,7 @@ void ecdsa_sign_verify_example(void)
         printf("ECDSA sign failed: %d\n", ret);
     }
 
-    // ECDSA 验证
+    // ECDSA verify
     ret = bflb_sec_ecdsa_verify(&ecdsa, hash, 8, r, s);
     if (ret == 0) {
         printf("ECDSA verify PASSED\n");
@@ -409,20 +409,20 @@ void ecdsa_sign_verify_example(void)
         printf("ECDSA verify FAILED: %d\n", ret);
     }
 
-    // 释放资源
+    // Release resources
     bflb_sec_ecdsa_deinit(&ecdsa);
 }
 ```
 
-### Example 2: ECDH 密钥交换
+### Example 2: ECDH Key Exchange
 
 ```c
 #include "bflb_sec_ecdsa.h"
 
 void ecdh_key_exchange_example(void)
 {
-    struct bflb_ecdh_s ecdh_a;  // A 方
-    struct bflb_ecdh_s ecdh_b;  // B 方
+    struct bflb_ecdh_s ecdh_a;  // Party A
+    struct bflb_ecdh_s ecdh_b;  // Party B
     int ret;
 
     // P-256: 256-bit keys = 8 words
@@ -431,45 +431,45 @@ void ecdh_key_exchange_example(void)
     uint32_t shared_ax[8] = {0}, shared_ay[8] = {0};
     uint32_t shared_bx[8] = {0}, shared_by[8] = {0};
 
-    // 初始化双方 ECDH
+    // Initialize ECDH for both parties
     bflb_sec_ecdh_init(&ecdh_a, ECP_SECP256R1);
     bflb_sec_ecdh_init(&ecdh_b, ECP_SECP256R1);
 
-    // A 方生成密钥对
+    // Party A generates key pair
     bflb_sec_ecc_get_random_value(priv_a, (uint32_t[8]){
         0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF,
         0xBCE6FAAD, 0xA7179E84, 0xF3B9CAC2, 0xFC632551
     }, 8);
     bflb_sec_ecdh_get_public_key(&ecdh_a, priv_a, pub_ax, pub_ay);
 
-    // B 方生成密钥对
+    // Party B generates key pair
     bflb_sec_ecc_get_random_value(priv_b, (uint32_t[8]){
         0xFFFFFFFF, 0x00000000, 0xFFFFFFFF, 0xFFFFFFFF,
         0xBCE6FAAD, 0xA7179E84, 0xF3B9CAC2, 0xFC632551
     }, 8);
     bflb_sec_ecdh_get_public_key(&ecdh_b, priv_b, pub_bx, pub_by);
 
-    // ECDH: A 方用 B 的公钥 + A 的私钥计算共享密钥
+    // ECDH: Party A uses B's public key + A's private key to compute shared key
     ret = bflb_sec_ecdh_get_encrypt_key(&ecdh_a, pub_bx, pub_by,
                                          priv_a, shared_ax, shared_ay);
     if (ret == 0) printf("A: ECDH shared key computed\n");
 
-    // ECDH: B 方用 A 的公钥 + B 的私钥计算共享密钥
+    // ECDH: Party B uses A's public key + B's private key to compute shared key
     ret = bflb_sec_ecdh_get_encrypt_key(&ecdh_b, pub_ax, pub_ay,
                                          priv_b, shared_bx, shared_by);
     if (ret == 0) printf("B: ECDH shared key computed\n");
 
-    // 验证共享密钥一致 (shared_ax == shared_bx)
+    // Verify shared keys match (shared_ax == shared_bx)
     bool match = (memcmp(shared_ax, shared_bx, 32) == 0);
     printf("Shared key match: %s\n", match ? "YES" : "NO");
 
-    // 释放
+    // Release
     bflb_sec_ecdh_deinit(&ecdh_a);
     bflb_sec_ecdh_deinit(&ecdh_b);
 }
 ```
 
-### Example 3: 使用 secp256k1 (Bitcoin 曲线)
+### Example 3: Using secp256k1 (Bitcoin curve)
 
 ```c
 void ecdsa_secp256k1_example(void)
@@ -485,13 +485,13 @@ void ecdsa_secp256k1_example(void)
     bflb_sec_ecdsa_get_private_key(&ecdsa, private_key);
     bflb_sec_ecdsa_get_public_key(&ecdsa, private_key, public_key_x, public_key_y);
 
-    // secp256k1 阶 n
+    // secp256k1 order n
     uint32_t n_order[8] = {
         0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFE,
         0xBAAEDCE6, 0xAF48A03B, 0xBFD25E8C, 0xD0364141
     };
 
-    // 签名...
+    // Sign...
     // ...
 
     bflb_sec_ecdsa_deinit(&ecdsa);
@@ -502,7 +502,7 @@ void ecdsa_secp256k1_example(void)
 
 ## Register-Level Reference
 
-ECDSA/ECDH 操作通过 SEC_ENG PKA 子系统完成。
+ECDSA/ECDH operations are performed through the SEC_ENG PKA subsystem.
 
 ### SEC_ENG Architecture
 
@@ -519,37 +519,37 @@ ECDSA/ECDH 操作通过 SEC_ENG PKA 子系统完成。
 
 | Offset | Register | Description |
 |--------|----------|-------------|
-| `0x300` | `SE_PKA_0_CTRL_0` | PKA 控制寄存器 0 (使能/状态/中断) |
-| `0x30C` | `SE_PKA_0_SEED` | PKA 随机种子 |
-| `0x310` | `SE_PKA_0_CTRL_1` | PKA 控制寄存器 1 (AHB 突发/旁路) |
-| `0x340` | `SE_PKA_0_RW` | PKA 数据读写端口 |
-| `0x360` | `SE_PKA_0_RW_BURST` | PKA 批量数据读写端口 |
-| `0x3FC` | `SE_PKA_0_CTRL_PROT` | PKA 访问保护 |
+| `0x300` | `SE_PKA_0_CTRL_0` | PKA Control Register 0 (enable/status/interrupt) |
+| `0x30C` | `SE_PKA_0_SEED` | PKA Random Seed |
+| `0x310` | `SE_PKA_0_CTRL_1` | PKA Control Register 1 (AHB burst/bypass) |
+| `0x340` | `SE_PKA_0_RW` | PKA Data Read/Write Port |
+| `0x360` | `SE_PKA_0_RW_BURST` | PKA Burst Data Read/Write Port |
+| `0x3FC` | `SE_PKA_0_CTRL_PROT` | PKA Access Protection |
 
 ### PKA Control Register 0 (0x300)
 
 | Bit(s) | Field | Description |
 |--------|-------|-------------|
-| 0 | `DONE` | 操作完成标志 (RO) |
-| 1 | `DONE_CLR_1T` | 写 1 清除完成标志 |
-| 2 | `BUSY` | PKA 忙碌标志 (RO) |
-| 3 | `EN` | PKA 使能 |
-| 7:4 | `PROT_MD` | 保护模式 (0x0-0xF) |
-| 8 | `INT` | 中断标志 |
-| 9 | `INT_CLR_1T` | 写 1 清除中断 |
-| 10 | `INT_SET` | 中断使能位 |
-| 11 | `INT_MASK` | 中断屏蔽 |
-| 12 | `ENDIAN` | 端序配置 |
-| 13 | `RAM_CLR_MD` | PKA RAM 清除模式 |
-| 15 | `STATUS_CLR_1T` | 写 1 清除状态 |
-| 31:16 | `STATUS` | PKA 操作状态码 |
+| 0 | `DONE` | Operation complete flag (RO) |
+| 1 | `DONE_CLR_1T` | Write 1 to clear complete flag |
+| 2 | `BUSY` | PKA busy flag (RO) |
+| 3 | `EN` | PKA enable |
+| 7:4 | `PROT_MD` | Protection mode (0x0-0xF) |
+| 8 | `INT` | Interrupt flag |
+| 9 | `INT_CLR_1T` | Write 1 to clear interrupt |
+| 10 | `INT_SET` | Interrupt enable bit |
+| 11 | `INT_MASK` | Interrupt mask |
+| 12 | `ENDIAN` | Endian configuration |
+| 13 | `RAM_CLR_MD` | PKA RAM clear mode |
+| 15 | `STATUS_CLR_1T` | Write 1 to clear status |
+| 31:16 | `STATUS` | PKA operation status code |
 
 ### PKA Control Register 1 (0x310)
 
 | Bit(s) | Field | Description |
 |--------|-------|-------------|
-| 2:0 | `HBURST` | AHB 突发传输长度 (0-7) |
-| 3 | `HBYPASS` | AHB 旁路模式 |
+| 2:0 | `HBURST` | AHB burst transfer length (0-7) |
+| 3 | `HBYPASS` | AHB bypass mode |
 
 ---
 
@@ -563,9 +563,9 @@ ECDSA/ECDH 操作通过 SEC_ENG PKA 子系统完成。
 
 ## Architecture Notes
 
-- **实现方式:** ECDSA/ECDH 功能通过预编译库 `libpka_bl616.a` 实现，无公开 .c 源码
-- **硬件依赖:** 依赖 SEC_ENG 中的 PKA 加速器 (`SEC_ENG_BASE + 0x300`)
-- **随机数安全:** `bflb_sec_ecc_get_random_value()` 利用 SEC_ENG 的 TRNG (True Random Number Generator) 生成安全随机数
-- **ECDSA 签名随机数 k:** 每次签名必须使用唯一的随机数 k，泄露或重复使用 k 将导致私钥泄露
-- **ECDSA vs ECDH:** ECDSA 用于签名/验证，ECDH 用于密钥交换，分别使用不同的句柄类型
-- **资源管理:** 使用完毕后必须调用 `deinit` 释放 PKA 硬件资源
+- **Implementation:** ECDSA/ECDH functionality is implemented via the pre-compiled library `libpka_bl616.a`; no public `.c` source is available
+- **Hardware Dependency:** Depends on the PKA accelerator in SEC_ENG (`SEC_ENG_BASE + 0x300`)
+- **Random Number Security:** `bflb_sec_ecc_get_random_value()` uses SEC_ENG's TRNG (True Random Number Generator) to generate secure random numbers
+- **ECDSA Signature Random k:** A unique random k must be used for each signature; leaking or reusing k will result in private key compromise
+- **ECDSA vs ECDH:** ECDSA is used for signing/verification, ECDH for key exchange; they use different handle types
+- **Resource Management:** After use, `deinit` must be called to release PKA hardware resources

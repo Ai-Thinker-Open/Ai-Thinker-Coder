@@ -1,66 +1,66 @@
-# FrogFS 嵌入式只读文件系统
+# FrogFS Embedded Read-Only Filesystem
 
-## 概述
+## Overview
 
-FrogFS 是一款专为嵌入式场景设计的轻量级只读文件系统，主要用于存储 LVGL 图形库所需的字体、图片等多媒体资源。该文件系统经过深度优化，完美支持 XIP（eXecute In Place）直接执行模式，数据可直接从 Flash 存储设备中读取并执行，无需全部加载到 RAM 中。
+FrogFS is a lightweight read-only filesystem designed specifically for embedded scenarios, primarily used for storing multimedia resources such as fonts and images needed by the LVGL graphics library. The filesystem is deeply optimized with perfect support for XIP (eXecute In Place) mode, allowing data to be read and executed directly from Flash storage without needing to be fully loaded into RAM.
 
-FrogFS 的设计理念是最小化资源占用，同时提供高效的文件访问能力，非常适合 BL618 等低资源嵌入式芯片的多媒体资源存储场景。
+FrogFS's design philosophy is to minimize resource usage while providing efficient file access capabilities, making it ideal for multimedia resource storage scenarios on low-resource embedded chips like the BL618.
 
-## 版本与标识
+## Version and Identification
 
-| 属性 | 值 |
+| Attribute | Value |
 |------|-----|
-| 版本号 | FROGFS_VER_MAJOR.MINOR = 1.0 |
-| 魔数 | FROGFS_MAGIC = 0x474F5246 ('FROG') |
+| Version | FROGFS_VER_MAJOR.MINOR = 1.0 |
+| Magic Number | FROGFS_MAGIC = 0x474F5246 ('FROG') |
 
-文件系统镜像头部包含魔数标识，用于快速识别和验证 FrogFS 格式的有效性。
+The filesystem image header contains a magic number identifier for quickly identifying and validating FrogFS format validity.
 
-## 核心数据类型
+## Core Data Types
 
-### 条目类型
+### Entry Type
 
 ```c
 typedef enum frogfs_entry_type_t {
-    FROGFS_ENTRY_TYPE_DIR,    // 目录类型
-    FROGFS_ENTRY_TYPE_FILE,   // 文件类型
+    FROGFS_ENTRY_TYPE_DIR,    // Directory type
+    FROGFS_ENTRY_TYPE_FILE,   // File type
 } frogfs_entry_type_t;
 ```
 
-### 文件系统句柄
+### Filesystem Handle
 
 ```c
 typedef struct frogfs_fs_t frogfs_fs_t;
 ```
 
-### 文件/目录句柄
+### File/Directory Handles
 
 ```c
-typedef struct frogfs_fh_t frogfs_fh_t;  // 文件句柄
-typedef struct frogfs_dh_t frogfs_dh_t;  // 目录句柄
+typedef struct frogfs_fh_t frogfs_fh_t;  // File handle
+typedef struct frogfs_dh_t frogfs_dh_t;  // Directory handle
 ```
 
-### 文件信息结构
+### File Information Structure
 
 ```c
 typedef struct frogfs_stat_t {
-    frogfs_entry_type_t type;      // 条目类型
-    size_t size;                    // 解压后文件大小
-    frogfs_comp_algo_t compression; // 压缩算法类型
-    size_t compressed_sz;           // 压缩后大小
+    frogfs_entry_type_t type;      // Entry type
+    size_t size;                    // Decompressed file size
+    frogfs_comp_algo_t compression; // Compression algorithm type
+    size_t compressed_sz;           // Compressed size
 } frogfs_stat_t;
 ```
 
-### 配置结构
+### Configuration Structure
 
 ```c
 typedef struct frogfs_config_t {
-    const void *addr;  // 文件系统在内存中的地址
+    const void *addr;  // Filesystem address in memory
 } frogfs_config_t;
 ```
 
-## 核心 API
+## Core API
 
-### 初始化与销毁
+### Initialization and Destruction
 
 #### frogfs_mount / frogfs_init
 
@@ -68,7 +68,7 @@ typedef struct frogfs_config_t {
 frogfs_fs_t *frogfs_init(const frogfs_config_t *conf);
 ```
 
-挂载 FrogFS 镜像，传入文件系统配置（主要是镜像在内存中的地址），返回文件系统句柄。
+Mount a FrogFS image by passing the filesystem configuration (primarily the image address in memory). Returns a filesystem handle.
 
 #### frogfs_unmount / frogfs_deinit
 
@@ -76,9 +76,9 @@ frogfs_fs_t *frogfs_init(const frogfs_config_t *conf);
 void frogfs_deinit(frogfs_fs_t *fs);
 ```
 
-卸载文件系统，释放相关资源。
+Unmount the filesystem and release associated resources.
 
-### 文件操作
+### File Operations
 
 #### frogfs_open
 
@@ -87,7 +87,7 @@ frogfs_fh_t *frogfs_open(const frogfs_fs_t *fs, const frogfs_entry_t *entry,
         unsigned int flags);
 ```
 
-根据路径打开文件或目录。`flags` 支持 `FROGFS_OPEN_RAW` 标志，以原始方式打开文件（不解压），适用于需要传输压缩数据的场景（如通过 HTTP 传输）。
+Open a file or directory by path. `flags` supports the `FROGFS_OPEN_RAW` flag to open files in raw mode (without decompression), suitable for scenarios requiring transmission of compressed data (e.g., via HTTP).
 
 #### frogfs_close
 
@@ -95,7 +95,7 @@ frogfs_fh_t *frogfs_open(const frogfs_fs_t *fs, const frogfs_entry_t *entry,
 void frogfs_close(frogfs_fh_t *fh);
 ```
 
-关闭已打开的文件句柄。
+Close an opened file handle.
 
 #### frogfs_read
 
@@ -103,7 +103,7 @@ void frogfs_close(frogfs_fh_t *fh);
 ssize_t frogfs_read(frogfs_fh_t *fh, void *buf, size_t len);
 ```
 
-从打开的文件中读取数据，返回实际读取的字节数。
+Read data from an opened file. Returns the actual number of bytes read.
 
 #### frogfs_lseek / frogfs_seek
 
@@ -111,7 +111,7 @@ ssize_t frogfs_read(frogfs_fh_t *fh, void *buf, size_t len);
 ssize_t frogfs_seek(frogfs_fh_t *fh, long offset, int mode);
 ```
 
-移动文件指针。`mode` 可选 `SEEK_SET`（相对文件头）、`SEEK_CUR`（相对当前位置）、`SEEK_END`（相对文件尾）。
+Move the file pointer. `mode` options: `SEEK_SET` (relative to file beginning), `SEEK_CUR` (relative to current position), `SEEK_END` (relative to file end).
 
 #### frogfs_tell
 
@@ -119,9 +119,9 @@ ssize_t frogfs_seek(frogfs_fh_t *fh, long offset, int mode);
 size_t frogfs_tell(frogfs_fh_t *fh);
 ```
 
-获取当前文件指针位置。
+Get the current file pointer position.
 
-### 目录操作
+### Directory Operations
 
 #### frogfs_list / frogfs_opendir + frogfs_readdir
 
@@ -130,7 +130,7 @@ frogfs_dh_t *frogfs_opendir(frogfs_fs_t *fs, const frogfs_entry_t *entry);
 const frogfs_entry_t *frogfs_readdir(frogfs_dh_t *dh);
 ```
 
-打开目录并逐个读取条目内容。
+Open a directory and read entry contents one by one.
 
 #### frogfs_closedir
 
@@ -138,9 +138,9 @@ const frogfs_entry_t *frogfs_readdir(frogfs_dh_t *dh);
 void frogfs_closedir(frogfs_dh_t *dh);
 ```
 
-关闭目录句柄。
+Close a directory handle.
 
-### 条目查询
+### Entry Queries
 
 #### frogfs_stat
 
@@ -149,7 +149,7 @@ void frogfs_stat(const frogfs_fs_t *fs, const frogfs_entry_t *entry,
         frogfs_stat_t *st);
 ```
 
-获取文件或目录的详细信息（类型、大小、压缩算法等）。
+Get detailed information about a file or directory (type, size, compression algorithm, etc.).
 
 #### frogfs_get_entry
 
@@ -158,7 +158,7 @@ const frogfs_entry_t *frogfs_get_entry(const frogfs_fs_t *fs,
         const char *path);
 ```
 
-根据路径获取条目指针。
+Get an entry pointer by path.
 
 #### frogfs_is_dir / frogfs_is_file
 
@@ -167,53 +167,53 @@ int frogfs_is_dir(const frogfs_entry_t *entry);
 int frogfs_is_file(const frogfs_entry_t *entry);
 ```
 
-判断条目类型。
+Determine entry type.
 
-## FROGFS_OPEN_RAW 标志
+## FROGFS_OPEN_RAW Flag
 
 ```c
 #define FROGFS_OPEN_RAW (1 << 0)
 ```
 
-该标志用于以原始（未解压）模式打开文件。当设置此标志时，`frogfs_read` 将返回压缩前的原始数据，适用于需要绕过文件系统解压直接获取源数据的场景，例如通过 HTTP 传输压缩文件。
+This flag is used to open files in raw (uncompressed) mode. When this flag is set, `frogfs_read` will return the pre-compression raw data, suitable for scenarios where source data needs to be obtained bypassing filesystem decompression, such as transmitting compressed files via HTTP.
 
-## 压缩算法支持
+## Compression Algorithm Support
 
-FrogFS 支持多种压缩算法：
+FrogFS supports multiple compression algorithms:
 
-| 算法 ID | 说明 |
+| Algorithm ID | Description |
 |---------|------|
-| FROGFS_COMP_ALGO_NONE | 无压缩 |
-| FROGFS_COMP_ALGO_ZLIB | ZLIB 压缩 |
-| FROGFS_COMP_ALGO_HEATSHRINK | Heatshrink 压缩 |
-| FROGFS_COMP_ALGO_GZIP | GZIP 压缩 |
+| FROGFS_COMP_ALGO_NONE | No compression |
+| FROGFS_COMP_ALGO_ZLIB | ZLIB compression |
+| FROGFS_COMP_ALGO_HEATSHRINK | Heatshrink compression |
+| FROGFS_COMP_ALGO_GZIP | GZIP compression |
 
-## 特性
+## Features
 
-- **只读设计**：文件系统为只读，确保数据完整性，适合嵌入式存储
-- **XIP 支持**：支持直接从 Flash 地址执行代码/资源，无需完整加载到 RAM
-- **嵌入式优化**：最小化 RAM 占用，适合资源受限的 MCU 环境
-- **压缩支持**：内置多种压缩算法，节省存储空间
-- **LVGL 集成**：专为 LVGL 图形库资源文件设计
+- **Read-only design**: The filesystem is read-only, ensuring data integrity, suitable for embedded storage
+- **XIP support**: Supports executing code/resources directly from Flash addresses without fully loading into RAM
+- **Embedded optimization**: Minimized RAM usage, suitable for resource-constrained MCU environments
+- **Compression support**: Built-in multiple compression algorithms to save storage space
+- **LVGL integration**: Specifically designed for LVGL graphics library resource files
 
-## 使用示例
+## Usage Examples
 
-### 基本挂载与读取
+### Basic Mount and Read
 
 ```c
 #include "frogfs.h"
 
-// 配置并挂载文件系统
+// Configure and mount filesystem
 frogfs_config_t config = {
-    .addr = (void *)0x8000000,  // Flash 起始地址
+    .addr = (void *)0x8000000,  // Flash start address
 };
 frogfs_fs_t *fs = frogfs_init(&config);
 if (fs == NULL) {
-    // 挂载失败
+    // Mount failed
     return -1;
 }
 
-// 打开文件
+// Open file
 const frogfs_entry_t *entry = frogfs_get_entry(fs, "/fonts/myfont.bin");
 if (entry && frogfs_is_file(entry)) {
     frogfs_fh_t *fh = frogfs_open(fs, entry, 0);
@@ -221,18 +221,18 @@ if (entry && frogfs_is_file(entry)) {
         uint8_t buffer[256];
         ssize_t len = frogfs_read(fh, buffer, sizeof(buffer));
         
-        // 处理读取的数据
+        // Process read data
         // ...
         
         frogfs_close(fh);
     }
 }
 
-// 卸载文件系统
+// Unmount filesystem
 frogfs_deinit(fs);
 ```
 
-### 遍历目录
+### Traverse Directory
 
 ```c
 #include "frogfs.h"
@@ -256,7 +256,7 @@ void list_directory(frogfs_fs_t *fs, const frogfs_entry_t *dir) {
 }
 ```
 
-### 获取文件统计信息
+### Get File Statistics
 
 ```c
 #include "frogfs.h"
@@ -279,18 +279,18 @@ void show_file_info(frogfs_fs_t *fs, const char *path) {
 }
 ```
 
-## 注意事项
+## Notes
 
-1. FrogFS 为只读文件系统，不支持写操作
-2. 镜像文件需要预先烧录到 Flash 或其他非易失性存储中
-3. 使用 XIP 功能时，需要确保 Flash 地址映射正确
-4. 文件系统访问会自动处理解压（除非使用 `FROGFS_OPEN_RAW`）
-5. 目录和文件名称区分大小写
+1. FrogFS is a read-only filesystem and does not support write operations
+2. Image files must be pre-flashed to Flash or other non-volatile storage
+3. When using XIP functionality, ensure Flash address mapping is correct
+4. Filesystem access automatically handles decompression (unless `FROGFS_OPEN_RAW` is used)
+5. Directory and file names are case-sensitive
 
-## 参考
+## References
 
-- [FrogFS 官方源码](https://github.com/lvgl/lv_lib_freetype) （LVGL 生态的一部分）
-- Bouffalo SDK 组件：`components/graphics/lvgl_v9/libs/frogfs`
-- 头文件：
-  - `include/frogfs/frogfs.h` - 主头文件
-  - `include/frogfs/frogfs_types.h` - 类型定义
+- [FrogFS Official Source](https://github.com/lvgl/lv_lib_freetype) (part of the LVGL ecosystem)
+- Bouffalo SDK component: `components/graphics/lvgl_v9/libs/frogfs`
+- Header files:
+  - `include/frogfs/frogfs.h` - Main header file
+  - `include/frogfs/frogfs_types.h` - Type definitions

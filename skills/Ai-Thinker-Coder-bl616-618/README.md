@@ -1,14 +1,14 @@
-# BL616/BL618 系列模组开发指南
+# BL616/BL618 Series Module Development Guide
 
-## 安信可 Ai-Tool 系列模组（BL616/BL618）
+## Ai-Thinker Ai-Tool Series Modules (BL616/BL618)
 
-本 skill 为安信可科技 **BL616/BL618 系列 Wi-Fi 6 + BLE 5.0 模组**提供完整的开发指南。
+This skill provides a complete development guide for Ai-Thinker **BL616/BL618 Series Wi-Fi 6 + BLE 5.0 modules**.
 
 ---
 
-## 快速开始
+## Quick Start
 
-### 1. 安装工具链
+### 1. Install Toolchain
 
 ```bash
 # Windows MSYS2
@@ -20,7 +20,7 @@ sudo apt install build-essential git python3 python3-pip
 pip3 install pyserial
 ```
 
-### 2. 克隆 SDK
+### 2. Clone SDK
 
 ```bash
 git clone https://github.com/bouffalolab/bouffalo_sdk.git
@@ -28,14 +28,14 @@ cd bouffalo_sdk
 git checkout v1.0.0
 ```
 
-### 3. 编译固件
+### 3. Build Firmware
 
 ```bash
 cd bouffalo_sdk/examples/helloworld
 make CHIP=bl616 BOARD=bl616dk -j8
 ```
 
-### 4. 烧录固件
+### 4. Flash Firmware
 
 ```bash
 make flash CHIP=bl616 BOARD=bl616dk COMX=/dev/ttyUSB0 BAUDRATE=2000000
@@ -43,29 +43,29 @@ make flash CHIP=bl616 BOARD=bl616dk COMX=/dev/ttyUSB0 BAUDRATE=2000000
 
 ---
 
-## 芯片特性
+## Chip Features
 
-| 特性 | BL616 | BL618 |
+| Feature | BL616 | BL618 |
 |------|-------|-------|
-| CPU | 32-bit RISC-V, 320MHz | 同左 |
-| Wi-Fi | 802.11a/b/g/n/ac/ax | 同左 |
-| BLE | 5.0 + Mesh | 同左 |
+| CPU | 32-bit RISC-V, 320MHz | Same |
+| Wi-Fi | 802.11a/b/g/n/ac/ax | Same |
+| BLE | 5.0 + Mesh | Same |
 | GPIO | 31 pins | 35 pins |
-| UART | 2 通道 | 同左 |
-| SPI | 1 通道 | 同左 |
-| I2C | 1 通道 | 同左 |
-| PWM | 5 通道 | 同左 |
-| ADC | 12-bit SAR | 同左 |
-| DMA | 8 通道 | 同左 |
+| UART | 2 channels | Same |
+| SPI | 1 channel | Same |
+| I2C | 1 channel | Same |
+| PWM | 5 channels | Same |
+| ADC | 12-bit SAR | Same |
+| DMA | 8 channels | Same |
 
 ---
 
-## SKILL 目录结构
+## SKILL Directory Structure
 
 ```
 bl616_618/
-├── SKILL.md              # 主入口（环境搭建、编程指南）
-└── references/           # API 参考文档
+├── SKILL.md              # Main entry (environment setup, programming guide)
+└── references/           # API Reference Documents
     ├── gpio.md
     ├── uart.md
     ├── i2c.md
@@ -84,71 +84,71 @@ bl616_618/
 
 ---
 
-## 驱动架构
+## Driver Architecture
 
-BL616/BL618 使用 **LHAL (Low Level Hardware Abstraction Layer)** 驱动框架：
+BL616/BL618 uses the **LHAL (Low Level Hardware Abstraction Layer)** driver framework:
 
 ```c
 #include "bflb_gpio.h"
 #include "bflb_uart.h"
 
-// 获取设备句柄
+// Get device handle
 struct bflb_device_s *gpio = bflb_device_get_by_name("gpio");
 
-// 初始化 GPIO
+// Initialize GPIO
 bflb_gpio_init(gpio, GPIO_PIN_0, GPIO_MODE_OUTPUT_PP, GPIO_PULL_UP);
 
-// 操作 GPIO
+// Operate GPIO
 bflb_gpio_set(gpio, GPIO_PIN_0);
 ```
 
 ---
 
-## FreeRTOS 编程要点
+## FreeRTOS Programming Essentials
 
-BL616/BL618 的 FreeRTOS 应用注意事项：
+Notes for FreeRTOS applications on BL616/BL618:
 
-1. **不需要调用 `vTaskStartScheduler()`** — 调度器由系统自动启动
-2. **主循环必须调用 `vTaskDelay`** — 否则系统无法调度其他任务
-3. **延时统一使用 `vTaskDelay(pdMS_TO_TICKS(ms))`**
+1. **No need to call `vTaskStartScheduler()`** — The scheduler is auto-started by the system
+2. **Main loop must call `vTaskDelay`** — otherwise the system cannot schedule other tasks
+3. **Always use `vTaskDelay(pdMS_TO_TICKS(ms))` for delays**
 
 ```c
 void my_task(void *param)
 {
     while (1) {
-        // 业务逻辑
+        // Business logic
         bflb_gpio_toggle(gpio, GPIO_PIN_0);
-        vTaskDelay(pdMS_TO_TICKS(500));  // 必须延时
+        vTaskDelay(pdMS_TO_TICKS(500));  // Must delay
     }
 }
 
 void app_main(void)
 {
     xTaskCreate(my_task, "blink", 512, NULL, 5, NULL);
-    // 不需要 vTaskStartScheduler()
+    // No need for vTaskStartScheduler()
 }
 ```
 
 ---
 
-## 芯片对比
+## Chip Comparison
 
-| 项目 | BL602 | BL616/BL618 |
+| Item | BL602 | BL616/BL618 |
 |------|-------|-------------|
 | Wi-Fi | 802.11b/g/n | **Wi-Fi 6** (ax) |
 | BLE | 5.0 | 5.0 + **Mesh** |
-| CPU 频率 | 40MHz | **320MHz** |
+| CPU Frequency | 40MHz | **320MHz** |
 | GLB_BASE | 0x40000000 | **0x20000000** |
-| GPIO 布局 | 每 2 引脚共享寄存器 | **每引脚独立寄存器** |
-| 驱动框架 | HOSAL | **LHAL** |
+| GPIO Layout | Shared register per 2 pins | **Independent register per pin** |
+| Driver Framework | HOSAL | **LHAL** |
 
 ---
 
-## 资源链接
+## Resource Links
 
-| 资源 | 链接 |
+| Resource | Link |
 |-----|------|
-| 官方文档站 | https://dev.bouffalolab.com/ |
+| Official Documentation | https://dev.bouffalolab.com/ |
 | Bouffalo SDK | https://github.com/bouffalolab/bouffalo_sdk |
-| BL616 数据手册 | https://dev.bouffalolab.com/media/doc/bl616/datasheet |
-| BL618 数据手册 | https://dev.bouffalolab.com/media/doc/bl618/datasheet |
+| BL616 Datasheet | https://dev.bouffalolab.com/media/doc/bl616/datasheet |
+| BL618 Datasheet | https://dev.bouffalolab.com/media/doc/bl618/datasheet |

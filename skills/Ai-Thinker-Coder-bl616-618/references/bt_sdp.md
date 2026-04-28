@@ -1,359 +1,359 @@
-# Bluetooth SDP (Service Discovery Protocol) 技术文档
+# Bluetooth SDP (Service Discovery Protocol) Technical Documentation
 
-## 1. 概述
+## 1. Overview
 
-SDP（Service Discovery Protocol，服务发现协议）是蓝牙协议栈中用于查询远程设备支持服务的核心协议。SDP 基于 L2CAP（Logical Link Control and Adaptation Protocol）传输层运行，提供一种标准化的机制，使蓝牙设备能够发现彼此提供的服务及其属性。
+SDP (Service Discovery Protocol) is the core protocol in the Bluetooth stack used to query services supported by remote devices. SDP operates over the L2CAP (Logical Link Control and Adaptation Protocol) transport layer, providing a standardized mechanism for Bluetooth devices to discover services and their attributes offered by each other.
 
-当两个蓝牙设备建立连接后，SDP 允许客户端设备向服务器设备发送查询请求，以获取对方支持的服务列表、服务属性以及服务特征信息。通过 SDP，应用程序可以确定远程设备支持哪些蓝牙配置文件（如耳机、串口端口、音频源等），从而决定如何与该设备进行交互。
+When two Bluetooth devices establish a connection, SDP allows a client device to send query requests to a server device to obtain the list of supported services, service attributes, and service characteristic information. Through SDP, applications can determine which Bluetooth profiles (such as headset, serial port, audio source, etc.) a remote device supports, and thereby decide how to interact with that device.
 
-### 1.1 SDP 协议架构
+### 1.1 SDP Protocol Architecture
 
-SDP 采用客户端-服务器模型工作：
+SDP operates using a client-server model:
 
-- **SDP 服务器**：维护一个服务记录（Service Record）数据库，每个服务记录包含服务类型、服务属性等信息
-- **SDP 客户端**：向服务器发送 SDP 查询请求，发现可用服务
+- **SDP Server**: Maintains a database of service records, each containing information such as service type and service attributes
+- **SDP Client**: Sends SDP query requests to the server to discover available services
 
-SDP 本身不建立通信会话，只是提供一种服务发现机制。实际的数据传输依赖于查询到的服务对应的协议（如 RFCOMM、AVDTP 等）。
+SDP itself does not establish communication sessions; it only provides a service discovery mechanism. Actual data transfer relies on the protocol corresponding to the discovered service (such as RFCOMM, AVDTP, etc.).
 
-## 2. 服务类别标识符
+## 2. Service Class Identifiers
 
-蓝牙assigned numbers定义了标准化的服务类别标识符（Service Class Identifier），用于唯一标识各类蓝牙服务。以下是常见的核心服务类别宏定义：
+Bluetooth assigned numbers define standardized Service Class Identifiers used to uniquely identify various Bluetooth services. Below are common core service class macro definitions:
 
-### 2.1 基础服务类别
+### 2.1 Basic Service Classes
 
-| 宏定义 | 值 | 说明 |
+| Macro | Value | Description |
 |--------|-----|------|
-| `BT_SDP_SDP_SERVER_SVCLASS` | 0x1000 | SDP 服务器本身 |
-| `BT_SDP_BROWSE_GRP_DESC_SVCLASS` | 0x1001 | 浏览组描述服务 |
-| `BT_SDP_PUBLIC_BROWSE_GROUP` | 0x1002 | 公共浏览组 |
-| `BT_SDP_GENERIC_ACCESS_SVCLASS` | 0x1800 | 通用访问服务 |
-| `BT_SDP_GENERIC_ATTRIB_SVCLASS` | 0x1801 | 通用属性服务 |
+| `BT_SDP_SDP_SERVER_SVCLASS` | 0x1000 | SDP Server itself |
+| `BT_SDP_BROWSE_GRP_DESC_SVCLASS` | 0x1001 | Browse Group Descriptor service |
+| `BT_SDP_PUBLIC_BROWSE_GROUP` | 0x1002 | Public Browse Group |
+| `BT_SDP_GENERIC_ACCESS_SVCLASS` | 0x1800 | Generic Access service |
+| `BT_SDP_GENERIC_ATTRIB_SVCLASS` | 0x1801 | Generic Attribute service |
 
-### 2.2 常用音频/媒体服务类别
+### 2.2 Common Audio/Media Service Classes
 
-| 宏定义 | 值 | 说明 |
+| Macro | Value | Description |
 |--------|-----|------|
-| `BT_SDP_SERIAL_PORT_SVCLASS` | 0x1101 | 串口端口服务（SPP） |
-| `BT_SDP_HEADSET_SVCLASS` | 0x1108 | 耳机服务（HSP） |
-| `BT_SDP_AUDIO_SOURCE_SVCLASS` | 0x110a | 音频源服务（A2DP Source） |
-| `BT_SDP_AUDIO_SINK_SVCLASS` | 0x110b | 音频接收器服务（A2DP Sink） |
-| `BT_SDP_ADVANCED_AUDIO_SVCLASS` | 0x110d | 高级音频服务（A2DP） |
-| `BT_SDP_AV_REMOTE_SVCLASS` | 0x110e | AV 远程控制服务（AVRCP） |
-| `BT_SDP_AV_REMOTE_TARGET_SVCLASS` | 0x110c | AV 远程目标服务 |
-| `BT_SDP_AV_REMOTE_CONTROLLER_SVCLASS` | 0x110f | AV 远程控制器服务 |
-| `BT_SDP_VIDEO_SOURCE_SVCLASS` | 0x1303 | 视频源服务 |
-| `BT_SDP_VIDEO_SINK_SVCLASS` | 0x1304 | 视频接收器服务 |
+| `BT_SDP_SERIAL_PORT_SVCLASS` | 0x1101 | Serial Port service (SPP) |
+| `BT_SDP_HEADSET_SVCLASS` | 0x1108 | Headset service (HSP) |
+| `BT_SDP_AUDIO_SOURCE_SVCLASS` | 0x110a | Audio Source service (A2DP Source) |
+| `BT_SDP_AUDIO_SINK_SVCLASS` | 0x110b | Audio Sink service (A2DP Sink) |
+| `BT_SDP_ADVANCED_AUDIO_SVCLASS` | 0x110d | Advanced Audio service (A2DP) |
+| `BT_SDP_AV_REMOTE_SVCLASS` | 0x110e | AV Remote Control service (AVRCP) |
+| `BT_SDP_AV_REMOTE_TARGET_SVCLASS` | 0x110c | AV Remote Target service |
+| `BT_SDP_AV_REMOTE_CONTROLLER_SVCLASS` | 0x110f | AV Remote Controller service |
+| `BT_SDP_VIDEO_SOURCE_SVCLASS` | 0x1303 | Video Source service |
+| `BT_SDP_VIDEO_SINK_SVCLASS` | 0x1304 | Video Sink service |
 
-### 2.3 其他常用服务类别
+### 2.3 Other Common Service Classes
 
-| 宏定义 | 值 | 说明 |
+| Macro | Value | Description |
 |--------|-----|------|
-| `BT_SDP_HANDSFREE_SVCLASS` | 0x111e | 免提服务（HFP） |
-| `BT_SDP_HANDSFREE_AGW_SVCLASS` | 0x111f | 免提音频网关服务 |
-| `BT_SDP_HID_SVCLASS` | 0x1124 | 人机接口设备服务（HID） |
-| `BT_SDP_PBAP_PCE_SVCLASS` | 0x112e | 电话簿访问客户端（PBAP） |
-| `BT_SDP_PBAP_PSE_SVCLASS` | 0x112f | 电话簿访问服务器（PBAP） |
-| `BT_SDP_MAP_MCE_SVCLASS` | 0x1133 | 消息访问客户端（MAP） |
-| `BT_SDP_MAP_MSE_SVCLASS` | 0x1132 | 消息访问服务器（MAP） |
-| `BT_SDP_PNP_INFO_SVCLASS` | 0x1200 | 即插即用信息服务 |
+| `BT_SDP_HANDSFREE_SVCLASS` | 0x111e | Hands-Free service (HFP) |
+| `BT_SDP_HANDSFREE_AGW_SVCLASS` | 0x111f | Hands-Free Audio Gateway service |
+| `BT_SDP_HID_SVCLASS` | 0x1124 | Human Interface Device service (HID) |
+| `BT_SDP_PBAP_PCE_SVCLASS` | 0x112e | Phone Book Access Client (PBAP) |
+| `BT_SDP_PBAP_PSE_SVCLASS` | 0x112f | Phone Book Access Server (PBAP) |
+| `BT_SDP_MAP_MCE_SVCLASS` | 0x1133 | Message Access Client (MAP) |
+| `BT_SDP_MAP_MSE_SVCLASS` | 0x1132 | Message Access Server (MAP) |
+| `BT_SDP_PNP_INFO_SVCLASS` | 0x1200 | Plug and Play Information service |
 
-完整的蓝牙服务类别定义可参考 Bluetooth Assigned Numbers 规范。
+For complete Bluetooth service class definitions, refer to the Bluetooth Assigned Numbers specification.
 
-## 3. SDP 数据结构
+## 3. SDP Data Structures
 
-### 3.1 数据元素结构
+### 3.1 Data Element Structure
 
 ```c
 struct bt_sdp_data_elem {
-    uint8_t        type;       // 数据类型描述符
-    uint32_t       data_size;  // 数据实际大小
-    uint32_t       total_size; // 元素总大小
-    const void    *data;       // 指向数据的指针
+    uint8_t        type;       // Data type descriptor
+    uint32_t       data_size;  // Actual data size
+    uint32_t       total_size; // Total element size
+    const void    *data;       // Pointer to data
 };
 ```
 
-数据类型描述符（type字段）由数据类型（高5位）和大小描述符（低3位）组成，主要包括：
+The data type descriptor (type field) consists of a data type (upper 5 bits) and a size descriptor (lower 3 bits), mainly including:
 
-- `BT_SDP_UINT8` / `BT_SDP_UINT16` / `BT_SDP_UINT32` / `BT_SDP_UINT64` / `BT_SDP_UINT128`：无符号整数
-- `BT_SDP_INT8` / `BT_SDP_INT16` / `BT_SDP_INT32`：有符号整数
-- `BT_SDP_UUID16` / `BT_SDP_UUID32` / `BT_SDP_UUID128`：UUID标识符
-- `BT_SDP_TEXT_STR8` / `BT_SDP_TEXT_STR16`：文本字符串
-- `BT_SDP_SEQ8` / `BT_SDP_SEQ16`：数据序列
-- `BT_SDP_BOOL`：布尔类型
-- `BT_SDP_URL_STR8`：URL字符串
+- `BT_SDP_UINT8` / `BT_SDP_UINT16` / `BT_SDP_UINT32` / `BT_SDP_UINT64` / `BT_SDP_UINT128`: Unsigned integers
+- `BT_SDP_INT8` / `BT_SDP_INT16` / `BT_SDP_INT32`: Signed integers
+- `BT_SDP_UUID16` / `BT_SDP_UUID32` / `BT_SDP_UUID128`: UUID identifiers
+- `BT_SDP_TEXT_STR8` / `BT_SDP_TEXT_STR16`: Text strings
+- `BT_SDP_SEQ8` / `BT_SDP_SEQ16`: Data sequences
+- `BT_SDP_BOOL`: Boolean type
+- `BT_SDP_URL_STR8`: URL string
 
-### 3.2 SDP 属性结构
+### 3.2 SDP Attribute Structure
 
 ```c
 struct bt_sdp_attribute {
-    uint16_t                id;    // 属性ID
-    struct bt_sdp_data_elem val;   // 属性数据值
+    uint16_t                id;    // Attribute ID
+    struct bt_sdp_data_elem val;   // Attribute data value
 };
 ```
 
-常用属性ID定义：
+Common attribute ID definitions:
 
-| 属性ID | 说明 |
+| Attribute ID | Description |
 |--------|------|
-| `BT_SDP_ATTR_RECORD_HANDLE` | 服务记录句柄 |
-| `BT_SDP_ATTR_SVCLASS_ID_LIST` | 服务类别ID列表 |
-| `BT_SDP_ATTR_RECORD_STATE` | 记录状态 |
-| `BT_SDP_ATTR_SERVICE_ID` | 服务ID |
-| `BT_SDP_ATTR_PROTO_DESC_LIST` | 协议描述符列表 |
-| `BT_SDP_ATTR_BROWSE_GRP_LIST` | 浏览组列表 |
-| `BT_SDP_ATTR_PROFILE_DESC_LIST` | 配置描述符列表 |
-| `BT_SDP_ATTR_SUPPORTED_FEATURES` | 支持的特性 |
-| `BT_SDP_ATTR_SVCNAME_PRIMARY` | 主服务名称 |
-| `BT_SDP_ATTR_SVCDESC_PRIMARY` | 主服务描述 |
+| `BT_SDP_ATTR_RECORD_HANDLE` | Service Record Handle |
+| `BT_SDP_ATTR_SVCLASS_ID_LIST` | Service Class ID List |
+| `BT_SDP_ATTR_RECORD_STATE` | Record State |
+| `BT_SDP_ATTR_SERVICE_ID` | Service ID |
+| `BT_SDP_ATTR_PROTO_DESC_LIST` | Protocol Descriptor List |
+| `BT_SDP_ATTR_BROWSE_GRP_LIST` | Browse Group List |
+| `BT_SDP_ATTR_PROFILE_DESC_LIST` | Profile Descriptor List |
+| `BT_SDP_ATTR_SUPPORTED_FEATURES` | Supported Features |
+| `BT_SDP_ATTR_SVCNAME_PRIMARY` | Primary Service Name |
+| `BT_SDP_ATTR_SVCDESC_PRIMARY` | Primary Service Description |
 
-### 3.3 SDP 服务记录结构
+### 3.3 SDP Service Record Structure
 
 ```c
 struct bt_sdp_record {
-    uint32_t                    handle;      // 服务记录句柄
-    struct bt_sdp_attribute    *attrs;       // 属性数组指针
-    size_t                      attr_count;  // 属性数量
-    uint8_t                     index;       // 记录索引
-    struct bt_sdp_record       *next;        // 指向下一条记录的指针
+    uint32_t                    handle;      // Service record handle
+    struct bt_sdp_attribute    *attrs;       // Pointer to attribute array
+    size_t                      attr_count;  // Number of attributes
+    uint8_t                     index;       // Record index
+    struct bt_sdp_record       *next;        // Pointer to next record
 };
 ```
 
-### 3.4 SDP 客户端查询结果结构
+### 3.4 SDP Client Query Result Structure
 
 ```c
 struct bt_sdp_client_result {
-    struct net_buf        *resp_buf;           // 包含未解析的SDP记录结果
-    bool                   next_record_hint;  // 指示是否有更多结果
-    const struct bt_uuid  *uuid;              // 查询的UUID对象
+    struct net_buf        *resp_buf;           // Buffer containing unparsed SDP record results
+    bool                   next_record_hint;  // Indicates whether more results exist
+    const struct bt_uuid  *uuid;              // UUID object being queried
 };
 ```
 
-### 3.5 SDP 发现参数结构
+### 3.5 SDP Discovery Parameters Structure
 
 ```c
 struct bt_sdp_discover_params {
     sys_snode_t            _node;
-    const struct bt_uuid  *uuid;              // 要发现的服务UUID
-    bt_sdp_discover_func_t  func;             // 发现结果回调函数
-    struct net_buf_pool    *pool;             // 用于SDP查询结果的内存池
+    const struct bt_uuid  *uuid;              // Service UUID to discover
+    bt_sdp_discover_func_t  func;             // Discovery result callback function
+    struct net_buf_pool    *pool;             // Memory pool for SDP query results
 };
 ```
 
-## 4. UUID 与连接关联
+## 4. UUID and Connection Association
 
-蓝牙 UUID 用于唯一标识各类服务和配置文件。SDP 协议使用 `bt_uuid_t` 结构体来表示 UUID，并通过 `bt_conn_t` 结构体表示的连接与远程设备进行 SDP 通信。
+Bluetooth UUIDs are used to uniquely identify various services and profiles. The SDP protocol uses the `bt_uuid_t` structure to represent UUIDs, and communicates SDP with remote devices via connections represented by the `bt_conn_t` structure.
 
-### 4.1 UUID 结构体类型
+### 4.1 UUID Structure Types
 
 ```c
 struct bt_uuid {
-    u8_t type;  // UUID类型：BT_UUID_TYPE_16、BT_UUID_TYPE_32或BT_UUID_TYPE_128
+    u8_t type;  // UUID type: BT_UUID_TYPE_16, BT_UUID_TYPE_32, or BT_UUID_TYPE_128
 };
 
 struct bt_uuid_16 {
     struct bt_uuid uuid;
-    u16_t val;   // 16位UUID值
+    u16_t val;   // 16-bit UUID value
 };
 
 struct bt_uuid_128 {
     struct bt_uuid uuid;
-    u8_t val[16]; // 128位UUID值
+    u8_t val[16]; // 128-bit UUID value
 };
 ```
 
-### 4.2 UUID 宏定义
+### 4.2 UUID Macro Definitions
 
 ```c
-// 初始化16位UUID
+// Initialize a 16-bit UUID
 #define BT_UUID_INIT_16(value) { .uuid = { BT_UUID_TYPE_16 }, .val = (value) }
 
-// 声明16位UUID
+// Declare a 16-bit UUID
 #define BT_UUID_DECLARE_16(value) ((struct bt_uuid *)((struct bt_uuid_16[]) {BT_UUID_INIT_16(value)}))
 
-// 从bt_uuid指针获取bt_uuid_16结构体
+// Get bt_uuid_16 struct from bt_uuid pointer
 #define BT_UUID_16(__u) CONTAINER_OF(__u, struct bt_uuid_16, uuid)
 ```
 
-### 4.3 UUID 与连接关联
+### 4.3 UUID and Connection Association
 
-SDP 查询通过 `bt_conn_t` 连接对象与远程设备关联。当调用 `bt_sdp_discover()` 时，需要传入有效的 `bt_conn` 指针来指定要查询的远程设备。查询结果通过回调函数返回，开发者可以在回调中访问 `bt_conn` 信息以识别是哪个设备的查询结果。
+SDP queries are associated with a remote device through the `bt_conn_t` connection object. When calling `bt_sdp_discover()`, a valid `bt_conn` pointer must be passed to specify the remote device to query. Query results are returned via callback functions; developers can access `bt_conn` information in the callback to identify which device's query results have arrived.
 
-## 5. SDP 客户端 API
+## 5. SDP Client API
 
-### 5.1 bt_sdp_discover() - 启动服务发现
+### 5.1 bt_sdp_discover() - Start Service Discovery
 
 ```c
 int bt_sdp_discover(struct bt_conn *conn,
                     const struct bt_sdp_discover_params *params);
 ```
 
-**功能描述**：启动对远程设备的 SDP 服务发现会话。
+**Description**: Initiates an SDP service discovery session for a remote device.
 
-**参数说明**：
-- `conn`：标识到远程设备连接的对象指针
-- `params`：SDP 发现参数，包含要查询的 UUID、回调函数和结果缓冲区池
+**Parameters**:
+- `conn`: Pointer to an object identifying the connection to the remote device
+- `params`: SDP discovery parameters, including the UUID to query, callback function, and result buffer pool
 
-**返回值**：成功返回0，失败返回负值错误码。
+**Returns**: 0 on success, negative error code on failure.
 
-**使用说明**：
-- 该函数执行异步 SDP 查询，发现完成时调用用户提供的回调函数
-- 如果当前有 SDP 事务在进行，新请求会被排队等待处理
-- 回调函数的返回值可以控制是否继续获取更多记录
+**Usage Notes**:
+- This function performs an asynchronous SDP query; the user-provided callback is invoked upon completion
+- If there is an ongoing SDP transaction, new requests are queued for processing
+- The return value of the callback function can control whether to continue fetching more records
 
-**回调函数类型**：
+**Callback Function Type**:
 
 ```c
 typedef uint8_t (*bt_sdp_discover_func_t)
         (struct bt_conn *conn, struct bt_sdp_client_result *result);
 ```
 
-回调返回值：
-- `BT_SDP_DISCOVER_UUID_STOP`：停止继续获取更多记录
-- `BT_SDP_DISCOVER_UUID_CONTINUE`：继续获取下一个记录
+Callback return values:
+- `BT_SDP_DISCOVER_UUID_STOP`: Stop fetching more records
+- `BT_SDP_DISCOVER_UUID_CONTINUE`: Continue fetching the next record
 
-### 5.2 bt_sdp_discover_cancel() - 取消服务发现
+### 5.2 bt_sdp_discover_cancel() - Cancel Service Discovery
 
 ```c
 int bt_sdp_discover_cancel(struct bt_conn *conn,
                            const struct bt_sdp_discover_params *params);
 ```
 
-**功能描述**：取消正在等待的 SDP 发现请求。
+**Description**: Cancels a pending SDP discovery request.
 
-**参数说明**：
-- `conn`：标识到远程设备连接的对象指针
-- `params`：要取消的 SDP 发现参数
+**Parameters**:
+- `conn`: Pointer to an object identifying the connection to the remote device
+- `params`: SDP discovery parameters to cancel
 
-**返回值**：成功返回0，失败返回负值错误码。
+**Returns**: 0 on success, negative error code on failure.
 
-### 5.3 bt_sdp_get_proto_param() - 获取协议参数
+### 5.3 bt_sdp_get_proto_param() - Get Protocol Parameters
 
 ```c
 int bt_sdp_get_proto_param(const struct net_buf *buf, enum bt_sdp_proto proto,
                            uint16_t *param);
 ```
 
-**功能描述**：从 SDP 记录中提取特定协议的参数值。
+**Description**: Extracts parameter values for a specific protocol from an SDP record.
 
-**支持的协议**：
-- `BT_SDP_PROTO_RFCOMM = 0x0003`：RFCOMM 协议
-- `BT_SDP_PROTO_L2CAP = 0x0100`：L2CAP 协议
+**Supported Protocols**:
+- `BT_SDP_PROTO_RFCOMM = 0x0003`: RFCOMM protocol
+- `BT_SDP_PROTO_L2CAP = 0x0100`: L2CAP protocol
 
-**参数说明**：
-- `buf`：包含原始 SDP 记录数据的缓冲区
-- `proto`：要查询的协议类型
-- `param`：成功时填充找到的参数值
+**Parameters**:
+- `buf`: Buffer containing raw SDP record data
+- `proto`: The protocol type to query
+- `param`: Filled with the found parameter value on success
 
-**返回值**：成功返回0，失败返回负值错误码。
+**Returns**: 0 on success, negative error code on failure.
 
-### 5.4 bt_sdp_get_profile_version() - 获取配置文件版本
+### 5.4 bt_sdp_get_profile_version() - Get Profile Version
 
 ```c
 int bt_sdp_get_profile_version(const struct net_buf *buf, uint16_t profile,
                                uint16_t *version);
 ```
 
-**功能描述**：从 SDP 记录中提取远程设备的配置文件版本号。
+**Description**: Extracts the profile version number for a remote device from an SDP record.
 
-**参数说明**：
-- `buf`：原始 SDP 记录数据缓冲区
-- `profile`：配置文件家族标识符
-- `version`：成功时填充找到的版本号
+**Parameters**:
+- `buf`: Raw SDP record data buffer
+- `profile`: Profile family identifier
+- `version`: Filled with the found version number on success
 
-**返回值**：成功返回0，失败返回负值错误码。
+**Returns**: 0 on success, negative error code on failure.
 
-### 5.5 bt_sdp_get_features() - 获取支持的特性
+### 5.5 bt_sdp_get_features() - Get Supported Features
 
 ```c
 int bt_sdp_get_features(const struct net_buf *buf, uint16_t *features);
 ```
 
-**功能描述**：从 SDP 记录中获取远程设备支持的特性列表。
+**Description**: Retrieves the list of features supported by the remote device from an SDP record.
 
-**参数说明**：
-- `buf`：包含原始 SDP 记录数据的缓冲区
-- `features`：成功时填充 SupportedFeature 属性掩码
+**Parameters**:
+- `buf`: Buffer containing raw SDP record data
+- `features`: Filled with the SupportedFeature attribute mask on success
 
-**返回值**：成功返回0，记录中无特性信息或解析失败返回负值错误码。
+**Returns**: 0 on success, negative error code if no feature information exists in the record or if parsing fails.
 
-## 6. SDP 服务器端 API
+## 6. SDP Server API
 
-### 6.1 bt_sdp_register_service() - 注册服务记录
+### 6.1 bt_sdp_register_service() - Register Service Record
 
 ```c
 int bt_sdp_register_service(struct bt_sdp_record *service);
 ```
 
-**功能描述**：向本地 SDP 数据库注册一个服务记录，使远程设备能够通过 SDP 查询发现该服务。
+**Description**: Registers a service record in the local SDP database, making the service discoverable by remote devices via SDP queries.
 
-**参数说明**：
-- `service`：使用 `BT_SDP_RECORD` 宏声明的服务记录结构
+**Parameters**:
+- `service`: Service record structure declared using the `BT_SDP_RECORD` macro
 
-**返回值**：成功返回0，失败返回负值错误码。
+**Returns**: 0 on success, negative error code on failure.
 
-### 6.2 bt_sdp_init() - 初始化 SDP
+### 6.2 bt_sdp_init() - Initialize SDP
 
 ```c
 void bt_sdp_init(void);
 ```
 
-**功能描述**：初始化 SDP 子系统，调用后才可以注册服务记录或执行客户端查询。
+**Description**: Initializes the SDP subsystem. Must be called before registering service records or performing client queries.
 
-## 7. SDP 辅助宏
+## 7. SDP Helper Macros
 
-### 7.1 服务记录声明宏
+### 7.1 Service Record Declaration Macros
 
 ```c
-// 声明一个新的服务记录，包含默认属性
+// Declare a new service record with default attributes
 #define BT_SDP_NEW_SERVICE { ... }
 
-// 声明一个完整的服务记录
+// Declare a complete service record
 #define BT_SDP_RECORD(_attrs) { .attrs = _attrs, .attr_count = ARRAY_SIZE((_attrs)) }
 ```
 
-### 7.2 属性声明宏
+### 7.2 Attribute Declaration Macros
 
 ```c
-// 声明列表类型属性
+// Declare a list-type attribute
 #define BT_SDP_LIST(_att_id, _type_size, _data_elem_seq)
 
-// 声明服务ID属性
+// Declare a service ID attribute
 #define BT_SDP_SERVICE_ID(_uuid)
 
-// 声明服务名称属性
+// Declare a service name attribute
 #define BT_SDP_SERVICE_NAME(_name)
 
-// 声明支持的特性属性
+// Declare a supported features attribute
 #define BT_SDP_SUPPORTED_FEATURES(_features)
 ```
 
-### 7.3 数据元素辅助宏
+### 7.3 Data Element Helper Macros
 
 ```c
-// 声明8位数组
+// Declare an 8-bit array
 #define BT_SDP_ARRAY_8(...) ((uint8_t[]) {__VA_ARGS__})
 
-// 声明16位数组
+// Declare a 16-bit array
 #define BT_SDP_ARRAY_16(...) ((uint16_t[]) {__VA_ARGS__})
 
-// 声明32位数组
+// Declare a 32-bit array
 #define BT_SDP_ARRAY_32(...) ((uint32_t[]) {__VA_ARGS__})
 
-// 声明固定大小数据元素
+// Declare a fixed-size data element
 #define BT_SDP_TYPE_SIZE(_type)
 
-// 声明可变大小数据元素
+// Declare a variable-size data element
 #define BT_SDP_TYPE_SIZE_VAR(_type, _size)
 
-// 声明数据元素列表
+// Declare a data element list
 #define BT_SDP_DATA_ELEM_LIST(...) ((struct bt_sdp_data_elem[]) {__VA_ARGS__})
 ```
 
-## 8. 代码示例
+## 8. Code Examples
 
-### 8.1 服务发现示例
+### 8.1 Service Discovery Example
 
-以下示例展示如何发现远程设备支持的服务：
+The following example demonstrates how to discover services supported by a remote device:
 
 ```c
 #include "bluetooth/sdp.h"
@@ -361,10 +361,10 @@ void bt_sdp_init(void);
 #include "bluetooth/bt_uuid.h"
 #include <net/buf.h>
 
-/* 用于存储发现结果的缓冲区池 */
+/* Buffer pool for storing discovery results */
 static struct net_buf_pool *sdp_result_pool;
 
-/* SDP 发现回调函数 */
+/* SDP discovery callback function */
 static uint8_t sdp_discover_cb(struct bt_conn *conn,
                                struct bt_sdp_client_result *result)
 {
@@ -372,20 +372,20 @@ static uint8_t sdp_discover_cb(struct bt_conn *conn,
     int err;
 
     if (!result || !result->resp_buf) {
-        printk("SDP 发现完成，无更多结果\n");
+        printk("SDP discovery complete, no more results\n");
         return BT_SDP_DISCOVER_UUID_STOP;
     }
 
-    printk("发现服务 UUID: 0x%04x\n",
+    printk("Discovered service UUID: 0x%04x\n",
            result->uuid ? ((struct bt_uuid_16 *)result->uuid)->val : 0);
 
-    /* 尝试获取该服务支持的功能特性 */
+    /* Attempt to get the features supported by this service */
     err = bt_sdp_get_features(result->resp_buf, &features);
     if (err == 0) {
-        printk("  支持的特性: 0x%04x\n", features);
+        printk("  Supported features: 0x%04x\n", features);
     }
 
-    /* 根据 next_record_hint 决定是否继续 */
+    /* Decide whether to continue based on next_record_hint */
     if (result->next_record_hint) {
         return BT_SDP_DISCOVER_UUID_CONTINUE;
     }
@@ -393,34 +393,34 @@ static uint8_t sdp_discover_cb(struct bt_conn *conn,
     return BT_SDP_DISCOVER_UUID_STOP;
 }
 
-/* 启动 SDP 服务发现 */
+/* Start SDP service discovery */
 int discover_remote_services(struct bt_conn *conn)
 {
     struct bt_sdp_discover_params discover_params;
     static const struct bt_uuid_16 sdp_uuid = BT_UUID_INIT_16(
         BT_SDP_PUBLIC_BROWSE_GROUP);
 
-    /* 初始化发现参数 */
+    /* Initialize discovery parameters */
     discover_params.uuid = &sdp_uuid.uuid;
     discover_params.func = sdp_discover_cb;
     discover_params.pool = sdp_result_pool;
 
-    printk("开始发现远程设备服务...\n");
+    printk("Starting remote device service discovery...\n");
 
     return bt_sdp_discover(conn, &discover_params);
 }
 ```
 
-### 8.2 查询特定服务示例
+### 8.2 Querying a Specific Service Example
 
-以下示例展示如何查询远程设备的串口端口服务（SPP）：
+The following example demonstrates how to query a remote device's Serial Port Service (SPP):
 
 ```c
 #include "bluetooth/sdp.h"
 #include "bluetooth/conn.h"
 #include "bluetooth/bt_uuid.h"
 
-/* SPP 服务查询回调 */
+/* SPP service query callback */
 static uint8_t spp_discover_cb(struct bt_conn *conn,
                                 struct bt_sdp_client_result *result)
 {
@@ -431,19 +431,19 @@ static uint8_t spp_discover_cb(struct bt_conn *conn,
         return BT_SDP_DISCOVER_UUID_STOP;
     }
 
-    /* 从 SDP 记录中获取 RFCOMM 通道号 */
+    /* Get RFCOMM channel number from SDP record */
     err = bt_sdp_get_proto_param(result->resp_buf, BT_SDP_PROTO_RFCOMM,
                                  &rfcomm_channel);
     if (err == 0) {
-        printk("SPP 服务 - RFCOMM 通道: %d\n", rfcomm_channel);
+        printk("SPP service - RFCOMM channel: %d\n", rfcomm_channel);
     } else {
-        printk("SPP 服务 - 无法获取 RFCOMM 通道\n");
+        printk("SPP service - unable to get RFCOMM channel\n");
     }
 
     return BT_SDP_DISCOVER_UUID_STOP;
 }
 
-/* 查询远程设备的 SPP 服务 */
+/* Query remote device's SPP service */
 int discover_spp_service(struct bt_conn *conn)
 {
     struct bt_sdp_discover_params params;
@@ -454,24 +454,24 @@ int discover_spp_service(struct bt_conn *conn)
     params.func = spp_discover_cb;
     params.pool = sdp_result_pool;
 
-    printk("查询 SPP 服务...\n");
+    printk("Querying SPP service...\n");
     return bt_sdp_discover(conn, &params);
 }
 ```
 
-### 8.3 注册本地 SDP 服务示例
+### 8.3 Registering a Local SDP Service Example
 
-以下示例展示如何在本地注册一个自定义蓝牙服务：
+The following example demonstrates how to register a custom Bluetooth service locally:
 
 ```c
 #include "bluetooth/sdp.h"
 
-/* 定义服务属性 */
+/* Define service attributes */
 static const struct bt_sdp_attribute my_service_attrs[] = {
-    /* 基础服务声明 - 必须 */
+    /* Basic service declaration - required */
     BT_SDP_NEW_SERVICE,
 
-    /* 服务类别 ID */
+    /* Service class ID */
     BT_SDP_LIST(BT_SDP_ATTR_SVCLASS_ID_LIST,
                 BT_SDP_TYPE_SIZE(BT_SDP_SEQ8),
                 BT_SDP_DATA_ELEM_LIST({
@@ -479,7 +479,7 @@ static const struct bt_sdp_attribute my_service_attrs[] = {
                     BT_SDP_ARRAY_16(BT_SDP_SERIAL_PORT_SVCLASS)
                 })),
 
-    /* 协议描述符列表 */
+    /* Protocol descriptor list */
     BT_SDP_LIST(BT_SDP_ATTR_PROTO_DESC_LIST,
                 BT_SDP_TYPE_SIZE(BT_SDP_SEQ8),
                 BT_SDP_DATA_ELEM_LIST({
@@ -492,43 +492,43 @@ static const struct bt_sdp_attribute my_service_attrs[] = {
                     BT_SDP_ARRAY_16(0x0003)  /* RFCOMM */
                 })),
 
-    /* 服务名称 */
+    /* Service name */
     BT_SDP_SERVICE_NAME("My Custom Service"),
 
-    /* 支持的特性 */
+    /* Supported features */
     BT_SDP_SUPPORTED_FEATURES(0x0001),
 };
 
-/* 声明服务记录 */
+/* Declare service record */
 static const struct bt_sdp_record my_service_record = {
     BT_SDP_RECORD(my_service_attrs)
 };
 
-/* 注册服务 */
+/* Register service */
 int register_my_service(void)
 {
     int err;
 
     err = bt_sdp_register_service(&my_service_record);
     if (err < 0) {
-        printk("服务注册失败: %d\n", err);
+        printk("Service registration failed: %d\n", err);
         return err;
     }
 
-    printk("自定义服务注册成功\n");
+    printk("Custom service registered successfully\n");
     return 0;
 }
 ```
 
-### 8.4 遍历服务列表示例
+### 8.4 Browsing Service List Example
 
-以下示例展示如何遍历浏览组下的所有服务：
+The following example demonstrates how to browse all services under a browse group:
 
 ```c
 #include "bluetooth/sdp.h"
 #include "bluetooth/bt_uuid.h"
 
-/* 浏览回调 - 打印所有发现的服务 */
+/* Browse callback - print all discovered services */
 static uint8_t browse_all_cb(struct bt_conn *conn,
                              struct bt_sdp_client_result *result)
 {
@@ -536,34 +536,34 @@ static uint8_t browse_all_cb(struct bt_conn *conn,
     char uuid_str[8];
 
     if (!result || !result->resp_buf) {
-        printk("浏览完成\n");
+        printk("Browse complete\n");
         return BT_SDP_DISCOVER_UUID_STOP;
     }
 
-    /* 从回调结果中获取 UUID */
+    /* Get UUID from callback result */
     if (result->uuid && result->uuid->type == BT_UUID_TYPE_16) {
         uuid = BT_UUID_16(result->uuid);
         snprintf(uuid_str, sizeof(uuid_str), "0x%04x", uuid->val);
 
-        /* 根据 UUID 值识别常见服务 */
-        const char *name = "未知服务";
+        /* Identify common services by UUID value */
+        const char *name = "Unknown service";
         switch (uuid->val) {
-        case 0x1101: name = "串口端口(SPP)"; break;
-        case 0x1108: name = "耳机(HSP)"; break;
-        case 0x110a: name = "音频源"; break;
-        case 0x110d: name = "高级音频(A2DP)"; break;
-        case 0x110e: name = "AV远程控制"; break;
-        case 0x111e: name = "免提(HFP)"; break;
+        case 0x1101: name = "Serial Port (SPP)"; break;
+        case 0x1108: name = "Headset (HSP)"; break;
+        case 0x110a: name = "Audio Source"; break;
+        case 0x110d: name = "Advanced Audio (A2DP)"; break;
+        case 0x110e: name = "AV Remote Control"; break;
+        case 0x111e: name = "Hands-Free (HFP)"; break;
         }
 
-        printk("发现服务: %s [%s]\n", name, uuid_str);
+        printk("Discovered service: %s [%s]\n", name, uuid_str);
     }
 
     return result->next_record_hint ?
            BT_SDP_DISCOVER_UUID_CONTINUE : BT_SDP_DISCOVER_UUID_STOP;
 }
 
-/* 浏览所有可用服务 */
+/* Browse all available services */
 int browse_all_services(struct bt_conn *conn)
 {
     struct bt_sdp_discover_params params;
@@ -574,57 +574,57 @@ int browse_all_services(struct bt_conn *conn)
     params.func = browse_all_cb;
     params.pool = sdp_result_pool;
 
-    printk("开始浏览所有服务...\n");
+    printk("Starting browse of all services...\n");
     return bt_sdp_discover(conn, &params);
 }
 ```
 
-## 9. SDP 工作流程
+## 9. SDP Workflow
 
-### 9.1 客户端发现服务流程
+### 9.1 Client Service Discovery Flow
 
-1. **建立连接**：首先通过 ACL（Asynchronous Connection-Oriented）链路建立蓝牙连接
-2. **初始化 SDP**：调用 `bt_sdp_init()` 确保 SDP 子系统就绪
-3. **配置发现参数**：设置要查询的 UUID、回调函数和结果缓冲区
-4. **发起发现请求**：调用 `bt_sdp_discover()` 发送 SDP 查询
-5. **处理结果**：在回调函数中解析返回的 SDP 记录
-6. **提取信息**：使用辅助 API（如 `bt_sdp_get_proto_param()`）提取所需属性
+1. **Establish connection**: First establish a Bluetooth connection via an ACL (Asynchronous Connection-Oriented) link
+2. **Initialize SDP**: Call `bt_sdp_init()` to ensure the SDP subsystem is ready
+3. **Configure discovery parameters**: Set the UUID to query, callback function, and result buffer
+4. **Initiate discovery request**: Call `bt_sdp_discover()` to send the SDP query
+5. **Process results**: Parse returned SDP records in the callback function
+6. **Extract information**: Use helper APIs (such as `bt_sdp_get_proto_param()`) to extract desired attributes
 
-### 9.2 服务器端注册服务流程
+### 9.2 Server-Side Service Registration Flow
 
-1. **初始化 SDP**：调用 `bt_sdp_init()` 初始化 SDP 子系统
-2. **定义服务属性**：使用辅助宏定义服务记录的属性列表
-3. **声明服务记录**：使用 `BT_SDP_RECORD()` 宏创建服务记录结构
-4. **注册服务**：调用 `bt_sdp_register_service()` 将服务记录添加到本地 SDP 数据库
-5. **等待查询**：远程设备可通过 SDP 查询发现已注册的服务
+1. **Initialize SDP**: Call `bt_sdp_init()` to initialize the SDP subsystem
+2. **Define service attributes**: Use helper macros to define the attribute list for the service record
+3. **Declare service record**: Use the `BT_SDP_RECORD()` macro to create the service record structure
+4. **Register service**: Call `bt_sdp_register_service()` to add the service record to the local SDP database
+5. **Await queries**: Remote devices can discover the registered service through SDP queries
 
-## 10. 注意事项
+## 10. Important Notes
 
-### 10.1 连接管理
+### 10.1 Connection Management
 
-- SDP 查询必须基于已建立的 `bt_conn` 连接
-- 在连接断开后，SDP 查询结果将不再有效
-- 建议在连接建立成功后立即进行必要的 SDP 发现
+- SDP queries must be based on an established `bt_conn` connection
+- SDP query results become invalid after the connection is disconnected
+- It is recommended to perform necessary SDP discovery immediately after a connection is successfully established
 
-### 10.2 内存管理
+### 10.2 Memory Management
 
-- SDP 发现结果存储在 `net_buf` 缓冲区中，需要提供足够大的内存池
-- 回调函数返回后，缓冲区可能已被释放，不应继续引用
-- 对于大型服务数据库，可能需要多次回调才能获取完整结果
+- SDP discovery results are stored in `net_buf` buffers; a sufficiently large memory pool must be provided
+- After the callback function returns, the buffer may have been freed and should not be referenced further
+- For large service databases, multiple callbacks may be required to obtain complete results
 
-### 10.3 错误处理
+### 10.3 Error Handling
 
-- 大部分 SDP API 返回负值表示错误，0 表示成功
-- `bt_sdp_get_proto_param()`、`bt_sdp_get_features()` 等辅助函数也返回负值表示解析失败
-- 建议始终检查返回值并处理错误情况
+- Most SDP APIs return negative values to indicate errors and 0 to indicate success
+- Helper functions like `bt_sdp_get_proto_param()` and `bt_sdp_get_features()` also return negative values to indicate parsing failures
+- Always check return values and handle error conditions
 
-### 10.4 UUID 类型匹配
+### 10.4 UUID Type Matching
 
-- 确保查询时使用的 UUID 类型与远程设备服务记录中的类型一致
-- 16位 UUID 是最常用的形式，对应蓝牙标准服务
-- 128位 UUID 用于自定义或供应商特定服务
+- Ensure the UUID type used for queries matches the type in the remote device's service records
+- 16-bit UUIDs are the most commonly used form, corresponding to standard Bluetooth services
+- 128-bit UUIDs are used for custom or vendor-specific services
 
-## 参考
+## References
 
 - [Bluetooth Core Specification - SDP Section](https://www.bluetooth.com/specifications/assigned-numbers/service-discovery)
 - bouffalo_sdk/components/wireless/bluetooth/btprofile/include/bluetooth/sdp.h

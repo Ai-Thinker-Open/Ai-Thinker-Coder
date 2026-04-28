@@ -1,80 +1,80 @@
-# Opus 音频编解码器
+# Opus Audio Codec
 
-## 概述
+## Overview
 
-Opus 是一个由 IETF（互联网工程任务组）标准化的交互式语音和音频编解码器。它融合了 Skype 的 SILK 编解码器（针对语音优化）和 Xiph.Org 的 CELT 编解码器（针对音乐优化）的技术，能够在 6 kbps 到 510 kbps 的广泛比特率范围内工作。
+Opus is an interactive voice and audio codec standardized by the IETF (Internet Engineering Task Force). It combines technology from Skype's SILK codec (optimized for speech) and Xiph.Org's CELT codec (optimized for music), capable of operating across a wide bitrate range from 6 kbps to 510 kbps.
 
-Opus 的主要特性包括：
+Key features of Opus include:
 
-- **采样率支持**：8 kHz 到 48 kHz
-- **比特率范围**：6 kbps ~ 510 kbps
-- **编码模式**：支持 CBR（恒定比特率）和 VBR（可变比特率）
-- **音频带宽**：从窄带（4 kHz）到全频段（20 kHz）
-- **声道支持**：单声道、立体声，最多支持 255 个声道
-- **帧长度**：2.5 ms 到 60 ms 可调
-- **丢包隐藏**：内置 PLC（Packet Loss Concealment）功能
-- **双重实现**：提供浮点和定点两种实现
+- **Sample rate support**: 8 kHz to 48 kHz
+- **Bitrate range**: 6 kbps ~ 510 kbps
+- **Encoding modes**: Supports CBR (Constant Bitrate) and VBR (Variable Bitrate)
+- **Audio bandwidth**: From narrowband (4 kHz) to fullband (20 kHz)
+- **Channel support**: Mono, stereo, up to 255 channels
+- **Frame sizes**: Adjustable from 2.5 ms to 60 ms
+- **Packet loss concealment**: Built-in PLC (Packet Loss Concealment) functionality
+- **Dual implementation**: Provides both floating-point and fixed-point implementations
 
-在 BL618 平台上，Opus 主要应用于 VoIP（语音通话）和音乐流媒体场景，能够在网络带宽波动时保持良好的音频质量。
+On the BL618 platform, Opus is primarily used in VoIP (voice calling) and music streaming scenarios, maintaining good audio quality even under fluctuating network bandwidth conditions.
 
-## 版本信息
+## Version Information
 
 ```c
 const char *opus_get_version_string(void);
 ```
 
-获取 Opus 库的版本字符串。应用程序可以通过检查版本字符串中是否包含 "-fixed" 子串来判断当前是定点版本还是浮点版本构建。
+Gets the version string of the Opus library. Applications can check if the version string contains the "-fixed" substring to determine whether the current build is the fixed-point or floating-point version.
 
-## 数据类型
+## Data Types
 
-Opus 使用以下基本数据类型定义在 `opus_types.h` 中：
+Opus uses the following basic data types defined in `opus_types.h`:
 
-| 类型 | 说明 |
+| Type | Description |
 |------|------|
-| `opus_int8` | 有符号 8 位整数 |
-| `opus_uint8` | 无符号 8 位整数 |
-| `opus_int16` | 有符号 16 位整数 |
-| `opus_uint16` | 无符号 16 位整数 |
-| `opus_int32` | 有符号 32 位整数 |
-| `opus_uint32` | 无符号 32 位整数 |
-| `opus_int64` | 有符号 64 位整数 |
+| `opus_int8` | Signed 8-bit integer |
+| `opus_uint8` | Unsigned 8-bit integer |
+| `opus_int16` | Signed 16-bit integer |
+| `opus_uint16` | Unsigned 16-bit integer |
+| `opus_int32` | Signed 32-bit integer |
+| `opus_uint32` | Unsigned 32-bit integer |
+| `opus_int64` | Signed 64-bit integer |
 
-## 不透明句柄
+## Opaque Handles
 
-Opus 库使用不透明指针作为状态句柄，应用程序不需要了解其内部结构：
+The Opus library uses opaque pointers as state handles; applications do not need to know their internal structure:
 
-| 句柄类型 | 说明 |
+| Handle Type | Description |
 |---------|------|
-| `OpusEncoder*` | 单流编码器状态句柄 |
-| `OpusDecoder*` | 单流解码器状态句柄 |
-| `OpusMSEncoder*` | 多流编码器状态句柄 |
-| `OpusMSDecoder*` | 多流解码器状态句柄 |
-| `OpusRepacketizer*` | 数据包重打包器句柄 |
+| `OpusEncoder*` | Single-stream encoder state handle |
+| `OpusDecoder*` | Single-stream decoder state handle |
+| `OpusMSEncoder*` | Multi-stream encoder state handle |
+| `OpusMSDecoder*` | Multi-stream decoder state handle |
+| `OpusRepacketizer*` | Packet repacketizer handle |
 
-## 错误码
+## Error Codes
 
-所有 Opus 函数返回的错误码定义如下：
+Error codes returned by all Opus functions are defined as follows:
 
-| 错误码 | 值 | 说明 |
+| Error Code | Value | Description |
 |--------|-----|------|
-| `OPUS_OK` | 0 | 操作成功 |
-| `OPUS_BAD_ARG` | -1 | 参数无效或超出范围 |
-| `OPUS_BUFFER_TOO_SMALL` | -2 | 输出缓冲区空间不足 |
-| `OPUS_INTERNAL_ERROR` | -3 | 检测到内部错误 |
-| `OPUS_INVALID_PACKET` | -4 | 压缩数据损坏或格式不支持 |
-| `OPUS_UNIMPLEMENTED` | -5 | 不支持请求的操作 |
-| `OPUS_INVALID_STATE` | -6 | 编码器或解码器结构无效或已释放 |
-| `OPUS_ALLOC_FAIL` | -7 | 内存分配失败 |
+| `OPUS_OK` | 0 | Operation successful |
+| `OPUS_BAD_ARG` | -1 | Invalid or out-of-range parameter |
+| `OPUS_BUFFER_TOO_SMALL` | -2 | Insufficient output buffer space |
+| `OPUS_INTERNAL_ERROR` | -3 | Internal error detected |
+| `OPUS_INVALID_PACKET` | -4 | Compressed data corrupted or unsupported format |
+| `OPUS_UNIMPLEMENTED` | -5 | Requested operation not supported |
+| `OPUS_INVALID_STATE` | -6 | Encoder or decoder structure invalid or already freed |
+| `OPUS_ALLOC_FAIL` | -7 | Memory allocation failed |
 
 ```c
 const char *opus_strerror(int error);
 ```
 
-将错误码转换为人类可读的错误字符串。
+Converts an error code to a human-readable error string.
 
-## 编码模式
+## Encoding Modes
 
-创建编码器时需要指定应用模式：
+The application mode must be specified when creating an encoder:
 
 ```c
 #define OPUS_APPLICATION_VOIP                2048
@@ -82,52 +82,52 @@ const char *opus_strerror(int error);
 #define OPUS_APPLICATION_RESTRICTED_LOWDELAY  2051
 ```
 
-| 模式 | 说明 |
+| Mode | Description |
 |------|------|
-| `OPUS_APPLICATION_VOIP` | 适用于 VoIP/视频会议，对语音信号进行增强处理，提高可懂度 |
-| `OPUS_APPLICATION_AUDIO` | 适用于音乐和广播场景，追求解码音频对原始输入的高保真度 |
-| `OPUS_APPLICATION_RESTRICTED_LOWDELAY` | 最低延迟模式，禁用语音优化模式，适用于对延迟要求极高的场景 |
+| `OPUS_APPLICATION_VOIP` | Suitable for VoIP/video conferencing, enhances speech signals for improved intelligibility |
+| `OPUS_APPLICATION_AUDIO` | Suitable for music and broadcast scenarios, pursues high fidelity of decoded audio to the original input |
+| `OPUS_APPLICATION_RESTRICTED_LOWDELAY` | Lowest latency mode, disables speech optimization mode, suitable for scenarios with extremely strict latency requirements |
 
-## 编码器 API
+## Encoder API
 
-### 创建与销毁
+### Create and Destroy
 
 ```c
 OpusEncoder *opus_encoder_create(
-    opus_int32 Fs,      // 采样率：8000/12000/16000/24000/48000 Hz
-    int channels,       // 声道数：1（单声道）或 2（立体声）
-    int application,    // 应用模式
-    int *error          // 输出错误码
+    opus_int32 Fs,      // Sample rate: 8000/12000/16000/24000/48000 Hz
+    int channels,       // Number of channels: 1 (mono) or 2 (stereo)
+    int application,    // Application mode
+    int *error          // Output error code
 );
 
 void opus_encoder_destroy(OpusEncoder *st);
 ```
 
-`opus_encoder_create()` 分配并初始化一个编码器状态。如果创建失败，`error` 将包含错误码，返回值为 `NULL`。
+`opus_encoder_create()` allocates and initializes an encoder state. If creation fails, `error` will contain the error code and the return value is `NULL`.
 
-### 编码操作
+### Encoding Operations
 
 ```c
 opus_int32 opus_encode(
     OpusEncoder *st,
-    const opus_int16 *pcm,      // 输入 PCM 数据（交叉存储如果为立体声）
-    int frame_size,              // 每声道采样数
-    unsigned char *data,         // 输出压缩数据缓冲区
-    opus_int32 max_data_bytes    // 输出缓冲区最大字节数
+    const opus_int16 *pcm,      // Input PCM data (interleaved if stereo)
+    int frame_size,              // Samples per channel
+    unsigned char *data,         // Output compressed data buffer
+    opus_int32 max_data_bytes    // Maximum bytes for output buffer
 );
 
 opus_int32 opus_encode_float(
     OpusEncoder *st,
-    const float *pcm,            // 输入浮点 PCM 数据，范围 +/-1.0
+    const float *pcm,            // Input float PCM data, range +/-1.0
     int frame_size,
     unsigned char *data,
     opus_int32 max_data_bytes
 );
 ```
 
-**frame_size 参数说明**（以 48 kHz 为例）：
+**frame_size parameter** (at 48 kHz):
 
-| 帧时长 | frame_size（采样数） |
+| Frame Duration | frame_size (samples) |
 |--------|---------------------|
 | 2.5 ms | 120 |
 | 5 ms | 240 |
@@ -136,65 +136,65 @@ opus_int32 opus_encode_float(
 | 40 ms | 1920 |
 | 60 ms | 2880 |
 
-返回值为压缩数据包的实际字节数，返回值 ≤ 2 表示可以启用 DTX（不传输）。返回负值表示编码错误。
+The return value is the actual number of bytes in the compressed packet. A return value ≤ 2 indicates DTX (discontinuous transmission) can be enabled. Negative values indicate encoding errors.
 
-### 编码器控制
+### Encoder Control
 
 ```c
 int opus_encoder_ctl(OpusEncoder *st, int request, ...);
 ```
 
-通过 CTL 接口可以动态调整编码器参数。常用控制宏：
+Encoder parameters can be dynamically adjusted via the CTL interface. Common control macros:
 
 ```c
-// 设置比特率（bps）
+// Set bitrate (bps)
 opus_encoder_ctl(enc, OPUS_SET_BITRATE(bitrate));
 opus_encoder_ctl(enc, OPUS_GET_BITRATE(&bitrate));
 
-// 设置应用模式
+// Set application mode
 opus_encoder_ctl(enc, OPUS_SET_APPLICATION(OPUS_APPLICATION_VOIP));
 opus_encoder_ctl(enc, OPUS_GET_APPLICATION(&app));
 
-// 设置采样率
+// Set sample rate
 opus_encoder_ctl(enc, OPUS_SET_SAMPLE_RATE(sample_rate));
 
-// 设置复杂度（0-10，默认为 10）
+// Set complexity (0-10, default 10)
 opus_encoder_ctl(enc, OPUS_SET_COMPLEXITY(10));
 
-// 启用/禁用 VBR
-opus_encoder_ctl(enc, OPUS_SET_VBR(1));  // 1=启用 VBR，0=禁用
+// Enable/disable VBR
+opus_encoder_ctl(enc, OPUS_SET_VBR(1));  // 1=enable VBR, 0=disable
 
-// 设置信号类型提示
+// Set signal type hint
 opus_encoder_ctl(enc, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));
-// OPUS_SIGNAL_MUSIC - 偏向音乐
-// OPUS_SIGNAL_VOICE - 偏向语音
-// OPUS_AUTO - 自动选择（默认）
+// OPUS_SIGNAL_MUSIC - bias towards music
+// OPUS_SIGNAL_VOICE - bias towards voice
+// OPUS_AUTO - auto select (default)
 ```
 
-## 解码器 API
+## Decoder API
 
-### 创建与销毁
+### Create and Destroy
 
 ```c
 OpusDecoder *opus_decoder_create(
-    opus_int32 Fs,      // 采样率：8000/12000/16000/24000/48000 Hz
-    int channels,       // 声道数
-    int *error          // 输出错误码
+    opus_int32 Fs,      // Sample rate: 8000/12000/16000/24000/48000 Hz
+    int channels,       // Number of channels
+    int *error          // Output error code
 );
 
 void opus_decoder_destroy(OpusDecoder *st);
 ```
 
-### 解码操作
+### Decoding Operations
 
 ```c
 int opus_decode(
     OpusDecoder *st,
-    const unsigned char *data,   // 输入压缩数据包
-    opus_int32 len,              // 数据包字节数，0 表示丢包
-    opus_int16 *pcm,             // 输出 PCM 缓冲区
-    int frame_size,              // 每声道输出采样数
-    int decode_fec               // 是否解码前向纠错数据（0/1）
+    const unsigned char *data,   // Input compressed data packet
+    opus_int32 len,              // Packet byte count, 0 indicates packet loss
+    opus_int16 *pcm,             // Output PCM buffer
+    int frame_size,              // Output samples per channel
+    int decode_fec               // Whether to decode FEC data (0/1)
 );
 
 int opus_decode_float(
@@ -207,59 +207,59 @@ int opus_decode_float(
 );
 ```
 
-**丢包处理**：当 `data` 为 `NULL` 且 `len` 为 0 时，执行 PLC 丢包隐藏，生成与丢失帧相同长度的音频。
+**Packet loss handling**: When `data` is `NULL` and `len` is 0, PLC (Packet Loss Concealment) is performed, generating audio of the same length as the lost frame.
 
-** FEC 处理**：当 `decode_fec` 为 1 时，尝试解码包中嵌入的前向纠错数据。
+**FEC handling**: When `decode_fec` is 1, attempts to decode the forward error correction data embedded in the packet.
 
-### 解码器控制
+### Decoder Control
 
 ```c
 int opus_decoder_ctl(OpusDecoder *st, int request, ...);
 ```
 
-常用解码器 CTL：
+Common decoder CTL:
 
 ```c
-// 获取采样率
+// Get sample rate
 opus_int32 sample_rate;
 opus_decoder_ctl(dec, OPUS_GET_SAMPLE_RATE(&sample_rate));
 
-// 获取前一包的持续时间
+// Get duration of previous packet
 opus_decoder_ctl(dec, OPUS_GET_LAST_PACKET_DURATION(&duration));
 ```
 
-## 数据包分析 API
+## Packet Analysis API
 
 ```c
 int opus_packet_get_bandwidth(const unsigned char *data);
 ```
 
-获取 Opus 数据包的音频带宽：
+Gets the audio bandwidth of an Opus packet:
 
-| 返回值 | 带宽 |
+| Return Value | Bandwidth |
 |--------|------|
-| `OPUS_BANDWIDTH_NARROWBAND` | 4 kHz（窄带） |
-| `OPUS_BANDWIDTH_MEDIUMBAND` | 6 kHz（中等带宽） |
-| `OPUS_BANDWIDTH_WIDEBAND` | 8 kHz（宽带） |
-| `OPUS_BANDWIDTH_SUPERWIDEBAND` | 12 kHz（超宽带） |
-| `OPUS_BANDWIDTH_FULLBAND` | 20 kHz（全频段） |
+| `OPUS_BANDWIDTH_NARROWBAND` | 4 kHz (narrowband) |
+| `OPUS_BANDWIDTH_MEDIUMBAND` | 6 kHz (medium band) |
+| `OPUS_BANDWIDTH_WIDEBAND` | 8 kHz (wideband) |
+| `OPUS_BANDWIDTH_SUPERWIDEBAND` | 12 kHz (super wideband) |
+| `OPUS_BANDWIDTH_FULLBAND` | 20 kHz (fullband) |
 
 ```c
 int opus_packet_get_nb_channels(const unsigned char *data);
 ```
 
-获取 Opus 数据包中的声道数。
+Gets the number of channels in an Opus packet.
 
-## 多流编码器/解码器
+## Multi-Stream Encoder/Decoder
 
-对于需要处理超过 2 个声道的应用，可以使用多流 API：
+For applications requiring more than 2 channels, the multi-stream API can be used:
 
 ```c
 OpusMSEncoder *opus_multistream_encoder_create(
     opus_int32 Fs,
-    int channels,           // 总声道数
-    int streams,           // 编码流数量
-    int coupled_streams,   // 立体声流数量
+    int channels,           // Total number of channels
+    int streams,           // Number of encoded streams
+    int coupled_streams,   // Number of stereo streams
     const unsigned char *mapping,
     int application,
     int *error
@@ -275,11 +275,11 @@ OpusMSDecoder *opus_multistream_decoder_create(
 );
 ```
 
-## 代码示例
+## Code Examples
 
-以下示例展示在 BL618 上使用 Opus 进行 PCM 数据编码和解码的基本流程：
+The following examples demonstrate the basic flow of using Opus for PCM data encoding and decoding on BL618:
 
-### 初始化
+### Initialization
 
 ```c
 #include "opus.h"
@@ -287,7 +287,7 @@ OpusMSDecoder *opus_multistream_decoder_create(
 #include <stdio.h>
 #include <stdlib.h>
 
-// 错误检查辅助宏
+// Error checking helper macro
 #define CHECK_ERROR(ret, ctx) do { \
     if ((ret) != OPUS_OK) { \
         fprintf(stderr, "Opus error: %s\n", opus_strerror(ret)); \
@@ -295,17 +295,17 @@ OpusMSDecoder *opus_multistream_decoder_create(
     } \
 } while(0)
 
-// 采样率
+// Sample rate
 #define SAMPLE_RATE     48000
-// 声道数
+// Number of channels
 #define CHANNELS        1
-// 帧时长（20 ms）
+// Frame duration (20 ms)
 #define FRAME_SIZE      (SAMPLE_RATE * 20 / 1000)  // 960 samples
-// 最大数据包大小
+// Maximum packet size
 #define MAX_PACKET_SIZE 4000
 ```
 
-### 编码器示例
+### Encoder Example
 
 ```c
 int opus_encode_example(const opus_int16 *pcm_data, int frame_size,
@@ -315,17 +315,17 @@ int opus_encode_example(const opus_int16 *pcm_data, int frame_size,
     int error;
     opus_int32 len;
 
-    // 创建编码器（VoIP 模式）
+    // Create encoder (VoIP mode)
     encoder = opus_encoder_create(SAMPLE_RATE, CHANNELS,
                                    OPUS_APPLICATION_VOIP, &error);
     CHECK_ERROR(error, cleanup);
 
-    // 可选：设置编码参数
+    // Optional: set encoding parameters
     opus_encoder_ctl(encoder, OPUS_SET_BITRATE(64000));  // 64 kbps
-    opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY(10));  // 最高复杂度
-    opus_encoder_ctl(encoder, OPUS_SET_VBR(1));           // 启用 VBR
+    opus_encoder_ctl(encoder, OPUS_SET_COMPLEXITY(10));  // Highest complexity
+    opus_encoder_ctl(encoder, OPUS_SET_VBR(1));           // Enable VBR
 
-    // 执行编码
+    // Perform encoding
     len = opus_encode(encoder, pcm_data, frame_size,
                       opus_packet, MAX_PACKET_SIZE);
     if (len < 0) {
@@ -345,7 +345,7 @@ cleanup:
 }
 ```
 
-### 解码器示例
+### Decoder Example
 
 ```c
 int opus_decode_example(const unsigned char *opus_packet, opus_int32 packet_size,
@@ -355,12 +355,12 @@ int opus_decode_example(const unsigned char *opus_packet, opus_int32 packet_size
     int error;
     int samples;
 
-    // 创建解码器
+    // Create decoder
     decoder = opus_decoder_create(SAMPLE_RATE, CHANNELS, &error);
     CHECK_ERROR(error, cleanup);
 
-    // 执行解码
-    // decode_fec = 0 表示不解码前向纠错数据
+    // Perform decoding
+    // decode_fec = 0 means do not decode FEC data
     samples = opus_decode(decoder, opus_packet, packet_size,
                            pcm_data, frame_size, 0);
     if (samples < 0) {
@@ -379,14 +379,14 @@ cleanup:
 }
 ```
 
-### 丢包隐藏示例
+### Packet Loss Concealment Example
 
 ```c
 int opus_plc_example(OpusDecoder *decoder, opus_int16 *pcm_data, int frame_size)
 {
     int samples;
 
-    // 传入 NULL 和 0 表示丢包，触发 PLC
+    // Passing NULL and 0 indicates packet loss, triggers PLC
     samples = opus_decode(decoder, NULL, 0, pcm_data, frame_size, 0);
     if (samples < 0) {
         fprintf(stderr, "PLC failed: %s\n", opus_strerror(samples));
@@ -397,7 +397,7 @@ int opus_plc_example(OpusDecoder *decoder, opus_int16 *pcm_data, int frame_size)
 }
 ```
 
-### 完整编码解码流程
+### Complete Encoding/Decoding Flow
 
 ```c
 int opus_full_example(const opus_int16 *input_pcm, int frame_size,
@@ -410,16 +410,16 @@ int opus_full_example(const opus_int16 *input_pcm, int frame_size,
     int error = OPUS_OK;
     int decoded_samples;
 
-    // 创建编码器
+    // Create encoder
     encoder = opus_encoder_create(SAMPLE_RATE, CHANNELS,
                                   OPUS_APPLICATION_VOIP, &error);
     if (error != OPUS_OK) goto cleanup;
 
-    // 创建解码器
+    // Create decoder
     decoder = opus_decoder_create(SAMPLE_RATE, CHANNELS, &error);
     if (error != OPUS_OK) goto cleanup;
 
-    // 编码：PCM -> Opus 数据包
+    // Encode: PCM -> Opus packet
     packet_size = opus_encode(encoder, input_pcm, frame_size,
                                packet, MAX_PACKET_SIZE);
     if (packet_size < 0) {
@@ -427,7 +427,7 @@ int opus_full_example(const opus_int16 *input_pcm, int frame_size,
         goto cleanup;
     }
 
-    // 解码：Opus 数据包 -> PCM
+    // Decode: Opus packet -> PCM
     decoded_samples = opus_decode(decoder, packet, packet_size,
                                    output_pcm, frame_size, 0);
     if (decoded_samples < 0) {
@@ -444,21 +444,21 @@ cleanup:
 }
 ```
 
-## 性能注意事项
+## Performance Notes
 
-1. **帧大小选择**：较长的帧（如 20 ms、40 ms、60 ms）能提供更好的压缩效率，但会增加延迟。对于 VoIP 应用，推荐使用 20 ms 帧。
+1. **Frame size selection**: Longer frames (e.g., 20 ms, 40 ms, 60 ms) provide better compression efficiency but increase latency. For VoIP applications, 20 ms frames are recommended.
 
-2. **复杂度设置**：`OPUS_SET_COMPLEXITY` 的值越高，编码质量越好，但 CPU 消耗也越高。在 BL618 等嵌入式平台上，可根据性能需求选择合适的复杂度（建议 1-8）。
+2. **Complexity setting**: Higher `OPUS_SET_COMPLEXITY` values yield better encoding quality but increase CPU consumption. On embedded platforms like BL618, choose an appropriate complexity (recommended 1-8) based on performance requirements.
 
-3. **VBR vs CBR**：VBR（可变比特率）能在保持质量的同时节省平均带宽，但输出数据大小不固定。CBR 适合对带宽有严格要求的场景。
+3. **VBR vs CBR**: VBR (Variable Bitrate) saves average bandwidth while maintaining quality, but output data sizes are not fixed. CBR is suitable for scenarios with strict bandwidth requirements.
 
-4. **丢包保护**：启用带内 FEC（`OPUS_SET_INBAND_FEC(1)`）会增加少量额外带宽，但能提高丢包率较高网络下的音质。
+4. **Packet loss protection**: Enabling in-band FEC (`OPUS_SET_INBAND_FEC(1)`) adds a small amount of extra bandwidth but improves audio quality under high packet loss network conditions.
 
-5. **内存占用**：编码器和解码器状态需要持续内存，销毁后立即释放。
+5. **Memory footprint**: Encoder and decoder states require persistent memory; they are freed immediately upon destruction.
 
-## 参考
+## References
 
 - [RFC 6716](https://tools.ietf.org/html/rfc6716) - Opus Audio Codec
 - [RFC 7845](https://tools.ietf.org/html/rfc7845) - Ogg Encapsulation for Opus Audio
 - Xiph.Org Foundation: <https://opus-codec.org/>
-- BL618 Bouffalo SDK Opus 组件源码：`components/multimedia/opus/include/opus/`
+- BL618 Bouffalo SDK Opus component source: `components/multimedia/opus/include/opus/`

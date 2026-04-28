@@ -4,41 +4,41 @@
 > **Register Header:** `bouffalo_sdk/drivers/lhal/include/hardware/ipc_reg.h`  
 > **Implementation:** `bouffalo_sdk/drivers/lhal/src/bflb_ipc.c`
 >
-> **⚠️ 芯片支持：** IPC (Inter-Processor Communication) 仅在 **BL618DG** 多核芯片上提供。BL616 单核芯片无此外设。
+> **⚠️ Chip Support:** IPC (Inter-Processor Communication) is only available on **BL618DG** multi-core chips. BL616 single-core chips do not have this peripheral.
 
 ## Overview
 
-IPC (Inter-Processor Communication / 核间通信) 模块为 BL618DG 多核系统中的 AP 核心（Application Processor）和 NP 核心（Network Processor）之间提供硬件级通信机制。每个 IPC 实例提供 32 个双向信号位，通过触发-应答-中断机制实现核间同步和消息传递。
+The IPC (Inter-Processor Communication) module provides a hardware-level communication mechanism between the AP core (Application Processor) and NP core (Network Processor) in the BL618DG multi-core system. Each IPC instance provides 32 bidirectional signal bits, implementing inter-core synchronization and message passing through a trigger-acknowledge-interrupt mechanism.
 
-**主要特性：**
-- 2 个 IPC 实例 (IPC0, IPC1)
-- 每实例 32 位通信通道
-- 双向通信：AP → NP 和 NP → AP
-- 硬件中断触发机制
-- 可独立掩码每个位的中断
+**Key Features:**
+- 2 IPC instances (IPC0, IPC1)
+- 32-bit communication channels per instance
+- Bidirectional communication: AP → NP and NP → AP
+- Hardware interrupt trigger mechanism
+- Independently maskable interrupts per bit
 
 ## Base Address
 
-| 外设 | 基地址 | 说明 |
+| Peripheral | Base Address | Description |
 |------|--------|------|
-| IPC0 | `0x20013000` | IPC 实例 0 |
-| IPC1 | `0x20016000` | IPC 实例 1 |
+| IPC0 | `0x20013000` | IPC Instance 0 |
+| IPC1 | `0x20016000` | IPC Instance 1 |
 
-> BL616 无此外设。
+> BL616 does not have this peripheral.
 
 ---
 
-## 位掩码宏
+## Bit Mask Macros
 
-用于操作 IPC 通道位：
+For operating on IPC channel bits:
 
 ```c
-#define IPC_BITS_MAX   (32)            /* 最大位数 */
-#define IPC_BITS_ALL   (0xffffffff)    /* 所有 32 位 */
-#define IPC_BIT_NUM(n) ((0x01 << n) & IPC_BITS_ALL)  /* 特定位 n (0-31) */
+#define IPC_BITS_MAX   (32)            /* Max number of bits */
+#define IPC_BITS_ALL   (0xffffffff)    /* All 32 bits */
+#define IPC_BIT_NUM(n) ((0x01 << n) & IPC_BITS_ALL)  /* Specific bit n (0-31) */
 ```
 
-**示例：**
+**Example:**
 ```c
 uint32_t channel_0 = IPC_BIT_NUM(0);   // 0x00000001
 uint32_t channel_5 = IPC_BIT_NUM(5);   // 0x00000020
@@ -51,21 +51,21 @@ uint32_t multiple  = IPC_BIT_NUM(0) | IPC_BIT_NUM(3);  // 0x00000009
 
 ### bflb_ipc_init
 
-初始化 IPC 实例。
+Initialize the IPC instance.
 
 ```c
 void bflb_ipc_init(struct bflb_device_s *dev);
 ```
 
-**说明:** 清除所有 IPC 通道（ACK）并屏蔽所有中断。根据 `dev->sub_idx` 选择 AP→NP 或 NP→AP 方向：
-- `sub_idx = 0`：AP 核心端（清除 AP2NP_ACK 和 AP2NP_UNMASK）
-- `sub_idx = 1`：NP 核心端（清除 NP2AP_ACK 和 NP2AP_UNMASK）
+**Description:** Clear all IPC channels (ACK) and mask all interrupts. Select AP→NP or NP→AP direction based on `dev->sub_idx`:
+- `sub_idx = 0`: AP core side (clears AP2NP_ACK and AP2NP_UNMASK)
+- `sub_idx = 1`: NP core side (clears NP2AP_ACK and NP2AP_UNMASK)
 
 ---
 
 ### bflb_ipc_deinit
 
-反初始化 IPC 实例。
+Deinitialize the IPC instance.
 
 ```c
 void bflb_ipc_deinit(struct bflb_device_s *dev);
@@ -75,7 +75,7 @@ void bflb_ipc_deinit(struct bflb_device_s *dev);
 
 ### bflb_ipc_int_mask
 
-屏蔽指定的 IPC 中断通道。
+Mask the specified IPC interrupt channels.
 
 ```c
 void bflb_ipc_int_mask(struct bflb_device_s *dev, uint32_t ipc_bits);
@@ -85,14 +85,14 @@ void bflb_ipc_int_mask(struct bflb_device_s *dev, uint32_t ipc_bits);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | IPC 设备句柄 |
-| `ipc_bits` | `uint32_t` | 要屏蔽的位掩码（使用 `IPC_BIT_NUM(n)` 或 `IPC_BITS_ALL`） |
+| `dev` | `struct bflb_device_s *` | IPC device handle |
+| `ipc_bits` | `uint32_t` | Bit mask to mask (use `IPC_BIT_NUM(n)` or `IPC_BITS_ALL`) |
 
 ---
 
 ### bflb_ipc_int_unmask
 
-取消屏蔽（使能）指定的 IPC 中断通道。
+Unmask (enable) the specified IPC interrupt channels.
 
 ```c
 void bflb_ipc_int_unmask(struct bflb_device_s *dev, uint32_t ipc_bits);
@@ -102,14 +102,14 @@ void bflb_ipc_int_unmask(struct bflb_device_s *dev, uint32_t ipc_bits);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | IPC 设备句柄 |
-| `ipc_bits` | `uint32_t` | 要取消屏蔽的位掩码 |
+| `dev` | `struct bflb_device_s *` | IPC device handle |
+| `ipc_bits` | `uint32_t` | Bit mask to unmask |
 
 ---
 
 ### bflb_ipc_trig
 
-触发 IPC 信号，向对端核心发送中断。
+Trigger IPC signals, sending an interrupt to the peer core.
 
 ```c
 void bflb_ipc_trig(struct bflb_device_s *dev, uint32_t ipc_bits);
@@ -119,16 +119,16 @@ void bflb_ipc_trig(struct bflb_device_s *dev, uint32_t ipc_bits);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | IPC 设备句柄 |
-| `ipc_bits` | `uint32_t` | 要触发的位掩码 |
+| `dev` | `struct bflb_device_s *` | IPC device handle |
+| `ipc_bits` | `uint32_t` | Bit mask to trigger |
 
-**说明:** 写入指定位的触发寄存器，硬件自动向对端核心产生中断（如果该位未被屏蔽）。
+**Description:** Writes to the trigger register for the specified bits; hardware automatically generates an interrupt to the peer core (if the bit is not masked).
 
 ---
 
 ### bflb_ipc_clear
 
-清除（应答）接收到的 IPC 信号。
+Clear (acknowledge) received IPC signals.
 
 ```c
 void bflb_ipc_clear(struct bflb_device_s *dev, uint32_t ipc_bits);
@@ -138,72 +138,72 @@ void bflb_ipc_clear(struct bflb_device_s *dev, uint32_t ipc_bits);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `dev` | `struct bflb_device_s *` | IPC 设备句柄 |
-| `ipc_bits` | `uint32_t` | 要清除的位掩码 |
+| `dev` | `struct bflb_device_s *` | IPC device handle |
+| `ipc_bits` | `uint32_t` | Bit mask to clear |
 
-**说明:** 写入 ACK 寄存器清除指定的 IPC 位。接收方处理完信号后应调用此函数清除状态。
+**Description:** Writes to the ACK register to clear the specified IPC bits. The receiver should call this function to clear the status after processing signals.
 
 ---
 
 ### bflb_ipc_get_sta
 
-获取 IPC 原始状态（RAW Status）。
+Get the IPC raw status.
 
 ```c
 uint32_t bflb_ipc_get_sta(struct bflb_device_s *dev);
 ```
 
-**Returns:** 32 位原始状态值（对端触发但尚未应答的位）
+**Returns:** 32-bit raw status value (bits triggered by peer but not yet acknowledged)
 
 ---
 
 ### bflb_ipc_get_intsta
 
-获取 IPC 中断状态（Masked Status）。
+Get the IPC interrupt status (Masked Status).
 
 ```c
 uint32_t bflb_ipc_get_intsta(struct bflb_device_s *dev);
 ```
 
-**Returns:** 32 位中断状态值（已触发且未被屏蔽的位），即 `RAW_STATUS & ~MASK`
+**Returns:** 32-bit interrupt status value (bits triggered and not masked), i.e., `RAW_STATUS & ~MASK`
 
 ---
 
-## 通信模型
+## Communication Model
 
-### AP → NP 通信流程
+### AP → NP Communication Flow
 
 ```
 AP Core (sender)                    NP Core (receiver)
      |                                     |
      |-- bflb_ipc_trig(bits) -->           |
-     |   (写入 AP2NP_TRIGGER)              |
-     |                                     |--- IPC 中断触发
+     |   (write AP2NP_TRIGGER)             |
+     |                                     |--- IPC interrupt fires
      |                                     |-- bflb_ipc_get_intsta()
-     |                                     |-- 处理信号
+     |                                     |-- process signal
      |                                     |-- bflb_ipc_clear(bits)
-     |                                     |   (写入 NP2AP_ACK)
+     |                                     |   (write NP2AP_ACK)
 ```
 
-### NP → AP 通信流程
+### NP → AP Communication Flow
 
 ```
 NP Core (sender)                    AP Core (receiver)
      |                                     |
      |-- bflb_ipc_trig(bits) -->           |
-     |   (写入 NP2AP_TRIGGER)              |
-     |                                     |--- IPC 中断触发
+     |   (write NP2AP_TRIGGER)             |
+     |                                     |--- IPC interrupt fires
      |                                     |-- bflb_ipc_get_intsta()
-     |                                     |-- 处理信号
+     |                                     |-- process signal
      |                                     |-- bflb_ipc_clear(bits)
-     |                                     |   (写入 AP2NP_ACK)
+     |                                     |   (write AP2NP_ACK)
 ```
 
 ---
 
 ## Usage Examples
 
-### Example 1: AP 端初始化（接收方）
+### Example 1: AP-Side Initialization (Receiver)
 
 ```c
 #include "bflb_ipc.h"
@@ -212,18 +212,18 @@ void ap_ipc_init(void)
 {
     struct bflb_device_s *ipc0;
 
-    // 获取 IPC0 设备句柄 (AP 端: sub_idx=0)
+    // Get IPC0 device handle (AP side: sub_idx=0)
     ipc0 = bflb_device_get_by_name("ipc0");
 
-    // 初始化 IPC
+    // Initialize IPC
     bflb_ipc_init(ipc0);
 
-    // 取消屏蔽通道 0 和通道 1 的中断
+    // Unmask interrupts for channel 0 and channel 1
     bflb_ipc_int_unmask(ipc0, IPC_BIT_NUM(0) | IPC_BIT_NUM(1));
 }
 ```
 
-### Example 2: NP 端发送信号给 AP
+### Example 2: NP Sends Signal to AP
 
 ```c
 #include "bflb_ipc.h"
@@ -232,15 +232,15 @@ void np_send_signal_to_ap(void)
 {
     struct bflb_device_s *ipc0;
 
-    // NP 端获取 IPC0 (sub_idx=1)
+    // NP side gets IPC0 (sub_idx=1)
     ipc0 = bflb_device_get_by_name("ipc0_np");
 
-    // 触发通道 0 给 AP
+    // Trigger channel 0 to AP
     bflb_ipc_trig(ipc0, IPC_BIT_NUM(0));
 }
 ```
 
-### Example 3: AP 端中断处理
+### Example 3: AP-Side Interrupt Handling
 
 ```c
 #include "bflb_ipc.h"
@@ -250,42 +250,42 @@ void ipc_interrupt_handler(void)
     struct bflb_device_s *ipc0;
     ipc0 = bflb_device_get_by_name("ipc0");
 
-    // 获取中断状态
+    // Get interrupt status
     uint32_t status = bflb_ipc_get_intsta(ipc0);
 
-    // 处理每个通道
+    // Process each channel
     if (status & IPC_BIT_NUM(0)) {
-        // 处理通道 0 信号
+        // Process channel 0 signal
         handle_channel_0_message();
         bflb_ipc_clear(ipc0, IPC_BIT_NUM(0));
     }
 
     if (status & IPC_BIT_NUM(1)) {
-        // 处理通道 1 信号
+        // Process channel 1 signal
         handle_channel_1_message();
         bflb_ipc_clear(ipc0, IPC_BIT_NUM(1));
     }
 
-    // 轮询直到所有信号处理完毕
+    // Poll until all signals are processed
     while (bflb_ipc_get_intsta(ipc0)) {
         uint32_t remaining = bflb_ipc_get_intsta(ipc0);
-        // 处理剩余信号...
+        // Process remaining signals...
         bflb_ipc_clear(ipc0, remaining);
     }
 }
 ```
 
-### Example 4: 核间同步示例
+### Example 4: Inter-Core Sync Example
 
 ```c
 #include "bflb_ipc.h"
 
-// 信号定义
+// Signal definitions
 #define IPC_SIGNAL_DATA_READY   IPC_BIT_NUM(0)
 #define IPC_SIGNAL_ACK          IPC_BIT_NUM(1)
 #define IPC_SIGNAL_ERROR        IPC_BIT_NUM(2)
 
-// AP 端
+// AP side
 void ap_ipc_sync_example(void)
 {
     struct bflb_device_s *ipc0;
@@ -294,11 +294,11 @@ void ap_ipc_sync_example(void)
     bflb_ipc_init(ipc0);
     bflb_ipc_int_unmask(ipc0, IPC_SIGNAL_DATA_READY | IPC_SIGNAL_ERROR);
 
-    // 等待 NP 的数据就绪信号
-    // ... 在中断中处理 ...
+    // Wait for NP's data ready signal
+    // ... handle in interrupt ...
 }
 
-// NP 端
+// NP side
 void np_ipc_sync_example(void)
 {
     struct bflb_device_s *ipc0;
@@ -306,15 +306,15 @@ void np_ipc_sync_example(void)
 
     bflb_ipc_init(ipc0);
 
-    // 准备数据...
+    // Prepare data...
     prepare_data();
 
-    // 通知 AP 数据就绪
+    // Notify AP data is ready
     bflb_ipc_trig(ipc0, IPC_SIGNAL_DATA_READY);
 
-    // 等待 AP 应答
+    // Wait for AP ACK
     bflb_ipc_int_unmask(ipc0, IPC_SIGNAL_ACK);
-    // ... 在中断中处理 ...
+    // ... handle in interrupt ...
 }
 ```
 
@@ -322,58 +322,58 @@ void np_ipc_sync_example(void)
 
 ## Register-Level Reference
 
-### IPC 寄存器布局
+### IPC Register Layout
 
-IPC 模块包含两组对称的寄存器：AP→NP 通道和 NP→AP 通道。
+The IPC module contains two symmetric register sets: AP→NP channel and NP→AP channel.
 
-#### AP → NP 通道寄存器
+#### AP → NP Channel Registers
 
-| 寄存器 | 偏移 | 说明 |
+| Register | Offset | Description |
 |--------|------|------|
-| `IPC_AP2NP_TRIGGER` | `0x00` | AP→NP 触发寄存器 (写入触发信号) |
-| `IPC_NP2AP_RAW_STATUS` | `0x04` | NP→AP 原始状态 (AP 可读) |
-| `IPC_NP2AP_ACK` | `0x08` | NP→AP 应答清除 (AP 写入清除) |
-| `IPC_NP2AP_UNMASK_SET` | `0x0C` | NP→AP 中断使能 (写 1 取消屏蔽) |
-| `IPC_NP2AP_UNMASK_CLEAR` | `0x10` | NP→AP 中断禁用 (写 1 屏蔽) |
-| `IPC_NP2AP_LINE_SEL_LOW` | `0x14` | NP→AP 线路选择低 32 位 |
-| `IPC_NP2AP_LINE_SEL_HIGH` | `0x18` | NP→AP 线路选择高 32 位 |
-| `IPC_NP2AP_STATUS` | `0x1C` | NP→AP 中断状态 (已掩码) |
+| `IPC_AP2NP_TRIGGER` | `0x00` | AP→NP trigger register (write to send trigger signal) |
+| `IPC_NP2AP_RAW_STATUS` | `0x04` | NP→AP raw status (readable by AP) |
+| `IPC_NP2AP_ACK` | `0x08` | NP→AP acknowledge/clear (AP writes to clear) |
+| `IPC_NP2AP_UNMASK_SET` | `0x0C` | NP→AP interrupt enable (write 1 to unmask) |
+| `IPC_NP2AP_UNMASK_CLEAR` | `0x10` | NP→AP interrupt disable (write 1 to mask) |
+| `IPC_NP2AP_LINE_SEL_LOW` | `0x14` | NP→AP line select low 32 bits |
+| `IPC_NP2AP_LINE_SEL_HIGH` | `0x18` | NP→AP line select high 32 bits |
+| `IPC_NP2AP_STATUS` | `0x1C` | NP→AP interrupt status (masked) |
 
-#### NP → AP 通道寄存器
+#### NP → AP Channel Registers
 
-| 寄存器 | 偏移 | 说明 |
+| Register | Offset | Description |
 |--------|------|------|
-| `IPC_NP2AP_TRIGGER` | `0x20` | NP→AP 触发寄存器 (NP 写入触发信号) |
-| `IPC_AP2NP_RAW_STATUS` | `0x24` | AP→NP 原始状态 (NP 可读) |
-| `IPC_AP2NP_ACK` | `0x28` | AP→NP 应答清除 (NP 写入清除) |
-| `IPC_AP2NP_UNMASK_SET` | `0x2C` | AP→NP 中断使能 (写 1 取消屏蔽) |
-| `IPC_AP2NP_UNMASK_CLEAR` | `0x30` | AP→NP 中断禁用 (写 1 屏蔽) |
-| `IPC_AP2NP_LINE_SEL_LOW` | `0x34` | AP→NP 线路选择低 32 位 |
-| `IPC_AP2NP_LINE_SEL_HIGH` | `0x38` | AP→NP 线路选择高 32 位 |
-| `IPC_AP2NP_STATUS` | `0x3C` | AP→NP 中断状态 (已掩码) |
+| `IPC_NP2AP_TRIGGER` | `0x20` | NP→AP trigger register (NP writes to send trigger signal) |
+| `IPC_AP2NP_RAW_STATUS` | `0x24` | AP→NP raw status (readable by NP) |
+| `IPC_AP2NP_ACK` | `0x28` | AP→NP acknowledge/clear (NP writes to clear) |
+| `IPC_AP2NP_UNMASK_SET` | `0x2C` | AP→NP interrupt enable (write 1 to unmask) |
+| `IPC_AP2NP_UNMASK_CLEAR` | `0x30` | AP→NP interrupt disable (write 1 to mask) |
+| `IPC_AP2NP_LINE_SEL_LOW` | `0x34` | AP→NP line select low 32 bits |
+| `IPC_AP2NP_LINE_SEL_HIGH` | `0x38` | AP→NP line select high 32 bits |
+| `IPC_AP2NP_STATUS` | `0x3C` | AP→NP interrupt status (masked) |
 
-### 寄存器位域
+### Register Bit Fields
 
-所有 IPC 寄存器均为 32 位宽，每位对应一个 IPC 通道 (0–31)：
+All IPC registers are 32 bits wide, with each bit corresponding to an IPC channel (0–31):
 
-| Bit | 对应通道 |
+| Bit | Corresponding Channel |
 |-----|---------|
 | 0 | Channel 0 |
 | 1 | Channel 1 |
 | ... | ... |
 | 31 | Channel 31 |
 
-**Trigger 寄存器** (偏移 0x00 / 0x20)：写入 `1` 的位会触发对端中断（该位须未被屏蔽）。
+**Trigger Register** (offset 0x00 / 0x20): Writing `1` to a bit triggers an interrupt on the peer side (the bit must be unmasked).
 
-**RAW_STATUS 寄存器** (偏移 0x04 / 0x24)：只读，显示对端触发且尚未被应答的所有位。
+**RAW_STATUS Register** (offset 0x04 / 0x24): Read-only, shows all bits triggered by the peer that have not yet been acknowledged.
 
-**ACK 寄存器** (偏移 0x08 / 0x28)：写入 `1` 清除对应的 RAW_STATUS 位。
+**ACK Register** (offset 0x08 / 0x28): Write `1` to clear the corresponding RAW_STATUS bits.
 
-**UNMASK_SET 寄存器** (偏移 0x0C / 0x2C)：写入 `1` 允许对应通道产生中断。
+**UNMASK_SET Register** (offset 0x0C / 0x2C): Write `1` to allow the corresponding channel to generate interrupts.
 
-**UNMASK_CLEAR 寄存器** (偏移 0x10 / 0x30)：写入 `1` 屏蔽对应通道中断（不清除已触发状态）。
+**UNMASK_CLEAR Register** (offset 0x10 / 0x30): Write `1` to mask interrupts for the corresponding channel (does not clear already-triggered status).
 
-**STATUS 寄存器** (偏移 0x1C / 0x3C)：只读，返回 `RAW_STATUS & UNMASK`（已触发且未被屏蔽的位）。
+**STATUS Register** (offset 0x1C / 0x3C): Read-only, returns `RAW_STATUS & UNMASK` (bits triggered and not masked).
 
 ### Direct Register Access Example
 
@@ -383,52 +383,52 @@ IPC 模块包含两组对称的寄存器：AP→NP 通道和 NP→AP 通道。
 
 void ipc_direct_send_signal(uint32_t bits)
 {
-    // 直接写入 AP→NP 触发寄存器
+    // Direct write to AP→NP trigger register
     putreg32(bits, IPC0_BASE + IPC_AP2NP_TRIGGER_OFFSET);
 }
 
 uint32_t ipc_direct_read_status(void)
 {
-    // 读取 NP→AP 中断状态
+    // Read NP→AP interrupt status
     return getreg32(IPC0_BASE + IPC_NP2AP_STATUS_OFFSET);
 }
 
 void ipc_direct_clear(uint32_t bits)
 {
-    // 清除 NP→AP 中断
+    // Clear NP→AP interrupt
     putreg32(bits, IPC0_BASE + IPC_NP2AP_ACK_OFFSET);
 }
 ```
 
 ---
 
-## 设备表配置
+## Device Table Configuration
 
-BL618DG 设备表中 IPC 的配置：
+IPC configuration in the BL618DG device table:
 
-| 设备名 | 基地址 | 中断号 | sub_idx | 方向 |
+| Device Name | Base Address | IRQ Number | sub_idx | Direction |
 |--------|--------|--------|---------|------|
-| `ipc0` | `IPC0_BASE` (0x20013000) | `BL618DG_IRQ_IPC0_CH0` | 0 | AP 端 |
-| `ipc0_np` | `IPC0_BASE` (0x20013000) | `BL618DG_IRQ_IPC0_CH0` | 1 | NP 端 |
-| `ipc1` | `IPC1_BASE` (0x20016000) | `BL618DG_IRQ_IPC1_CH0` | 0 | AP 端 |
-| `ipc1_np` | `IPC1_BASE` (0x20016000) | `BL618DG_IRQ_IPC1_CH0` | 1 | NP 端 |
+| `ipc0` | `IPC0_BASE` (0x20013000) | `BL618DG_IRQ_IPC0_CH0` | 0 | AP side |
+| `ipc0_np` | `IPC0_BASE` (0x20013000) | `BL618DG_IRQ_IPC0_CH0` | 1 | NP side |
+| `ipc1` | `IPC1_BASE` (0x20016000) | `BL618DG_IRQ_IPC1_CH0` | 0 | AP side |
+| `ipc1_np` | `IPC1_BASE` (0x20016000) | `BL618DG_IRQ_IPC1_CH0` | 1 | NP side |
 
-获取设备句柄：
+Obtaining device handles:
 ```c
-struct bflb_device_s *ipc0_ap = bflb_device_get_by_name("ipc0");     // AP 端
-struct bflb_device_s *ipc0_np = bflb_device_get_by_name("ipc0_np");  // NP 端
+struct bflb_device_s *ipc0_ap = bflb_device_get_by_name("ipc0");     // AP side
+struct bflb_device_s *ipc0_np = bflb_device_get_by_name("ipc0_np");  // NP side
 ```
 
 ---
 
-## 注意事项
+## Notes
 
-1. **仅 BL618DG 可用：** IPC 外设专为多核 BL618DG 设计，BL616 单核芯片不含此模块。
+1. **BL618DG Only:** The IPC peripheral is designed specifically for the multi-core BL618DG. BL616 single-core chips do not include this module.
 
-2. **方向区分：** 同一 IPC 实例的 AP 端和 NP 端通过 `sub_idx` 字段区分（0 = AP, 1 = NP），二者操作不同的寄存器组。
+2. **Direction Distinction:** The AP side and NP side of the same IPC instance are distinguished by the `sub_idx` field (0 = AP, 1 = NP); they operate on different register sets.
 
-3. **中断处理要求：** 接收端在 ISR 中处理完信号后必须调用 `bflb_ipc_clear()` 清除对应位，否则中断持续触发。
+3. **Interrupt Handling Requirement:** After processing a signal in the ISR, the receiver must call `bflb_ipc_clear()` to clear the corresponding bit; otherwise the interrupt will keep firing.
 
-4. **ROM API 加速：** 大部分 IPC 函数在 ROM 中有对应的 `romapi_bflb_ipc_*` 实现，SDK 通过条件编译优先使用 ROM 版本以获得更快的执行速度。
+4. **ROM API Acceleration:** Most IPC functions have corresponding `romapi_bflb_ipc_*` implementations in ROM. The SDK prioritizes ROM versions via conditional compilation for faster execution.
 
-5. **多通道并发：** 32 个通道可同时使用，通过 `IPC_BIT_NUM(n)` 组合实现多通道并行通信。
+5. **Multi-Channel Concurrency:** All 32 channels can be used simultaneously; multi-channel parallel communication is achieved by combining `IPC_BIT_NUM(n)`.

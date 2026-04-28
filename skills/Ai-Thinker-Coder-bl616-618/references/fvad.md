@@ -1,197 +1,197 @@
-# FVAD 语音活动检测
+# FVAD Voice Activity Detection
 
-## 概述
+## Overview
 
-FVAD（FreeVAD）是一个基于 WebRTC 的语音活动检测（Voice Activity Detection，VAD）模块，专门用于检测音频流中的语音区间。该模块源自 WebRTC VAD 算法，后由 Daniel Pirch 提取为独立的开源库（libfvad），具有体积小、功耗低、检测准确等特点。
+FVAD (FreeVAD) is a WebRTC-based Voice Activity Detection (VAD) module specifically designed to detect speech intervals in audio streams. This module originates from the WebRTC VAD algorithm, later extracted by Daniel Pirch as an independent open-source library (libfvad), featuring small size, low power consumption, and high detection accuracy.
 
-在 BL618 平台上，FVAD 通常作为语音识别系统的前端处理模块，负责从连续音频流中标记出含有语音的片段，供后续的语音识别、唤醒词检测等算法处理。通过准确的语音区间检测，可以有效减少无用数据的处理，降低系统功耗和计算负担。
+On the BL618 platform, FVAD typically serves as a front-end processing module for speech recognition systems, responsible for marking speech-containing segments from continuous audio streams for subsequent processing by speech recognition, wake word detection, and other algorithms. Accurate voice interval detection effectively reduces useless data processing, lowering system power consumption and computational burden.
 
-## 关键类型
+## Key Types
 
-### Fvad 句柄
+### Fvad Handle
 
 ```c
 typedef struct Fvad Fvad;
 ```
 
-`Fvad` 是一个不透明句柄类型，表示一个 VAD 实例。开发者不需要了解其内部结构，只需通过 API 操作该句柄。所有 VAD 相关操作都需要传入由 `fvad_new()` 创建的实例指针。
+`Fvad` is an opaque handle type representing a VAD instance. Developers do not need to understand its internal structure and only need to operate the handle through the API. All VAD-related operations require an instance pointer created by `fvad_new()`.
 
-## 核心 API
+## Core API
 
-### fvad_new — 创建 VAD 实例
+### fvad_new — Create VAD Instance
 
 ```c
 Fvad *fvad_new(void);
 ```
 
-创建并初始化一个新的 VAD 实例。该函数会分配必要的内存并设置默认参数（采样率 8000 Hz，模式 0）。
+Create and initialize a new VAD instance. This function allocates necessary memory and sets default parameters (8000 Hz sample rate, mode 0).
 
-**返回值：** 成功返回指向新实例的指针，失败返回 `NULL`（通常是内存分配失败）。创建成功后需调用 `fvad_free()` 释放。
+**Return value:** Returns a pointer to the new instance on success, `NULL` on failure (usually memory allocation failure). After successful creation, call `fvad_free()` to release.
 
 ---
 
-### fvad_free — 释放 VAD 实例
+### fvad_free — Release VAD Instance
 
 ```c
 void fvad_free(Fvad *inst);
 ```
 
-释放指定 VAD 实例占用的动态内存。使用 `fvad_new()` 创建的实例最终都应调用此函数释放，以防内存泄漏。
+Release the dynamic memory occupied by the specified VAD instance. Instances created with `fvad_new()` should ultimately call this function to release, preventing memory leaks.
 
-**参数说明：**
-- `inst` — `fvad_new()` 返回的实例指针
+**Parameters:**
+- `inst` — Instance pointer returned by `fvad_new()`
 
 ---
 
-### fvad_reset — 重置 VAD 状态
+### fvad_reset — Reset VAD State
 
 ```c
 void fvad_reset(Fvad *inst);
 ```
 
-重新初始化 VAD 实例，清除所有内部状态，并将模式和采样率恢复为默认值（模式 0，采样率 8000 Hz）。与 `fvad_free()` + `fvad_new()` 相比，`fvad_reset()` 避免了重新分配内存的开销，适用于需要复用同一实例的场景。
+Reinitialize the VAD instance, clear all internal state, and restore mode and sample rate to default values (mode 0, 8000 Hz sample rate). Compared to `fvad_free()` + `fvad_new()`, `fvad_reset()` avoids the overhead of reallocating memory, suitable for scenarios where the same instance needs to be reused.
 
-**参数说明：**
-- `inst` — VAD 实例指针
+**Parameters:**
+- `inst` — VAD instance pointer
 
 ---
 
-### fvad_process — 检测语音活动
+### fvad_process — Detect Voice Activity
 
 ```c
 int fvad_process(Fvad *inst, const int16_t *frame, size_t length);
 ```
 
-对一帧音频数据进行语音活动检测，是 VAD 的核心功能。
+Perform voice activity detection on a frame of audio data — the core VAD functionality.
 
-**参数说明：**
-- `inst` — VAD 实例指针
-- `frame` — 指向 PCM 16-bit 有符号样本数组的指针
-- `length` — 样本数量，必须对应 10ms、20ms 或 30ms 的帧长
+**Parameters:**
+- `inst` — VAD instance pointer
+- `frame` — Pointer to an array of PCM 16-bit signed samples
+- `length` — Number of samples, must correspond to 10ms, 20ms, or 30ms frame length
 
-**采样率与帧长对应关系：**
+**Sample Rate to Frame Length Correspondence:**
 
-| 采样率 (Hz) | 10ms 帧长 | 20ms 帧长 | 30ms 帧长 |
+| Sample Rate (Hz) | 10ms Frame | 20ms Frame | 30ms Frame |
 |-------------|-----------|-----------|-----------|
 | 8000        | 80        | 160       | 240       |
 | 16000       | 160       | 320       | 480       |
 | 32000       | 320       | 640       | 960       |
 | 48000       | 480       | 960       | 1440      |
 
-**返回值：**
-- `1` — 检测到语音（Active Voice）
-- `0` — 未检测到语音（Non-active Voice）
-- `-1` — 无效的帧长度（length 不符合要求）
+**Return values:**
+- `1` — Speech detected (Active Voice)
+- `0` — No speech detected (Non-active Voice)
+- `-1` — Invalid frame length (length does not meet requirements)
 
 ---
 
-### fvad_set_mode — 设置检测模式
+### fvad_set_mode — Set Detection Mode
 
 ```c
 int fvad_set_mode(Fvad *inst, int mode);
 ```
 
-设置 VAD 的激进程度（Aggressiveness Mode）。模式越高，对语音的判定越严格，即返回 1 的条件越苛刻，漏报概率增加，但误报概率降低。
+Set the VAD aggressiveness mode. Higher modes enforce stricter speech determination, meaning the condition to return 1 is more stringent, increasing the miss probability but lowering the false positive probability.
 
-**参数说明：**
-- `inst` — VAD 实例指针
-- `mode` — 激进模式，取值 0~3
+**Parameters:**
+- `inst` — VAD instance pointer
+- `mode` — Aggressiveness mode, values 0~3
 
-**模式说明：**
+**Mode Descriptions:**
 
-| 模式 | 名称           | 说明                                           |
+| Mode | Name           | Description                                           |
 |------|----------------|------------------------------------------------|
-| 0    | Quality        | 最高质量，最低漏报率，默认模式                  |
-| 1    | Low Bitrate    | 低码率场景，减少误报                            |
-| 2    | Aggressive     | 激进模式，更严格筛选                            |
-| 3    | Very Aggressive | 最高激进，语音确认门槛最高                       |
+| 0    | Quality        | Highest quality, lowest miss rate, default mode                  |
+| 1    | Low Bitrate    | Low bitrate scenarios, reduce false positives                            |
+| 2    | Aggressive     | Aggressive mode, stricter filtering                            |
+| 3    | Very Aggressive | Highest aggressiveness, highest speech confirmation threshold                       |
 
-**返回值：** 成功返回 0，失败返回 -1（mode 无效）。
+**Return value:** 0 on success, -1 on failure (invalid mode).
 
-**场景选择建议：**
-- 通用场景（语音识别前端）：推荐模式 0 或 1
-- 噪声环境：推荐模式 2 或 3
-- 安静环境且要求高召回率：推荐模式 0
+**Scenario selection suggestions:**
+- General scenarios (speech recognition front-end): Recommended mode 0 or 1
+- Noisy environments: Recommended mode 2 or 3
+- Quiet environments requiring high recall rate: Recommended mode 0
 
 ---
 
-### fvad_set_sample_rate — 设置采样率
+### fvad_set_sample_rate — Set Sample Rate
 
 ```c
 int fvad_set_sample_rate(Fvad *inst, int sample_rate);
 ```
 
-设置输入音频的采样率。内部处理统一在 8000 Hz 进行，高于 8000 Hz 的输入数据会被自动下采样。
+Set the input audio sample rate. Internal processing is uniformly performed at 8000 Hz; input data above 8000 Hz is automatically downsampled.
 
-**参数说明：**
-- `inst` — VAD 实例指针
-- `sample_rate` — 采样率，单位 Hz，有效值：8000、16000、32000、48000
+**Parameters:**
+- `inst` — VAD instance pointer
+- `sample_rate` — Sample rate in Hz, valid values: 8000, 16000, 32000, 48000
 
-**返回值：** 成功返回 0，失败返回 -1（采样率无效）。
+**Return value:** 0 on success, -1 on failure (invalid sample rate).
 
-**注意：** 默认采样率为 8000 Hz。建议在实际使用前根据输入音频格式显式设置正确的采样率，以获得准确的检测结果。
+**Note:** The default sample rate is 8000 Hz. It is recommended to explicitly set the correct sample rate based on the input audio format before actual use for accurate detection results.
 
-## 输入要求
+## Input Requirements
 
-FVAD 对输入音频有明确格式要求：
+FVAD has explicit format requirements for input audio:
 
-- **数据类型**：PCM 16-bit 有符号整数（`int16_t`）
-- **帧长度**：仅支持 10ms、20ms、30ms 三种帧长
-- **采样率**：8000、16000、32000、48000 Hz
-- **声道**：单声道（Mono）
+- **Data type**: PCM 16-bit signed integer (`int16_t`)
+- **Frame length**: Only 10ms, 20ms, and 30ms frame lengths are supported
+- **Sample rate**: 8000, 16000, 32000, 48000 Hz
+- **Channel**: Mono
 
-输入数据必须符合上述规范，否则 `fvad_process()` 将返回 -1。
+Input data must conform to the above specifications, otherwise `fvad_process()` will return -1.
 
-## 使用流程
+## Usage Flow
 
-典型的 FVAD 使用流程如下：
+The typical FVAD usage flow is as follows:
 
 ```
-1. fvad_new()           创建 VAD 实例
-2. fvad_set_sample_rate() 设置采样率
-3. fvad_set_mode()      (可选) 设置检测模式
-4. fvad_process()       循环处理每帧音频
-5. fvad_free()          释放实例
+1. fvad_new()           Create VAD instance
+2. fvad_set_sample_rate()  Set sample rate
+3. fvad_set_mode()      (Optional) Set detection mode
+4. fvad_process()       Process each audio frame in a loop
+5. fvad_free()          Release instance
 ```
 
-## 代码示例
+## Code Examples
 
-以下示例展示如何在 BL618 上使用 FVAD 进行语音活动检测：
+The following example demonstrates how to use FVAD on the BL618 for voice activity detection:
 
 ```c
 #include "fvad.h"
 #include <stdio.h>
 #include <stddef.h>
 
-/* 假设音频参数：16kHz 采样率，20ms 帧长 */
+/* Assume audio parameters: 16kHz sample rate, 20ms frame length */
 #define SAMPLE_RATE     16000
 #define FRAME_DURATION  20  /* ms */
 #define FRAME_SIZE      (SAMPLE_RATE * FRAME_DURATION / 1000)  /* 320 samples */
 
 int vad_example(const int16_t *audio_buffer, size_t num_frames)
 {
-    /* 1. 创建 VAD 实例 */
+    /* 1. Create VAD instance */
     Fvad *vad = fvad_new();
     if (vad == NULL) {
         printf("Failed to create VAD instance\r\n");
         return -1;
     }
 
-    /* 2. 设置采样率为 16kHz */
+    /* 2. Set sample rate to 16kHz */
     if (fvad_set_sample_rate(vad, SAMPLE_RATE) != 0) {
         printf("Invalid sample rate: %d\r\n", SAMPLE_RATE);
         fvad_free(vad);
         return -1;
     }
 
-    /* 3. 设置检测模式（0: 质量优先） */
+    /* 3. Set detection mode (0: quality priority) */
     if (fvad_set_mode(vad, 0) != 0) {
         printf("Invalid mode\r\n");
         fvad_free(vad);
         return -1;
     }
 
-    /* 4. 循环处理每帧音频 */
+    /* 4. Process each audio frame in a loop */
     int speech_frames = 0;
     for (size_t i = 0; i < num_frames; i++) {
         const int16_t *frame = audio_buffer + i * FRAME_SIZE;
@@ -210,7 +210,7 @@ int vad_example(const int16_t *audio_buffer, size_t num_frames)
         }
     }
 
-    /* 5. 释放 VAD 实例 */
+    /* 5. Release VAD instance */
     fvad_free(vad);
 
     printf("Total speech frames: %d / %zu\r\n", speech_frames, num_frames);
@@ -218,35 +218,35 @@ int vad_example(const int16_t *audio_buffer, size_t num_frames)
 }
 ```
 
-### 实时音频流处理示例
+### Real-Time Audio Stream Processing Example
 
-在实际应用中，音频数据通常来自麦克风或音频输入接口（如 I2S）。下面是一个简化的实时处理框架：
+In practical applications, audio data typically comes from a microphone or audio input interface (such as I2S). Below is a simplified real-time processing framework:
 
 ```c
 #include "fvad.h"
 
-/* 音频缓冲区大小计算：16kHz * 20ms = 320 samples */
+/* Audio buffer size calculation: 16kHz * 20ms = 320 samples */
 #define FRAME_SIZE  320
 
 void audio_vad_task(void *param)
 {
     Fvad *vad = fvad_new();
     fvad_set_sample_rate(vad, 16000);
-    fvad_set_mode(vad, 1);  /* 低码率模式，减少误报 */
+    fvad_set_mode(vad, 1);  /* Low bitrate mode, reduce false positives */
 
     int16_t pcm_frame[FRAME_SIZE];
 
     while (1) {
-        /* 从音频接口读取一帧数据（伪代码） */
+        /* Read a frame of data from audio interface (pseudo-code) */
         // audio_read_frame(pcm_frame, FRAME_SIZE);
 
         int is_speech = fvad_process(vad, pcm_frame, FRAME_SIZE);
 
         if (is_speech == 1) {
-            /* 检测到语音，可触发后续处理如：
-             * - 唤醒词检测
-             * - 语音识别
-             * - 录音存储
+            /* Speech detected, can trigger subsequent processing such as:
+             * - Wake word detection
+             * - Speech recognition
+             * - Recording storage
              */
         }
     }
@@ -255,37 +255,37 @@ void audio_vad_task(void *param)
 }
 ```
 
-## 应用场景
+## Application Scenarios
 
-### 语音识别前端
+### Speech Recognition Front-End
 
-在离线语音识别或关键词唤醒系统中，FVAD 用于检测语音段，将连续的音频流切分为独立的语音片段。只有检测到语音时才启动识别算法，可以显著降低功耗和误触发率，是嵌入式语音交互的标准前端处理。
+In offline speech recognition or keyword wake-up systems, FVAD is used to detect speech segments, segmenting continuous audio streams into independent speech fragments. Only activating recognition algorithms when speech is detected significantly reduces power consumption and false trigger rates — this is the standard front-end processing for embedded voice interaction.
 
-### 通话静音检测
+### Call Silence Detection
 
-在 VoIP 电话或视频会议应用中，FVAD 可用于检测用户是否在说话。当检测到静音时，系统可以选择不传输或压缩音频数据，节省网络带宽。在通话质量监控中，静音检测也有助于生成通话质量报告。
+In VoIP telephony or video conferencing applications, FVAD can be used to detect whether the user is speaking. When silence is detected, the system can choose not to transmit or to compress audio data, saving network bandwidth. In call quality monitoring, silence detection also helps generate call quality reports.
 
-### 录音触发
+### Recording Trigger
 
-在需要录音笔、语音备忘、环境监听等场景中，VAD 用于检测声音活动以触发录音开始和结束。相比于持续录音，触发式录音可以大幅节省存储空间和电量，同时减少后期需要处理的无用音频数据。
+In scenarios such as voice recorders, voice memos, and environmental monitoring, VAD is used to detect sound activity to trigger recording start and end. Compared to continuous recording, triggered recording can significantly save storage space and battery power while reducing the amount of useless audio data to process later.
 
-## 性能特性
+## Performance Characteristics
 
-- **低计算开销**：基于短时能量和频域特征的简单判决算法，适合嵌入式 MCU
-- **低内存占用**：单实例内存占用极小，适合资源受限的系统
-- **低延迟**：逐帧处理，检测延迟约为单帧时长（10~30ms）
-- **独立性强**：纯 C 实现，无外部依赖，易于移植
+- **Low computational overhead**: Simple decision algorithm based on short-time energy and frequency domain features, suitable for embedded MCUs
+- **Low memory footprint**: Extremely small single-instance memory usage, suitable for resource-constrained systems
+- **Low latency**: Frame-by-frame processing, detection latency is approximately the duration of a single frame (10~30ms)
+- **Strong independence**: Pure C implementation, no external dependencies, easy to port
 
-## 注意事项
+## Notes
 
-1. **帧对齐**：输入帧长度必须精确匹配规范，不支持变长帧。
-2. **采样率匹配**：必须使用实际音频采样率进行设置，否则检测结果不准确。
-3. **模式选择**：应根据实际噪声环境选择合适的检测模式，噪声越大宜选用较高模式。
-4. **线程安全**：`fvad_process()` 不是线程安全的，多线程使用时需自行同步。
-5. **重置时机**：更换音频流或检测场景时，建议调用 `fvad_reset()` 清除内部状态。
+1. **Frame alignment**: Input frame length must precisely match the specification; variable-length frames are not supported.
+2. **Sample rate matching**: Must set using the actual audio sample rate; otherwise detection results will be inaccurate.
+3. **Mode selection**: Choose an appropriate detection mode based on actual noise environment; higher modes are recommended for noisier environments.
+4. **Thread safety**: `fvad_process()` is not thread-safe; when used in multi-threaded scenarios, synchronize access yourself.
+5. **Reset timing**: When switching audio streams or detection scenarios, consider calling `fvad_reset()` to clear internal state.
 
-## 参考
+## References
 
-- [libfvad 官方仓库](https://github.com/dpirch/libfvad)
-- [WebRTC VAD 算法文档](https://webrtc.github.io/webrtc-org/audio/)
+- [libfvad Official Repository](https://github.com/dpirch/libfvad)
+- [WebRTC VAD Algorithm Documentation](https://webrtc.github.io/webrtc-org/audio/)
 - `/home/seahi/workspase/BL618Claw/bouffalo_sdk/components/multimedia/libfvad/include/fvad.h`

@@ -2,89 +2,89 @@
 
 **Hardware Base:** `SDH_BASE = 0x2000C800`
 
-**芯片支持:** BL616, BL616CL, BL618DG
+**Chip Support:** BL616, BL616CL, BL618DG
 
 ---
 
-## 1. 架构概述
+## 1. Architecture Overview
 
-| 模块 | 说明 |
+| Module | Description |
 |------|------|
-| **SDH** | Secure Digital Host - 底层SD/MMC控制器，支持DMA/ADMA |
-| **SDIO2** | SDIO 2.0协议层 (向后兼容) |
-| **SDIO3** | SDIO 3.0协议层 (高性能，支持SDR104/SDR50/DDR50) |
+| **SDH** | Secure Digital Host - Low-level SD/MMC controller, supports DMA/ADMA |
+| **SDIO2** | SDIO 2.0 protocol layer (backward compatible) |
+| **SDIO3** | SDIO 3.0 protocol layer (high performance, supports SDR104/SDR50/DDR50) |
 
 ---
 
 ## 2. SDH (Secure Digital Host)
 
-### 2.1 关键特性
+### 2.1 Key Features
 
-- **数据传输方向:** `SDH_TRANSFER_DIR_WR` (发送) / `SDH_TRANSFER_DIR_RD` (接收)
-- **数据总线宽度:** 1位 / 4位 / 8位
-- **Endian模式:** Little / Half-Word Big / Big
-- **DMA类型:** SDMA / ADMA1 / ADMA2
-- **支持SDIO中断**
+- **Data transfer direction:** `SDH_TRANSFER_DIR_WR` (send) / `SDH_TRANSFER_DIR_RD` (receive)
+- **Data bus width:** 1-bit / 4-bit / 8-bit
+- **Endian mode:** Little / Half-Word Big / Big
+- **DMA type:** SDMA / ADMA1 / ADMA2
+- **Supports SDIO interrupts**
 
-### 2.2 状态标志
+### 2.2 Status Flags
 
 ```c
-#define SDH_NORMAL_STA_CARD_INSERT    (1 << 6)  // 卡插入
-#define SDH_NORMAL_STA_CARD_REMOVE    (1 << 7)  // 卡移除
-#define SDH_NORMAL_STA_CMD_COMP       (1 << 0)  // 命令完成
-#define SDH_NORMAL_STA_TRAN_COMP      (1 << 1)  // 传输完成
-#define SDH_NORMAL_STA_DMA_INT        (1 << 3)  // DMA中断
-#define SDH_NORMAL_STA_BUFF_WR_RDY    (1 << 4)  // 缓冲区写就绪
-#define SDH_NORMAL_STA_BUFF_RD_RDY    (1 << 5)  // 缓冲区读就绪
+#define SDH_NORMAL_STA_CARD_INSERT    (1 << 6)  // Card inserted
+#define SDH_NORMAL_STA_CARD_REMOVE    (1 << 7)  // Card removed
+#define SDH_NORMAL_STA_CMD_COMP       (1 << 0)  // Command complete
+#define SDH_NORMAL_STA_TRAN_COMP      (1 << 1)  // Transfer complete
+#define SDH_NORMAL_STA_DMA_INT        (1 << 3)  // DMA interrupt
+#define SDH_NORMAL_STA_BUFF_WR_RDY    (1 << 4)  // Buffer write ready
+#define SDH_NORMAL_STA_BUFF_RD_RDY    (1 << 5)  // Buffer read ready
 ```
 
-### 2.3 错误状态
+### 2.3 Error Status
 
 ```c
-#define SDH_ERROR_STA_CMD_TIMEOUT     (1 << 16)  // 命令超时
-#define SDH_ERROR_STA_CMD_CRC_ERR     (1 << 17)  // 命令CRC错误
-#define SDH_ERROR_STA_DATA_TIMEOUT    (1 << 20)  // 数据超时
-#define SDH_ERROR_STA_DATA_CRC_ERR    (1 << 21)  // 数据CRC错误
-#define SDH_ERROR_STA_ADMA_ERR        (1 << 25)  // ADMA错误
+#define SDH_ERROR_STA_CMD_TIMEOUT     (1 << 16)  // Command timeout
+#define SDH_ERROR_STA_CMD_CRC_ERR     (1 << 17)  // Command CRC error
+#define SDH_ERROR_STA_DATA_TIMEOUT    (1 << 20)  // Data timeout
+#define SDH_ERROR_STA_DATA_CRC_ERR    (1 << 21)  // Data CRC error
+#define SDH_ERROR_STA_ADMA_ERR        (1 << 25)  // ADMA error
 ```
 
 ---
 
-## 3. 数据结构
+## 3. Data Structures
 
-### 3.1 SDH配置
+### 3.1 SDH Configuration
 
 ```c
 struct bflb_sdh_config_s {
-    uint8_t dma_fifo_th;  // FIFO阈值: 64/128/192/256
-    uint8_t dma_burst;   // 突发长度: 32/64/128/256
-    uint8_t power_vol;   // 电源电压
+    uint8_t dma_fifo_th;  // FIFO threshold: 64/128/192/256
+    uint8_t dma_burst;   // Burst length: 32/64/128/256
+    uint8_t power_vol;   // Power voltage
 };
 ```
 
-### 3.2 命令配置
+### 3.2 Command Configuration
 
 ```c
 struct bflb_sdh_cmd_cfg_s {
-    uint8_t index;      // 命令索引 (0-63)
-    uint8_t cmd_type;   // 命令类型: NORMAL/SUSPEND/RESUME/ABORT
-    uint8_t resp_type;  // 响应类型: NONE/R1/R1b/R2/R3/R4/R5/R5b/R6/R7
-    uint32_t argument;  // 命令参数
-    uint32_t resp[4];   // 响应数据
+    uint8_t index;      // Command index (0-63)
+    uint8_t cmd_type;   // Command type: NORMAL/SUSPEND/RESUME/ABORT
+    uint8_t resp_type;  // Response type: NONE/R1/R1b/R2/R3/R4/R5/R5b/R6/R7
+    uint32_t argument;  // Command argument
+    uint32_t resp[4];   // Response data
 };
 ```
 
-### 3.3 数据配置
+### 3.3 Data Configuration
 
 ```c
 struct bflb_sdh_data_cfg_s {
-    uint8_t data_dir;      // SDH_TRANSFER_DIR_RD 或 SDH_TRANSFER_DIR_WR
+    uint8_t data_dir;      // SDH_TRANSFER_DIR_RD or SDH_TRANSFER_DIR_WR
     uint8_t data_type;     // NORMAL/TUNING/BOOT/BOOT_CONTINU
     uint8_t auto_cmd_mode; // AUTO_CMD_DISABLE/CMD12/CMD23
-    uint16_t block_size;   // 块大小
-    uint16_t block_count;  // 块数量
+    uint16_t block_size;   // Block size
+    uint16_t block_count;  // Block count
     
-    // ADMA2配置
+    // ADMA2 configuration
     bool adma2_hw_desc_raw_mode;
     struct bflb_sdh_data_tranfer_s *adma_tranfer;
     uint32_t adma_tranfer_cnt;
@@ -95,15 +95,15 @@ struct bflb_sdh_data_cfg_s {
 
 ---
 
-## 4. API参考
+## 4. API Reference
 
-### 4.1 初始化
+### 4.1 Initialization
 
 ```c
 int bflb_sdh_init(struct bflb_device_s *dev, struct bflb_sdh_config_s *cfg);
 ```
 
-**示例:**
+**Example:**
 ```c
 struct bflb_device_s *sdh;
 struct bflb_sdh_config_s sdh_cfg = {
@@ -118,23 +118,23 @@ if (sdh) {
 }
 ```
 
-### 4.2 卡插入检测
+### 4.2 Card Insertion Detection
 
 ```c
-// 启用卡插入状态中断
+// Enable card insertion status interrupt
 bflb_sdh_sta_int_en(sdh, SDH_NORMAL_STA_CARD_INSERT | SDH_NORMAL_STA_CARD_REMOVE, true);
 
-// 轮询方式检测卡插入
+// Polling-based card insertion detection
 uint32_t sta = bflb_sdh_sta_get(sdh);
 if (sta & SDH_NORMAL_STA_CARD_INSERT) {
     printf("Card inserted\r\n");
 }
 
-// 获取卡检测引脚状态 (feature control)
+// Get card detect pin status (feature control)
 int inserted = bflb_sdh_feature_control(sdh, SDH_CMD_GET_PRESENT_STA_CARD_INSERTED, 0);
 ```
 
-### 4.3 数据传输
+### 4.3 Data Transfer
 
 ```c
 int bflb_sdh_tranfer_start(struct bflb_device_s *dev, 
@@ -144,48 +144,48 @@ int bflb_sdh_tranfer_start(struct bflb_device_s *dev,
 int bflb_sdh_get_resp(struct bflb_device_s *dev, struct bflb_sdh_cmd_cfg_s *cmd_cfg);
 ```
 
-### 4.4 状态管理
+### 4.4 Status Management
 
 ```c
-uint32_t bflb_sdh_sta_get(struct bflb_device_s *dev);          // 获取状态
-void bflb_sdh_sta_clr(struct bflb_device_s *dev, uint32_t sta_bit);  // 清除状态
-void bflb_sdh_sta_int_en(struct bflb_device_s *dev, uint32_t sta_bit, bool en);  // 中断使能
+uint32_t bflb_sdh_sta_get(struct bflb_device_s *dev);          // Get status
+void bflb_sdh_sta_clr(struct bflb_device_s *dev, uint32_t sta_bit);  // Clear status
+void bflb_sdh_sta_int_en(struct bflb_device_s *dev, uint32_t sta_bit, bool en);  // Interrupt enable
 ```
 
-### 4.5 特性控制
+### 4.5 Feature Control
 
 ```c
 int bflb_sdh_feature_control(struct bflb_device_s *dev, int cmd, uintptr_t arg);
 
-// 常用命令:
-SDH_CMD_SET_BUS_WIDTH          // 设置总线宽度
-SDH_CMD_SET_HS_MODE_EN        // 高速模式使能
-SDH_CMD_SET_BUS_CLK_DIV        // 设置时钟分频
-SDH_CMD_SET_INTERNAL_CLK_EN    // 内部时钟使能
-SDH_CMD_GET_INTERNAL_CLK_STABLE  // 获取时钟稳定状态
-SDH_CMD_SOFT_RESET_ALL        // 软件复位
+// Common commands:
+SDH_CMD_SET_BUS_WIDTH          // Set bus width
+SDH_CMD_SET_HS_MODE_EN        // High-speed mode enable
+SDH_CMD_SET_BUS_CLK_DIV        // Set clock divider
+SDH_CMD_SET_INTERNAL_CLK_EN    // Internal clock enable
+SDH_CMD_GET_INTERNAL_CLK_STABLE  // Get clock stable status
+SDH_CMD_SOFT_RESET_ALL        // Software reset
 ```
 
 ---
 
 ## 5. SDIO2 API
 
-SDIO2是SDIO 2.0向后兼容模式。
+SDIO2 is the SDIO 2.0 backward-compatible mode.
 
 ```c
 int bflb_sdio2_init(struct bflb_device_s *dev, uint32_t dnld_size_max);
 int bflb_sdio2_deinit(struct bflb_device_s *dev);
 
-// 传输队列
+// Transfer queue
 int bflb_sdio2_dnld_port_push(struct bflb_device_s *dev, bflb_sdio2_trans_desc_t *trans_desc);
 int bflb_sdio2_upld_port_push(struct bflb_device_s *dev, bflb_sdio2_trans_desc_t *trans_desc);
 int bflb_sdio2_dnld_port_pop(struct bflb_device_s *dev, bflb_sdio2_trans_desc_t *trans_desc);
 int bflb_sdio2_upld_port_pop(struct bflb_device_s *dev, bflb_sdio2_trans_desc_t *trans_desc);
 
-// 中断回调
+// Interrupt callback
 int bflb_sdio2_irq_attach(struct bflb_device_s *dev, bflb_sdio2_irq_cb_t irq_event_cb, void *arg);
 
-// 特性控制
+// Feature control
 int bflb_sdio2_feature_control(struct bflb_device_s *dev, int cmd, uintptr_t arg);
 ```
 
@@ -193,43 +193,43 @@ int bflb_sdio2_feature_control(struct bflb_device_s *dev, int cmd, uintptr_t arg
 
 ## 6. SDIO3 API
 
-SDIO3是高性能SDIO 3.0模式，支持SDR104/SDR50/DDR50。
+SDIO3 is the high-performance SDIO 3.0 mode, supporting SDR104/SDR50/DDR50.
 
 ```c
 int bflb_sdio3_init(struct bflb_device_s *dev, struct bflb_sdio3_config_s *cfg);
 int bflb_sdio3_deinit(struct bflb_device_s *dev);
 
-// 配置结构
+// Configuration structure
 struct bflb_sdio3_config_s {
-    uint8_t func_num;              // 功能号: 1~2
-    uint32_t ocr;                  // 操作电压范围
-    uint32_t cap_flag;             // 能力标志
-    uint32_t func1_dnld_size_max;  // Function 1下载最大尺寸
-    uint32_t func2_dnld_size_max;  // Function 2下载最大尺寸
+    uint8_t func_num;              // Function number: 1~2
+    uint32_t ocr;                  // Operating voltage range
+    uint32_t cap_flag;             // Capability flags
+    uint32_t func1_dnld_size_max;  // Function 1 download max size
+    uint32_t func2_dnld_size_max;  // Function 2 download max size
 };
 
-// 传输接口
+// Transfer interface
 int bflb_sdio3_dnld_push(struct bflb_device_s *dev, bflb_sdio3_trans_desc_t *trans_desc);
 int bflb_sdio3_upld_push(struct bflb_device_s *dev, bflb_sdio3_trans_desc_t *trans_desc);
 int bflb_sdio3_dnld_pop(struct bflb_device_s *dev, bflb_sdio3_trans_desc_t *trans_desc, uint8_t func);
 int bflb_sdio3_upld_pop(struct bflb_device_s *dev, bflb_sdio3_trans_desc_t *trans_desc, uint8_t func);
 
-// 自定义寄存器
+// Custom registers
 int bflb_sdio3_custom_reg_read(struct bflb_device_s *dev, uint16_t reg_offset, void *buff, uint16_t len);
 int bflb_sdio3_custom_reg_write(struct bflb_device_s *dev, uint16_t reg_offset, void *buff, uint16_t len);
 
-// 中断回调
+// Interrupt callback
 int bflb_sdio3_irq_attach(struct bflb_device_s *dev, bflb_sdio3_irq_cb_t irq_event_cb, void *arg);
 
-// 特性控制
+// Feature control
 int bflb_sdio3_feature_control(struct bflb_device_s *dev, int cmd, uintptr_t arg);
 ```
 
 ---
 
-## 7. 工作代码示例
+## 7. Working Code Examples
 
-### 7.1 SDH初始化与卡检测
+### 7.1 SDH Initialization and Card Detection
 
 ```c
 #include "bflb_sdh.h"
@@ -250,7 +250,7 @@ void sdh_isr(int irq, void *arg)
         bflb_sdh_sta_clr(sdh_dev, SDH_NORMAL_STA_CARD_REMOVE);
     }
     
-    /* 处理其他中断... */
+    /* Handle other interrupts... */
 }
 
 int sdh_card_init(void)
@@ -269,11 +269,11 @@ int sdh_card_init(void)
     
     bflb_sdh_init(sdh_dev, &cfg);
     
-    /* 注册中断 */
+    /* Register interrupt */
     bflb_irq_register(sdh_dev->irq_num, sdh_isr, NULL);
     bflb_irq_enable(sdh_dev->irq_num);
     
-    /* 启用卡插入/移除中断 */
+    /* Enable card insert/remove interrupts */
     bflb_sdh_sta_int_en(sdh_dev, 
                         SDH_NORMAL_STA_CARD_INSERT | SDH_NORMAL_STA_CARD_REMOVE, 
                         true);
@@ -282,7 +282,7 @@ int sdh_card_init(void)
 }
 ```
 
-### 7.2 SDIO3完整初始化
+### 7.2 SDIO3 Full Initialization
 
 ```c
 #include "bflb_sdio3.h"
@@ -332,14 +332,14 @@ int sdio3_init(void)
         return ret;
     }
     
-    /* 注册中断回调 */
+    /* Register interrupt callback */
     bflb_sdio3_irq_attach(sdio3_dev, sdio3_irq_callback, NULL);
     
     return 0;
 }
 ```
 
-### 7.3 数据读取
+### 7.3 Data Read
 
 ```c
 int sdh_read_blocks(uint32_t start_block, uint16_t block_count, uint8_t *buffer)
@@ -375,14 +375,14 @@ int sdh_read_blocks(uint32_t start_block, uint16_t block_count, uint8_t *buffer)
         return ret;
     }
     
-    /* 获取响应 */
+    /* Get response */
     bflb_sdh_get_resp(sdh_dev, &cmd_cfg);
     
     return 0;
 }
 ```
 
-### 7.4 数据写入
+### 7.4 Data Write
 
 ```c
 int sdh_write_blocks(uint32_t start_block, uint16_t block_count, uint8_t *buffer)
@@ -424,7 +424,7 @@ int sdh_write_blocks(uint32_t start_block, uint16_t block_count, uint8_t *buffer
 }
 ```
 
-### 7.5 SDIO3上传/下载
+### 7.5 SDIO3 Upload/Download
 
 ```c
 int sdio3_upload_data(uint8_t func, uint16_t data_len, uint8_t *buffer)
@@ -456,7 +456,7 @@ int sdio3_download_data(uint8_t func, uint16_t data_len, uint8_t *buffer)
 
 ---
 
-## 8. ADMA2描述符表
+## 8. ADMA2 Descriptor Table
 
 ```
 |----------------|---------------|-------------|--------------------------|
@@ -467,42 +467,42 @@ int sdio3_download_data(uint8_t func, uint16_t data_len, uint8_t *buffer)
 | 32-bit address | 16-bit length | 0000000000  |Act2|Act1| 0|Int|End|Valid|
 |----------------|---------------|-------------|----|----|--|---|---|-----|
 
-属性:
-- Valid (bit 0): 描述符有效
-- End (bit 1): 描述符结束
-- Int (bit 2): DMA中断
-- Act (bit 4-5): 00=NOP, 01=Reserved, 10=传输数据, 11=链接描述符
+Attributes:
+- Valid (bit 0): Descriptor valid
+- End (bit 1): Descriptor end
+- Int (bit 2): DMA interrupt
+- Act (bit 4-5): 00=NOP, 01=Reserved, 10=Transfer data, 11=Link descriptor
 
-最大描述符长度: 64KB (0xFFFF + 1)
+Maximum descriptor length: 64KB (0xFFFF + 1)
 ```
 
 ---
 
-## 9. 寄存器速查
+## 9. Register Quick Reference
 
 **SDH_BASE = 0x2000C800**
 
-| 偏移 | 名称 | 说明 |
+| Offset | Name | Description |
 |------|------|------|
-| 0x00 | SDH_SYS_ADDR | 系统地址寄存器 |
-| 0x04 | SDH_BLOCK_SIZE | 块大小寄存器 |
-| 0x06 | SDH_BLOCK_COUNT | 块数量寄存器 |
-| 0x08 | SDH_ARGUMENT | 命令参数寄存器 |
-| 0x0C | SDH_TRANS_MOD | 传输模式寄存器 |
-| 0x0E | SDH_CMD | 命令寄存器 |
-| 0x10-0x14 | SDH_RESP | 响应寄存器0-3 |
-| 0x18 | SDH_DATA_PORT | 数据端口 |
-| 0x1C | SDH_PRESENT_STA | 当前状态 |
-| 0x20 | SDH_HOST_CTL | 主机控制 |
-| 0x24 | SDH_PWR_CTL | 电源控制 |
-| 0x28 | SDH_CLK_CTL | 时钟控制 |
-| 0x2C | SDH_TOUT_CTL | 超时控制 |
-| 0x30 | SDH_SWRST | 软件复位 |
-| 0x34 | SDH_NOR_INTS_STA | 正常中断状态 |
-| 0x36 | SDH_ERR_INTS_STA | 错误中断状态 |
-| 0x38 | SDH_NOR_INTS_EN | 正常中断使能 |
-| 0x3A | SDH_ERR_INTS_EN | 错误中断使能 |
-| 0x3C | SDH_NOR_INTS_SIGNAL_EN | 正常中断信号使能 |
-| 0x3E | SDH_ERR_INTS_SIGNAL_EN | 错误中断信号使能 |
-| 0x40 | SDH_ADMA_ES | ADMA状态 |
-| 0x48 | SDH_ADMA_ADDR | ADMA地址 |
+| 0x00 | SDH_SYS_ADDR | System address register |
+| 0x04 | SDH_BLOCK_SIZE | Block size register |
+| 0x06 | SDH_BLOCK_COUNT | Block count register |
+| 0x08 | SDH_ARGUMENT | Command argument register |
+| 0x0C | SDH_TRANS_MOD | Transfer mode register |
+| 0x0E | SDH_CMD | Command register |
+| 0x10-0x14 | SDH_RESP | Response register 0-3 |
+| 0x18 | SDH_DATA_PORT | Data port |
+| 0x1C | SDH_PRESENT_STA | Present state |
+| 0x20 | SDH_HOST_CTL | Host control |
+| 0x24 | SDH_PWR_CTL | Power control |
+| 0x28 | SDH_CLK_CTL | Clock control |
+| 0x2C | SDH_TOUT_CTL | Timeout control |
+| 0x30 | SDH_SWRST | Software reset |
+| 0x34 | SDH_NOR_INTS_STA | Normal interrupt status |
+| 0x36 | SDH_ERR_INTS_STA | Error interrupt status |
+| 0x38 | SDH_NOR_INTS_EN | Normal interrupt enable |
+| 0x3A | SDH_ERR_INTS_EN | Error interrupt enable |
+| 0x3C | SDH_NOR_INTS_SIGNAL_EN | Normal interrupt signal enable |
+| 0x3E | SDH_ERR_INTS_SIGNAL_EN | Error interrupt signal enable |
+| 0x40 | SDH_ADMA_ES | ADMA status |
+| 0x48 | SDH_ADMA_ADDR | ADMA address |

@@ -1,16 +1,16 @@
-# librws WebSocket 客户端库
+# librws WebSocket Client Library
 
-## 概述
+## Overview
 
-librws 是一个轻量级 WebSocket 客户端库，专为资源受限的嵌入式环境设计，支持单线程异步 I/O 模式。该库适用于 IoT 设备与云端服务器之间的双向通信场景，具有体积小、接口简洁、依赖少等特点。库内部集成了 mbedTLS 支持，可直接建立 wss（WebSocket Secure）加密连接。
+librws is a lightweight WebSocket client library designed specifically for resource-constrained embedded environments, supporting single-threaded asynchronous I/O mode. The library is suitable for bidirectional communication scenarios between IoT devices and cloud servers, featuring small footprint, concise interfaces, and minimal dependencies. The library integrates mbedTLS support internally and can directly establish wss (WebSocket Secure) encrypted connections.
 
-当前版本：**1.2.4**
+Current version: **1.2.4**
 
-## 基础类型
+## Basic Types
 
-### rws_bool 布尔类型
+### rws_bool Boolean Type
 
-librws 定义了自定义布尔类型 `rws_bool`，作为无符号字符类型（unsigned char）的别名。
+librws defines a custom boolean type `rws_bool` as an alias for unsigned char.
 
 ```c
 typedef unsigned char rws_bool;
@@ -18,24 +18,24 @@ typedef unsigned char rws_bool;
 #define rws_false 0
 ```
 
-所有返回布尔状态的函数均使用此类型，判断时直接使用 `if (result == rws_true)` 或简写为 `if (result)`。
+All functions returning boolean status use this type. When checking, use `if (result == rws_true)` or simply `if (result)`.
 
-### rws_handle 句柄类型
+### rws_handle Type
 
-库中所有对象句柄均定义为 `void *` 类型，包括：
+All object handles in the library are defined as `void *` types, including:
 
-- `rws_socket` - Socket 句柄
-- `rws_error` - 错误对象句柄
-- `rws_mutex` - 互斥锁句柄
-- `rws_thread` - 线程句柄
+- `rws_socket` - Socket handle
+- `rws_error` - Error object handle
+- `rws_mutex` - Mutex handle
+- `rws_thread` - Thread handle
 
-## Socket 连接管理
+## Socket Connection Management
 
-### 创建与连接
+### Creation and Connection
 
 **rws_socket_create()**
 
-创建新的 WebSocket Socket 对象，返回句柄供后续操作使用。创建成功后需设置 URL 参数并调用 `rws_socket_connect()` 发起连接。
+Creates a new WebSocket Socket object and returns a handle for subsequent operations. After creation, URL parameters must be set and `rws_socket_connect()` called to initiate the connection.
 
 ```c
 rws_socket rws_socket_create(void);
@@ -43,100 +43,100 @@ rws_socket rws_socket_create(void);
 
 **rws_socket_set_url() / rws_socket_connect()**
 
-设置连接目标并发起连接。URL 由 scheme、host、port、path 四部分组成。
+Sets the connection target and initiates the connection. The URL consists of four parts: scheme, host, port, and path.
 
 ```c
 void rws_socket_set_url(rws_socket socket,
-                         const char * scheme,    // "ws" 或 "wss"
-                         const char * host,       // 服务器域名或 IP
-                         const int port,          // 端口号
-                         const char * path);      // 路径，如 "/"
+                         const char * scheme,    // "ws" or "wss"
+                         const char * host,       // Server domain or IP
+                         const int port,          // Port number
+                         const char * path);      // Path, e.g. "/"
 
 rws_bool rws_socket_connect(rws_socket socket);
 ```
 
-也可分步设置各参数：
+Parameters can also be set individually:
 
 ```c
-rws_socket_set_scheme(socket, "wss");      // 设置协议 scheme
-rws_socket_set_host(socket, "example.com"); // 设置主机
-rws_socket_set_port(socket, 8443);        // 设置端口
-rws_socket_set_path(socket, "/ws");       // 设置路径
+rws_socket_set_scheme(socket, "wss");       // Set protocol scheme
+rws_socket_set_host(socket, "example.com"); // Set host
+rws_socket_set_port(socket, 8443);          // Set port
+rws_socket_set_path(socket, "/ws");         // Set path
 ```
 
-**连接状态查询**
+**Connection Status Query**
 
 ```c
 rws_bool rws_socket_is_connected(rws_socket socket);
-// 返回 rws_true 表示已建立连接并完成握手
+// Returns rws_true if connection is established and handshake is complete
 ```
 
-### 断开与释放
+### Disconnection and Release
 
 **rws_socket_disconnect_and_release() / rws_socket_delete()**
 
-关闭 Socket 连接并释放资源。调用后该 Socket 句柄不可再使用。
+Closes the Socket connection and releases resources. After calling, the Socket handle must no longer be used.
 
 ```c
 void rws_socket_disconnect_and_release(rws_socket socket);
 void rws_socket_delete(rws_socket socket);
 ```
 
-## 消息发送
+## Message Sending
 
-librws 提供多种发送接口，支持文本和二进制数据。
+librws provides multiple send interfaces, supporting both text and binary data.
 
-### 文本消息发送
+### Text Message Sending
 
 **rws_socket_send_text() / rws_socket_send_text2()**
 
-发送文本帧到已连接的服务器。`send_text2` 允许指定长度。
+Sends a text frame to the connected server. `send_text2` allows specifying the length.
 
 ```c
 rws_bool rws_socket_send_text(rws_socket socket, const char * text);
 rws_bool rws_socket_send_text2(rws_socket socket, const char * text, size_t len);
 ```
 
-### 二进制消息发送
+### Binary Message Sending
 
-二进制数据发送采用分帧接口，分为开始、继续、结束三个阶段，适用于大数据量传输场景：
+Binary data sending uses a framing interface with three phases: start, continue, and finish, suitable for large data transfer scenarios:
 
 ```c
-// 开始发送二进制数据（发送帧头）
+// Start sending binary data (send frame header)
 rws_bool rws_socket_send_bin_start(rws_socket socket, const char * bin, size_t len);
 
-// 继续发送二进制数据
+// Continue sending binary data
 rws_bool rws_socket_send_bin_continue(rws_socket socket, const char * bin, size_t len);
 
-// 结束发送（发送帧尾）
+// Finish sending (send frame trailer)
 rws_bool rws_socket_send_bin_finish(rws_socket socket, const char * bin, size_t len);
 ```
 
-### 发送相关常量
+### Send-Related Constants
 
 **RWS_MAX_SEND_APPEND_SIZE**
 
-定义了单次发送操作的最大缓冲大小：
+Defines the maximum buffer size for a single send operation:
 
 ```c
 #define RWS_MAX_SEND_APPEND_SIZE (1024 * 640)  // 640KB
 ```
 
-内部实现中，`send_append_size` 默认等于此值，标识发送队列的缓冲区上限。
+Internally, `send_append_size` defaults to this value, indicating the upper limit of the send queue buffer.
 
-### 低层发送接口
+### Low-Level Send Interface
 
-内部 `rws_socket_send()` 函数提供原始数据发送能力：
+The internal `rws_socket_send()` function provides raw data sending capability:
 
 ```c
 rws_bool rws_socket_send(rws_socket socket, const void * data, const size_t data_size);
 ```
 
-## 消息接收
+## Message Reception
 
-librws 采用回调模式处理接收数据，需预先注册回调函数。
+librws uses a callback pattern to handle received data; callback functions must be registered in advance.
 
-### 接收回调注册
+### Receive Callback Registration
 
 **rws_socket_on_received_text() / rws_socket_on_received_bin()**
 
@@ -155,15 +155,15 @@ void rws_socket_set_on_received_text(rws_socket socket, rws_on_socket_recvd_text
 void rws_socket_set_on_received_bin(rws_socket socket, rws_on_socket_recvd_bin callback);
 ```
 
-回调参数中的 `is_finished` 标识当前帧是否为消息的最后一帧（用于分片传输场景）。
+The callback parameter `is_finished` indicates whether the current frame is the last frame of the message (used for fragmented transmission scenarios).
 
-## 连接状态回调
+## Connection Status Callbacks
 
-### 连接建立回调
+### Connection Established Callback
 
 **rws_socket_on_connected()**
 
-当 WebSocket 握手成功完成后触发。
+Triggered when the WebSocket handshake completes successfully.
 
 ```c
 typedef void (*rws_on_socket)(rws_socket socket);
@@ -171,32 +171,32 @@ typedef void (*rws_on_socket)(rws_socket socket);
 void rws_socket_set_on_connected(rws_socket socket, rws_on_socket callback);
 ```
 
-### 断开连接回调
+### Disconnection Callback
 
 **rws_socket_on_disconnected()**
 
-当连接关闭时触发，包括主动断开和异常断开发。
+Triggered when the connection is closed, including both intentional disconnection and abnormal disconnection.
 
 ```c
 void rws_socket_set_on_disconnected(rws_socket socket, rws_on_socket callback);
 ```
 
-### Pong 回调
+### Pong Callback
 
-收到服务器 Pong 响应时触发（用于心跳检测）：
+Triggered when a server Pong response is received (used for heartbeat detection):
 
 ```c
 typedef void (*rws_on_socket_recvd_pong)(rws_socket socket);
 void rws_socket_set_on_received_pong(rws_socket socket, rws_on_socket_recvd_pong callback);
 ```
 
-## 线程管理
+## Thread Management
 
-librws 内部使用工作线程处理网络 I/O，库同时提供线程创建接口供应用层使用。
+librws internally uses worker threads for network I/O processing. The library also provides a thread creation interface for application layer use.
 
 ### rws_thread_create()
 
-创建并立即启动新线程：
+Creates and immediately starts a new thread:
 
 ```c
 typedef void (*rws_thread_funct)(void * user_object);
@@ -206,7 +206,7 @@ RWS_API(rws_thread) rws_thread_create(rws_thread_funct thread_function, void * u
 
 ### rws_thread_join()
 
-等待线程结束并获取返回值：
+Waits for a thread to finish and retrieves the return value:
 
 ```c
 RWS_API(int) rws_thread_join(rws_thread thread, void ** retval);
@@ -214,15 +214,15 @@ RWS_API(int) rws_thread_join(rws_thread thread, void ** retval);
 
 ### rws_thread_sleep()
 
-线程睡眠（毫秒级）：
+Thread sleep (millisecond granularity):
 
 ```c
 RWS_API(void) rws_thread_sleep(const unsigned int millisec);
 ```
 
-## 错误处理
+## Error Handling
 
-### 获取错误
+### Getting Errors
 
 ```c
 rws_error rws_socket_get_error(rws_socket socket);
@@ -231,21 +231,21 @@ const char * rws_error_get_description(rws_error error);
 int rws_error_get_http_error(rws_error error);
 ```
 
-### 错误码定义
+### Error Code Definitions
 
-| 错误码 | 含义 |
-|--------|------|
-| rws_error_code_none | 无错误 |
-| rws_error_code_missed_parameter | 缺少必要参数 |
-| rws_error_code_send_handshake | 发送握手失败 |
-| rws_error_code_parse_handshake | 解析握手响应失败 |
-| rws_error_code_read_write_socket | Socket 读写错误 |
-| rws_error_code_connect_to_host | 连接主机失败 |
-| rws_error_code_connection_closed | 连接被关闭 |
+| Error Code | Meaning |
+|------------|---------|
+| rws_error_code_none | No error |
+| rws_error_code_missed_parameter | Missing required parameter |
+| rws_error_code_send_handshake | Handshake send failed |
+| rws_error_code_parse_handshake | Handshake response parse failed |
+| rws_error_code_read_write_socket | Socket read/write error |
+| rws_error_code_connect_to_host | Host connection failed |
+| rws_error_code_connection_closed | Connection closed |
 
-## SSL/TLS 支持
+## SSL/TLS Support
 
-启用 SSL 时（`WEBSOCKET_SSL_ENABLE`），可设置服务器证书：
+When SSL is enabled (`WEBSOCKET_SSL_ENABLE`), the server certificate can be set:
 
 ```c
 void rws_socket_set_server_cert(rws_socket socket,
@@ -253,99 +253,99 @@ void rws_socket_set_server_cert(rws_socket socket,
                                 int server_cert_len);
 ```
 
-## 超时设置
+## Timeout Settings
 
 ```c
-// 设置读取超时（毫秒）
+// Set read timeout (milliseconds)
 int rws_socket_set_read_timeout(rws_socket socket, int timeout_ms);
 
-// 设置写入超时（毫秒）
+// Set write timeout (milliseconds)
 int rws_socket_set_write_timeout(rws_socket socket, int timeout_ms);
 ```
 
-## 用户对象绑定
+## User Object Binding
 
-Socket 支持绑定用户自定义对象，便于在回调中识别上下文：
+Sockets support binding custom user objects, making it easy to identify context in callbacks:
 
 ```c
 void rws_socket_set_user_object(rws_socket socket, void * user_object);
 void * rws_socket_get_user_object(rws_socket socket);
 ```
 
-## WebSocket 与 MQTT 协议对比
+## WebSocket vs MQTT Protocol Comparison
 
-| 特性 | WebSocket (librws) | MQTT |
-|------|-------------------|------|
-| 协议层级 | 应用层（HTTP 升级） | 应用层（独立协议） |
-| 连接方式 | 持久化 TCP 长连接 | 持久化 TCP 长连接 |
-| 通信模式 | 双向消息流 | 发布/订阅（Pub/Sub） |
-| 消息模型 | 点对点，客户端-服务器 | 多对多，主题订阅 |
-| 头部开销 | 较小（2-14 字节/帧） | 很小（2字节最小） |
-| 适用场景 | 实时聊天、推送、页游 | IoT 传感器数据采集 |
-| QoS 支持 | 需应用层实现 | 原生支持 QoS 0/1/2 |
-| Broker 需求 | 普通 WebSocket 服务器 | MQTT Broker |
-| 复杂度 | 简单 | 中等 |
+| Feature | WebSocket (librws) | MQTT |
+|---------|--------------------|------|
+| Protocol Layer | Application (HTTP upgrade) | Application (standalone) |
+| Connection Type | Persistent TCP long connection | Persistent TCP long connection |
+| Communication Mode | Bidirectional message stream | Publish/Subscribe (Pub/Sub) |
+| Message Model | Point-to-point, client-server | Many-to-many, topic subscription |
+| Header Overhead | Small (2-14 bytes/frame) | Very small (2 bytes minimum) |
+| Suitable Scenarios | Real-time chat, push, browser games | IoT sensor data collection |
+| QoS Support | Application layer implementation needed | Native QoS 0/1/2 support |
+| Broker Requirements | Standard WebSocket server | MQTT Broker |
+| Complexity | Simple | Moderate |
 
-**选择建议**：
+**Selection Advice**:
 
-- 简单请求-响应场景或需要透过防火墙的 Web 应用 → WebSocket
-- 大规模设备数据采集、多对多消息分发 → MQTT
-- 需要兼容现有 Web 技术栈 → WebSocket
+- Simple request-response scenarios or web applications that need to traverse firewalls → WebSocket
+- Large-scale device data collection, many-to-many message distribution → MQTT
+- Need compatibility with existing web technology stack → WebSocket
 
-## 代码示例
+## Code Examples
 
-以下示例演示如何连接 wss:// 服务器并进行消息收发：
+The following example demonstrates how to connect to a wss:// server and send/receive messages:
 
 ```c
 #include "librws.h"
 #include <stdio.h>
 
-// 全局 socket 句柄
+// Global socket handle
 static rws_socket g_socket = NULL;
 
-// 连接建立回调
+// Connection established callback
 static void on_connected(rws_socket socket) {
     printf("[WS] Connected\r\n");
     
-    // 连接成功后发送文本消息
+    // Send text message after successful connection
     const char *msg = "Hello, Server!";
     rws_socket_send_text(socket, msg);
 }
 
-// 接收文本回调
+// Receive text callback
 static void on_received_text(rws_socket socket, const char * text, 
                              const unsigned int length, bool is_finished) {
     printf("[WS] Received (%u bytes): %.*s\r\n", length, length, text);
 }
 
-// 断开连接回调
+// Disconnection callback
 static void on_disconnected(rws_socket socket) {
     printf("[WS] Disconnected\r\n");
     g_socket = NULL;
 }
 
-// 初始化 WebSocket 客户端
+// Initialize WebSocket client
 int ws_client_init(void) {
-    // 创建 socket 对象
+    // Create socket object
     g_socket = rws_socket_create();
     if (!g_socket) {
         printf("[WS] Create failed\r\n");
         return -1;
     }
     
-    // 设置回调
+    // Set callbacks
     rws_socket_set_on_connected(g_socket, on_connected);
     rws_socket_set_on_disconnected(g_socket, on_disconnected);
     rws_socket_set_on_received_text(g_socket, on_received_text);
     
-    // 设置连接参数 (wss://echo.websocket.org:443/)
+    // Set connection parameters (wss://echo.websocket.org:443/)
     rws_socket_set_url(g_socket, "wss", "echo.websocket.org", 443, "/");
     
-    // 设置超时（可选）
+    // Set timeouts (optional)
     rws_socket_set_read_timeout(g_socket, 5000);
     rws_socket_set_write_timeout(g_socket, 5000);
     
-    // 发起连接
+    // Initiate connection
     if (rws_socket_connect(g_socket) != rws_true) {
         printf("[WS] Connect failed\r\n");
         rws_socket_delete(g_socket);
@@ -357,7 +357,7 @@ int ws_client_init(void) {
     return 0;
 }
 
-// 断开并清理
+// Disconnect and cleanup
 void ws_client_cleanup(void) {
     if (g_socket) {
         rws_socket_disconnect_and_release(g_socket);
@@ -366,10 +366,10 @@ void ws_client_cleanup(void) {
 }
 ```
 
-### 二进制数据发送示例
+### Binary Data Sending Example
 
 ```c
-// 发送二进制数据（分帧）
+// Send binary data (framed)
 static void send_binary_data(rws_socket socket, const uint8_t *data, size_t len) {
     size_t chunk_size = 1024;
     size_t offset = 0;
@@ -379,13 +379,13 @@ static void send_binary_data(rws_socket socket, const uint8_t *data, size_t len)
         size_t send_len = (remain > chunk_size) ? chunk_size : remain;
         
         if (offset == 0) {
-            // 开始帧
+            // Start frame
             rws_socket_send_bin_start(socket, (const char *)data, send_len);
         } else if (offset + send_len < len) {
-            // 继续帧
+            // Continue frame
             rws_socket_send_bin_continue(socket, (const char *)(data + offset), send_len);
         } else {
-            // 结束帧
+            // Finish frame
             rws_socket_send_bin_finish(socket, (const char *)(data + offset), send_len);
         }
         
@@ -394,11 +394,11 @@ static void send_binary_data(rws_socket socket, const uint8_t *data, size_t len)
 }
 ```
 
-## 参考
+## References
 
-- [librws 官方仓库](https://github.com/nekopub/librws) - 轻量级 WebSocket 客户端库
-- [WebSocket 协议 RFC 6455](https://tools.ietf.org/html/rfc6455) - WebSocket 标准协议规范
-- Bouffalo SDK xwebsocket 组件源码：
+- [librws Official Repository](https://github.com/nekopub/librws) - Lightweight WebSocket client library
+- [WebSocket Protocol RFC 6455](https://tools.ietf.org/html/rfc6455) - WebSocket standard protocol specification
+- Bouffalo SDK xwebsocket component source:
   - `components/multimedia/xwebsocket/include/librws.h`
   - `components/multimedia/xwebsocket/include/rws_socket.h`
   - `components/multimedia/xwebsocket/include/rws_frame.h`

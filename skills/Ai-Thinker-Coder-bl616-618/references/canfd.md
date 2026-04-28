@@ -1015,7 +1015,7 @@ The CTRL register spans 4 bytes (0xA0–0xA3) with multiple sub-registers:
 
 | Bits | Name | Description |
 |------|------|-------------|
-| 24-25 | `RSTAT` | RB status (0=empty, 1<阈值, 2≥阈值, 3=full) |
+| 24-25 | `RSTAT` | RB status (0=empty, 1<threshold, 2≥threshold, 3=full) |
 | 27 | `RBALL` | Store both correct and error frames |
 | 28 | `RREL` | Release current RB slot |
 | 29 | `ROV` | RB overrun flag |

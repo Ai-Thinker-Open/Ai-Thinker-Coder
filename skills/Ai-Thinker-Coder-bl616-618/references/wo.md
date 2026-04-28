@@ -1,202 +1,202 @@
 # WO Waveform Output API Reference (BL616/BL618)
 
-## 概述
+## Overview
 
-**WO (Waveform Output)** 是 BL616/BL618 芯片的波形输出外设，通过GPIO产生精确的双电平波形信号，广泛用于驱动 WS2812 等单线协议LED、UART bit-banging、信号调制等场景。
+**WO (Waveform Output)** is the waveform output peripheral of the BL616/BL618 chip, generating precise dual-level waveform signals via GPIO. It is widely used for driving single-wire protocol LEDs such as WS2812, UART bit-banging, signal modulation, and other scenarios.
 
-WO 实际上嵌入在 **GLB (Global Controller)** 外设内部，通过配置 GPIO 的特殊功能模式工作。核心原理：配置两个电平的时间比例（code0/code1），通过 FIFO 推送 16 位数据，每位决定输出 code0 还是 code1 波形。
+WO is actually embedded inside the **GLB (Global Controller)** peripheral and operates by configuring GPIO special function modes. Core principle: configure the time ratio of two levels (code0/code1), push 16-bit data via FIFO, where each bit determines whether a code0 or code1 waveform is output.
 
-**典型应用**：
-- WS2812 / NeoPixel RGB LED 驱动
-- 单线协议设备通信
-- UART 透传（WO UART 模式）
-- 任意双电平信号输出
+**Typical Applications**:
+- WS2812 / NeoPixel RGB LED driver
+- Single-wire protocol device communication
+- UART passthrough (WO UART mode)
+- Arbitrary dual-level signal output
 
-**基地址**：WO 寄存器位于 GLB 地址空间，通过 `bflb_device_get_by_name("wo")` 获取设备句柄。
+**Base Address**: WO registers are located in the GLB address space. Obtain the device handle via `bflb_device_get_by_name("wo")`.
 
 ---
 
-## 头文件
+## Header Files
 
 ```c
 #include "bflb_wo.h"           // LHAL API
-#include "hardware/wo_reg.h"    // 寄存器定义
+#include "hardware/wo_reg.h"    // Register definitions
 ```
 
 ---
 
-## 模式定义
+## Mode Definitions
 
-### WO_MODE — 工作模式
+### WO_MODE — Operating Mode
 
 ```c
-#define WO_MODE_WRITE   0  // WO direct write（直接写入）
-#define WO_MODE_SET_CLR 1  // WO set/clr（设置/清除）
+#define WO_MODE_WRITE   0  // WO direct write
+#define WO_MODE_SET_CLR 1  // WO set/clr
 ```
 
-### WO_INT — 中断类型
+### WO_INT — Interrupt Types
 
 ```c
-#define WO_INT_END  (1 << 0)  // WO 传输结束中断（TX FIFO 空）
-#define WO_INT_FIFO (1 << 1)  // WO FIFO 就绪中断（可写入数据）
-#define WO_INT_FER  (1 << 2)  // WO FIFO 错误中断（溢出/下溢）
+#define WO_INT_END  (1 << 0)  // WO transfer end interrupt (TX FIFO empty)
+#define WO_INT_FIFO (1 << 1)  // WO FIFO ready interrupt (data can be written)
+#define WO_INT_FER  (1 << 2)  // WO FIFO error interrupt (overflow/underflow)
 ```
 
 ---
 
-## 配置结构体
+## Configuration Structure
 
 ### bflb_wo_cfg_s
 
 ```c
 struct bflb_wo_cfg_s {
-    uint16_t code_total_cnt;     // 一个周期的总计数，应小于 512
-    uint8_t  code0_first_cnt;   // code0 高电平计数，应小于 256
-    uint8_t  code1_first_cnt;   // code1 高电平计数，应小于 256
-    uint8_t  code0_first_level; // code0 起始电平（0=低，1=高）
-    uint8_t  code1_first_level; // code1 起始电平（0=低，1=高）
-    uint8_t  idle_level;        // 空闲时 GPIO 电平（0=低，1=高）
-    uint8_t  fifo_threshold;    // FIFO 阈值，应小于 128
-    uint8_t  mode;              // 工作模式，使用 WO_MODE
+    uint16_t code_total_cnt;     // Total count per cycle, should be < 512
+    uint8_t  code0_first_cnt;   // code0 high-level count, should be < 256
+    uint8_t  code1_first_cnt;   // code1 high-level count, should be < 256
+    uint8_t  code0_first_level; // code0 starting level (0=low, 1=high)
+    uint8_t  code1_first_level; // code1 starting level (0=low, 1=high)
+    uint8_t  idle_level;        // Idle GPIO level (0=low, 1=high)
+    uint8_t  fifo_threshold;    // FIFO threshold, should be < 128
+    uint8_t  mode;              // Operating mode, use WO_MODE
 };
 ```
 
 ---
 
-## 寄存器映射（GLB GPIO 配置区）
+## Register Map (GLB GPIO Configuration Area)
 
-WO 实际由 GLB 外设内的 GPIO 配置寄存器实现：
+WO is actually implemented via GPIO configuration registers within the GLB peripheral:
 
-| 寄存器 | 地址偏移 | 说明 |
-|--------|----------|------|
-| `GLB_GPIO_CFG0 + pin×4` | `0x8C4 + pin×4` | 每个 GPIO 引脚的配置（含 WO 功能选择） |
-| `GLB_GPIO_CFG142` | `0xAFC` | WO 核心控制：波形时序、FIFO、DMA |
-| `GLB_GPIO_CFG143` | `0xB00` | WO DMA 使能、FIFO 状态、中断 |
-| `GLB_GPIO_CFG144` | `0xB04` | WO 发送数据端口 |
+| Register | Address Offset | Description |
+|----------|---------------|-------------|
+| `GLB_GPIO_CFG0 + pin×4` | `0x8C4 + pin×4` | Per-GPIO pin configuration (including WO function selection) |
+| `GLB_GPIO_CFG142` | `0xAFC` | WO core control: waveform timing, FIFO, DMA |
+| `GLB_GPIO_CFG143` | `0xB00` | WO DMA enable, FIFO status, interrupts |
+| `GLB_GPIO_CFG144` | `0xB04` | WO transmit data port |
 
-### GLB_GPIO_CFG142 关键位字段
+### GLB_GPIO_CFG142 Key Bit Fields
 
 ```c
 // 0xAFC : GLB_GPIO_CFG142
-#define GLB_CR_INVERT_CODE0_HIGH   (1 << 1)   // code0 电平反转
-#define GLB_CR_INVERT_CODE1_HIGH   (1 << 2)   // code1 电平反转
-#define GLB_CR_CODE_TOTAL_TIME_SHIFT (7)       // 周期总计数（9位）
+#define GLB_CR_INVERT_CODE0_HIGH   (1 << 1)   // code0 level invert
+#define GLB_CR_INVERT_CODE1_HIGH   (1 << 2)   // code1 level invert
+#define GLB_CR_CODE_TOTAL_TIME_SHIFT (7)       // Cycle total count (9 bits)
 #define GLB_CR_CODE_TOTAL_TIME_MASK  (0x1FF << 7)
-#define GLB_CR_CODE0_HIGH_TIME_SHIFT (16)      // code0 高电平计数（8位）
+#define GLB_CR_CODE0_HIGH_TIME_SHIFT (16)      // code0 high-level count (8 bits)
 #define GLB_CR_CODE0_HIGH_TIME_MASK (0xFF << 16)
-#define GLB_CR_CODE1_HIGH_TIME_SHIFT (24)      // code1 高电平计数（8位）
+#define GLB_CR_CODE1_HIGH_TIME_SHIFT (24)      // code1 high-level count (8 bits)
 #define GLB_CR_CODE1_HIGH_TIME_MASK (0xFF << 24)
-#define GLB_CR_GPIO_TX_EN           (1 << 0)   // WO 输出使能
+#define GLB_CR_GPIO_TX_EN           (1 << 0)   // WO output enable
 ```
 
-### GLB_GPIO_CFG143 关键位字段
+### GLB_GPIO_CFG143 Key Bit Fields
 
 ```c
 // 0xB00 : GLB_GPIO_CFG143
-#define GLB_CR_GPIO_DMA_TX_EN       (1 << 0)   // WO DMA 发送使能
-#define GLB_GPIO_TX_FIFO_CLR       (1 << 2)   // FIFO 清零
-#define GLB_GPIO_TX_END_CLR        (1 << 3)   // 传输结束标志清零
-#define GLB_GPIO_TX_FIFO_OVERFLOW   (1 << 4)   // FIFO 溢出标志（只读）
-#define GLB_GPIO_TX_FIFO_UNDERFLOW  (1 << 5)   // FIFO 下溢标志（只读）
-#define GLB_CR_GPIO_TX_FIFO_TH_SHIFT (16)      // FIFO 阈值（7位）
-#define GLB_CR_GPIO_TX_END_MASK    (1 << 23)   // 结束中断屏蔽
-#define GLB_CR_GPIO_TX_FIFO_MASK   (1 << 24)   // FIFO 中断屏蔽
-#define GLB_CR_GPIO_TX_FER_MASK    (1 << 25)   // FIFO 错误中断屏蔽
-#define GLB_R_GPIO_TX_END_INT      (1 << 26)   // 结束中断标志（只读）
-#define GLB_R_GPIO_TX_FIFO_INT     (1 << 27)   // FIFO 中断标志（只读）
-#define GLB_R_GPIO_TX_FER_INT      (1 << 28)   // FIFO 错误中断标志（只读）
-#define GLB_CR_GPIO_TX_END_EN      (1 << 29)   // 结束中断使能
-#define GLB_CR_GPIO_TX_FIFO_EN     (1 << 30)   // FIFO 中断使能
-#define GLB_CR_GPIO_TX_FER_EN      (1 << 31)   // FIFO 错误中断使能
+#define GLB_CR_GPIO_DMA_TX_EN       (1 << 0)   // WO DMA transmit enable
+#define GLB_GPIO_TX_FIFO_CLR       (1 << 2)   // FIFO clear
+#define GLB_GPIO_TX_END_CLR        (1 << 3)   // Transfer end flag clear
+#define GLB_GPIO_TX_FIFO_OVERFLOW   (1 << 4)   // FIFO overflow flag (read-only)
+#define GLB_GPIO_TX_FIFO_UNDERFLOW  (1 << 5)   // FIFO underflow flag (read-only)
+#define GLB_CR_GPIO_TX_FIFO_TH_SHIFT (16)      // FIFO threshold (7 bits)
+#define GLB_CR_GPIO_TX_END_MASK    (1 << 23)   // End interrupt mask
+#define GLB_CR_GPIO_TX_FIFO_MASK   (1 << 24)   // FIFO interrupt mask
+#define GLB_CR_GPIO_TX_FER_MASK    (1 << 25)   // FIFO error interrupt mask
+#define GLB_R_GPIO_TX_END_INT      (1 << 26)   // End interrupt flag (read-only)
+#define GLB_R_GPIO_TX_FIFO_INT     (1 << 27)   // FIFO interrupt flag (read-only)
+#define GLB_R_GPIO_TX_FER_INT      (1 << 28)   // FIFO error interrupt flag (read-only)
+#define GLB_CR_GPIO_TX_END_EN      (1 << 29)   // End interrupt enable
+#define GLB_CR_GPIO_TX_FIFO_EN     (1 << 30)   // FIFO interrupt enable
+#define GLB_CR_GPIO_TX_FER_EN      (1 << 31)   // FIFO error interrupt enable
 ```
 
 ---
 
-## API 函数
+## API Functions
 
-### bflb_wo_pin_init — 初始化 WO 引脚
+### bflb_wo_pin_init — Initialize WO Pin
 
 ```c
 void bflb_wo_pin_init(struct bflb_device_s *dev, uint8_t pin, uint8_t mode);
 ```
 
-将指定 GPIO 引脚配置为 WO 模式并分配给 WO 外设。
+Configure a specified GPIO pin in WO mode and assign it to the WO peripheral.
 
-**参数**：
-- `pin` — GPIO 引脚号（如 `10`）
-- `mode` — `WO_MODE_WRITE` 或 `WO_MODE_SET_CLR`
+**Parameters**:
+- `pin` — GPIO pin number (e.g., `10`)
+- `mode` — `WO_MODE_WRITE` or `WO_MODE_SET_CLR`
 
-**实现细节**：将 GPIO 的 `FUNC_SEL` 设置为 `0xB`，`MODE` 设置为 `2`（WRITE）或 `3`（SET_CLR）。
+**Implementation details**: Sets the GPIO `FUNC_SEL` to `0xB`, `MODE` to `2` (WRITE) or `3` (SET_CLR).
 
 ---
 
-### bflb_wo_init — 初始化 WO 外设
+### bflb_wo_init — Initialize WO Peripheral
 
 ```c
 void bflb_wo_init(struct bflb_device_s *dev, struct bflb_wo_cfg_s *cfg);
 ```
 
-初始化 WO 核心功能（波形时序、FIFO、极性）。
+Initialize WO core functionality (waveform timing, FIFO, polarity).
 
-> ⚠️ 对于 **BL616CL**，此 API 会将时钟分频器重置为 1。如需自定义分频，调用 `bflb_wo_set_clk_div()`。
+> ⚠️ For **BL616CL**, this API resets the clock divider to 1. To use a custom divider, call `bflb_wo_set_clk_div()`.
 
 ---
 
-### bflb_wo_set_clk_div — 设置时钟分频（仅 BL616CL）
+### bflb_wo_set_clk_div — Set Clock Divider (BL616CL only)
 
 ```c
 void bflb_wo_set_clk_div(struct bflb_device_s *dev, uint16_t clk_div);
 ```
 
-**注意**：
-- 分频值默认为 1
-- `bflb_wo_init()` 会将分频重置为 1，**需在 `bflb_wo_init()` 之后调用**
-- 分频值非 1 时，WO 首次产生的波形占空比可能不准确
+**Note**:
+- Default divider value is 1
+- `bflb_wo_init()` resets the divider to 1, **must be called after `bflb_wo_init()`**
+- When the divider is not 1, the duty cycle of the first WO-generated waveform may be inaccurate
 
 ---
 
-### bflb_wo_enable / bflb_wo_disable — 使能/关闭 WO
+### bflb_wo_enable / bflb_wo_disable — Enable/Disable WO
 
 ```c
 void bflb_wo_enable(struct bflb_device_s *dev);
 void bflb_wo_disable(struct bflb_device_s *dev);
 ```
 
-使能后 GPIO 开始输出 WO 波形，关闭后 GPIO 恢复普通 GPIO 功能。
+After enabling, the GPIO starts outputting WO waveforms. After disabling, the GPIO reverts to normal GPIO function.
 
 ---
 
-### bflb_wo_get_fifo_available_cnt — 查询 FIFO 可用空间
+### bflb_wo_get_fifo_available_cnt — Query FIFO Available Space
 
 ```c
 uint32_t bflb_wo_get_fifo_available_cnt(struct bflb_device_s *dev);
 ```
 
-**返回**：FIFO 当前可写入的 16 位数据个数。
+**Returns**: The current number of 16-bit data words that can be written to the FIFO.
 
 ---
 
-### bflb_wo_push_fifo — 推送数据到 FIFO
+### bflb_wo_push_fifo — Push Data to FIFO
 
 ```c
 uint32_t bflb_wo_push_fifo(struct bflb_device_s *dev, uint16_t *data, uint32_t len);
 ```
 
-**返回**：成功写入的数据个数（可能少于 `len`，取决于 FIFO 剩余空间）。
+**Returns**: The number of data words successfully written (may be less than `len`, depending on FIFO remaining space).
 
 ---
 
-### bflb_wo_push_fifo_force — 强制推送数据
+### bflb_wo_push_fifo_force — Force Push Data
 
 ```c
 void bflb_wo_push_fifo_force(struct bflb_device_s *dev, uint16_t *data, uint32_t len);
 ```
 
-强制推送数据，**直到 FIFO 满才停止**（阻塞式）。
+Force pushes data, **stops only when FIFO is full** (blocking).
 
 ---
 
-### bflb_wo_clear_fifo — 清空 FIFO
+### bflb_wo_clear_fifo — Clear FIFO
 
 ```c
 void bflb_wo_clear_fifo(struct bflb_device_s *dev);
@@ -204,51 +204,51 @@ void bflb_wo_clear_fifo(struct bflb_device_s *dev);
 
 ---
 
-### bflb_wo_enable_dma / bflb_wo_disable_dma — DMA 使能
+### bflb_wo_enable_dma / bflb_wo_disable_dma — DMA Enable
 
 ```c
 void bflb_wo_enable_dma(struct bflb_device_s *dev);
 void bflb_wo_disable_dma(struct bflb_device_s *dev);
 ```
 
-WO 支持 DMA 传输，DMA 源为 `DMA_REQUEST_WO`。
+WO supports DMA transfer. DMA source is `DMA_REQUEST_WO`.
 
 ---
 
-### 中断相关
+### Interrupt Related
 
 ```c
-uint32_t bflb_wo_get_int_status(struct bflb_device_s *dev);  // 获取中断状态
-void bflb_wo_int_mask(struct bflb_device_s *dev, uint32_t int_type);      // 屏蔽中断
-void bflb_wo_int_unmask(struct bflb_device_s *dev, uint32_t int_type);   // 解除屏蔽
-void bflb_wo_int_clear(struct bflb_device_s *dev, uint32_t int_type);    // 清除中断标志
+uint32_t bflb_wo_get_int_status(struct bflb_device_s *dev);  // Get interrupt status
+void bflb_wo_int_mask(struct bflb_device_s *dev, uint32_t int_type);      // Mask interrupt
+void bflb_wo_int_unmask(struct bflb_device_s *dev, uint32_t int_type);   // Unmask interrupt
+void bflb_wo_int_clear(struct bflb_device_s *dev, uint32_t int_type);    // Clear interrupt flag
 ```
 
 ---
 
-### WO UART 模式
+### WO UART Mode
 
-WO 内置 UART bit-banging 模式，可通过任意 GPIO 模拟 UART 发送：
+WO has a built-in UART bit-banging mode, allowing UART transmission to be simulated on any GPIO:
 
 ```c
-// 初始化 WO UART
+// Initialize WO UART
 void bflb_wo_uart_init(struct bflb_device_s *dev, uint32_t baudrate, uint8_t pin);
 
-// 发送单个字符
+// Send a single character
 void bflb_wo_uart_putchar(struct bflb_device_s *dev, uint8_t ch);
 
-// 发送数据块（轮询）
+// Send a data block (polling)
 void bflb_wo_uart_put(struct bflb_device_s *dev, uint8_t *data, uint32_t len);
 ```
 
 ---
 
-## WS2812 驱动完整示例
+## Complete WS2812 Driver Example
 
-WS2812 是单线RGB LED，每个 bit 由一个周期表示：
-- `0` = 高电平 0.4μs + 低电平 0.85μs
-- `1` = 高电平 0.85μs + 低电平 0.4μs
-- 每个 RGB 像素需要 24 个 bit（GRB 顺序）
+WS2812 is a single-wire RGB LED where each bit is represented by one cycle:
+- `0` = High 0.4μs + Low 0.85μs
+- `1` = High 0.85μs + Low 0.4μs
+- Each RGB pixel requires 24 bits (GRB order)
 
 ```c
 #include "bflb_wo.h"
@@ -265,11 +265,11 @@ static ATTR_NOCACHE_RAM_SECTION struct bflb_dma_channel_lli_pool_s llipool[1];
 static ATTR_NOCACHE_RAM_SECTION struct bflb_dma_channel_lli_transfer_s transfers[1];
 uint16_t buffer_data[WS2812_BUFFER] __attribute__((aligned(32)));
 
-/* WS2812 时序配置（XCLK=40MHz，周期=1.25μs） */
+/* WS2812 timing config (XCLK=40MHz, cycle=1.25μs) */
 struct bflb_wo_cfg_s wo_cfg = {
     .code_total_cnt = 50,   /* 40MHz / 50 = 800kHz */
-    .code0_first_cnt = 16,  /* 高电平 0.4μs = 1.25μs * 16/50 */
-    .code1_first_cnt = 34,  /* 高电平 0.85μs = 1.25μs * 34/50 */
+    .code0_first_cnt = 16,  /* High 0.4μs = 1.25μs * 16/50 */
+    .code1_first_cnt = 34,  /* High 0.85μs = 1.25μs * 34/50 */
     .code0_first_level = 1,
     .code1_first_level = 1,
     .idle_level = 0,
@@ -289,7 +289,7 @@ struct bflb_dma_channel_config_s dma_cfg = {
     .dst_width = DMA_DATA_WIDTH_16BIT,
 };
 
-/* 将 RGB 颜色转换为 WS2812 数据（GRB 顺序） */
+/* Convert RGB color to WS2812 data (GRB order) */
 static void set_rgb_color(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
 {
     for (int i = 0; i < 8; i++) {
@@ -301,45 +301,45 @@ static void set_rgb_color(uint16_t index, uint8_t r, uint8_t g, uint8_t b)
 
 void app_main(void)
 {
-    /* 获取设备句柄 */
+    /* Get device handles */
     wo = bflb_device_get_by_name("wo");
     dma0_ch0 = bflb_device_get_by_name("dma0_ch0");
 
-    /* 初始化 WO 引脚 */
+    /* Initialize WO pin */
     bflb_wo_pin_init(wo, WS2812_PIN, WO_MODE_WRITE);
 
-    /* 初始化 WO */
+    /* Initialize WO */
     bflb_wo_init(wo, &wo_cfg);
 
-    /* 配置 DMA */
+    /* Configure DMA */
     bflb_dma_channel_init(dma0_ch0, DMA_CH0, &dma_cfg);
     bflb_dma_channel_lli_reinit(dma0_ch0, DMA_CH0, llipool, 1);
 
-    /* 填充颜色数据 */
+    /* Fill color data */
     for (int i = 0; i < WS2812_NUM; i++) {
-        set_rgb_color(i, 255, 0, 0);  /* 全红 */
+        set_rgb_color(i, 255, 0, 0);  /* All red */
     }
 
-    /* 准备 DMA 传输 */
+    /* Prepare DMA transfer */
     transfers[0].src_addr = (uint32_t)buffer_data;
     transfers[0].dst_addr = (uint32_t)(dev->reg_base + 0xB04);  /* GLB_GPIO_CFG144 */
     transfers[0].next = (uint32_t)0;
     transfers[0].nbytes = sizeof(buffer_data);
     bflb_dma_channel_lli_add_node(dma0_ch0, DMA_CH0, transfers);
 
-    /* 启动 DMA + WO */
+    /* Start DMA + WO */
     bflb_wo_enable_dma(wo);
     bflb_wo_enable(wo);
     bflb_dma_channel_start(dma0_ch0, DMA_CH0);
 
-    /* 等待传输完成 */
-    bflb_mtimer_delay_ms(2);  /* WS2812 需要 >50μs 低电平复位 */
+    /* Wait for transfer to complete */
+    bflb_mtimer_delay_ms(2);  /* WS2812 requires >50μs low-level reset */
 }
 ```
 
 ---
 
-## WO UART 模式示例（GPIO 模拟 UART）
+## WO UART Mode Example (GPIO-Simulated UART)
 
 ```c
 #include "bflb_wo.h"
@@ -350,19 +350,19 @@ void app_main(void)
 {
     wo = bflb_device_get_by_name("wo");
 
-    /* 将 GPIO10 配置为 WO UART，波特率 115200 */
+    /* Configure GPIO10 as WO UART, baud rate 115200 */
     bflb_wo_uart_init(wo, 115200, 10);
 
-    /* 发送字符串 */
+    /* Send string */
     bflb_wo_uart_put(wo, (uint8_t *)"Hello WO UART\r\n", 15);
 }
 ```
 
 ---
 
-## 寄存器级编程
+## Register-Level Programming
 
-直接操作 GLB 寄存器配置 WO：
+Directly operating GLB registers to configure WO:
 
 ```c
 #include "hardware/wo_reg.h"
@@ -370,25 +370,25 @@ void app_main(void)
 #define GLB_BASE  0x20000000
 #define GLB_GPIO_CFG142_OFFSET  0xAFC
 
-/* 假设已通过 bflb_gpio_init 将引脚配置为 WO 功能 */
+/* Assume the pin has been configured for WO function via bflb_gpio_init */
 uint32_t reg_base = GLB_BASE;
 
-/* 配置波形时序 */
+/* Configure waveform timing */
 uint32_t regval = getreg32(reg_base + GLB_GPIO_CFG142_OFFSET);
 regval &= ~GLB_CR_CODE_TOTAL_TIME_MASK;
 regval &= ~GLB_CR_CODE0_HIGH_TIME_MASK;
 regval &= ~GLB_CR_CODE1_HIGH_TIME_MASK;
 regval |= (50 << GLB_CR_CODE_TOTAL_TIME_SHIFT);
-regval |= (16 << GLB_CR_CODE0_HIGH_TIME_SHIFT);   /* code0 = 16/50 高电平 */
-regval |= (34 << GLB_CR_CODE1_HIGH_TIME_SHIFT);   /* code1 = 34/50 高电平 */
+regval |= (16 << GLB_CR_CODE0_HIGH_TIME_SHIFT);   /* code0 = 16/50 high */
+regval |= (34 << GLB_CR_CODE1_HIGH_TIME_SHIFT);   /* code1 = 34/50 high */
 putreg32(regval, reg_base + GLB_GPIO_CFG142_OFFSET);
 
-/* 使能 WO */
+/* Enable WO */
 regval = getreg32(reg_base + GLB_GPIO_CFG142_OFFSET);
 regval |= GLB_CR_GPIO_TX_EN;
 putreg32(regval, reg_base + GLB_GPIO_CFG142_OFFSET);
 
-/* 写数据到 FIFO（通过 GLB_GPIO_CFG144 = 0xB04）*/
+/* Write data to FIFO (via GLB_GPIO_CFG144 = 0xB04) */
 for (int i = 0; i < len; i++) {
     putreg32(data[i] & 0xFFFF, reg_base + 0xB04);
 }
@@ -396,23 +396,23 @@ for (int i = 0; i < len; i++) {
 
 ---
 
-## SDK 示例路径
+## SDK Example Paths
 
-| 示例 | 说明 |
-|------|------|
-| `examples/peripherals/wo/wo_ws2812/` | WS2812 RGB LED 驱动 + DMA |
+| Example | Description |
+|---------|-------------|
+| `examples/peripherals/wo/wo_ws2812/` | WS2812 RGB LED driver + DMA |
 | `examples/peripherals/wo/wo_console/` | WO UART Console |
-| `examples/peripherals/wo/wo_int/` | WO 中断示例 |
-| `examples/peripherals/wo/wo_uart/` | WO UART 模式 |
-| `examples/peripherals/wo/wo_dma/` | WO DMA 传输 |
+| `examples/peripherals/wo/wo_int/` | WO interrupt example |
+| `examples/peripherals/wo/wo_uart/` | WO UART mode |
+| `examples/peripherals/wo/wo_dma/` | WO DMA transfer |
 
 ---
 
-## 注意事项
+## Notes
 
-1. **XCLK 时钟**：WO 依赖 `XCLK` 时钟源，初始化前需确保时钟已使能
-2. **WS2812 时序**：必须严格遵守 WS2812 规格（800kHz ±15%），XCLK=40MHz 时 `code_total_cnt=50` 正好是 800kHz
-3. **DMA 传输**：DMA 目标地址固定为 `GLB_BASE + 0xB04`（GLB_GPIO_CFG144）
-4. **FIFO 阈值**：`fifo_threshold` 应设为 64 以下，否则可能触发 FIFO 错误中断
-5. **多字节颜色**：WS2812 使用 **GRB** 顺序，不是常见的 RGB
-6. **复位时间**：发送完数据后需要至少 **50μs 低电平** 复位才能发送到下一个 LED
+1. **XCLK clock**: WO depends on the `XCLK` clock source. Ensure the clock is enabled before initialization.
+2. **WS2812 timing**: Must strictly adhere to WS2812 specifications (800kHz ±15%). When XCLK=40MHz, `code_total_cnt=50` equals exactly 800kHz.
+3. **DMA transfer**: DMA destination address is fixed at `GLB_BASE + 0xB04` (GLB_GPIO_CFG144).
+4. **FIFO threshold**: `fifo_threshold` should be set to 64 or below; otherwise, FIFO error interrupts may be triggered.
+5. **Multi-byte color**: WS2812 uses **GRB** order, not the common RGB.
+6. **Reset time**: After sending data, at least **50μs of low level** is required to latch and move to the next LED.

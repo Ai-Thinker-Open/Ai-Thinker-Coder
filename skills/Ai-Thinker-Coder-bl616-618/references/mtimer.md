@@ -6,18 +6,18 @@
 
 ## Overview
 
-MTIMER (Machine Timer) 是基于 RISC-V 架构的 Machine Timer 外设提供的 64 位高精度硬件定时器接口。它使用 RISC-V 核心的 `mtime`/`mtimecmp` 寄存器（BL602/BL702）或 CSI Core Timer（BL616/BL618），提供微秒级时间戳和精确延时功能。
+MTIMER (Machine Timer) is a 64-bit high-precision hardware timer interface based on the RISC-V architecture's Machine Timer peripheral. It uses the RISC-V core's `mtime`/`mtimecmp` registers (BL602/BL702) or CSI Core Timer (BL616/BL618) to provide microsecond-level timestamps and precise delay functionality.
 
-**主要特性：**
-- 64 位高精度时间戳（微秒级）
-- 硬件定时器中断支持
-- 微秒/毫秒延时函数（阻塞式）
-- 默认频率 1 MHz（1 tick = 1 μs）
-- 函数位于 TCM 段以提供低延迟访问
+**Key Features:**
+- 64-bit high-precision timestamp (microsecond level)
+- Hardware timer interrupt support
+- Microsecond/millisecond delay functions (blocking)
+- Default frequency 1 MHz (1 tick = 1 μs)
+- Functions located in TCM section for low-latency access
 
-## MTIMER 频率
+## MTIMER Frequency
 
-默认定时器频率为 **1 MHz**（每秒 1,000,000 ticks），可通过重写 `bflb_mtimer_get_freq()` 弱函数自定义。开启 `CONFIG_MTIMER_CUSTOM_FREQUENCE` 配置项后，时间计算会自动适配自定义频率。
+The default timer frequency is **1 MHz** (1,000,000 ticks per second), which can be customized by overriding the weak function `bflb_mtimer_get_freq()`. After enabling the `CONFIG_MTIMER_CUSTOM_FREQUENCE` configuration option, time calculations will automatically adapt to the custom frequency.
 
 ---
 
@@ -25,7 +25,7 @@ MTIMER (Machine Timer) 是基于 RISC-V 架构的 Machine Timer 外设提供的 
 
 ### bflb_mtimer_config
 
-配置 Machine Timer 中断。
+Configure the Machine Timer interrupt.
 
 ```c
 void bflb_mtimer_config(uint64_t ticks, void (*interruptfun)(void));
@@ -35,56 +35,56 @@ void bflb_mtimer_config(uint64_t ticks, void (*interruptfun)(void));
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `ticks` | `uint64_t` | 触发中断所需的 tick 数（默认 1 tick = 1 μs） |
-| `interruptfun` | `void (*)(void)` | 中断回调函数指针 |
+| `ticks` | `uint64_t` | Number of ticks needed to trigger the interrupt (default 1 tick = 1 μs) |
+| `interruptfun` | `void (*)(void)` | Interrupt callback function pointer |
 
-**说明:** 该函数配置定时器在 `ticks` 个 tick 后触发中断，使用 IRQ 7（Machine Timer 中断）。此后每个 `ticks` 周期重复触发。
+**Note:** This function configures the timer to trigger an interrupt after `ticks` ticks, using IRQ 7 (Machine Timer interrupt). Thereafter, it repeats every `ticks` cycle.
 
 ---
 
 ### bflb_mtimer_get_freq
 
-获取 Machine Timer 当前频率。
+Get the current Machine Timer frequency.
 
 ```c
 uint32_t bflb_mtimer_get_freq(void);
 ```
 
-**Returns:** 定时器频率（Hz），默认返回 `1000000` (1 MHz)
+**Returns:** Timer frequency (Hz), default returns `1000000` (1 MHz)
 
-**说明:** 该函数为弱函数（`__WEAK`），可被用户重写以返回实际频率。
+**Note:** This function is a weak function (`__WEAK`) and can be overridden by the user to return the actual frequency.
 
 ---
 
 ### bflb_mtimer_get_time_us
 
-获取当前 Machine Timer 时间（微秒）。
+Get the current Machine Timer time (microseconds).
 
 ```c
 uint64_t bflb_mtimer_get_time_us(void);
 ```
 
-**Returns:** 自启动以来的 64 位时间值（微秒），~584942 年才会溢出
+**Returns:** 64-bit time value since startup (microseconds), ~584,942 years before overflow
 
-**说明:** 函数位于 TCM 段，执行速度极快。内部采用双读防翻转机制（读取两次 low + high 确保一致性）。
+**Note:** The function is located in the TCM section for extremely fast execution. Internally, it uses a double-read anti-rollover mechanism (reads low twice + high to ensure consistency).
 
 ---
 
 ### bflb_mtimer_get_time_ms
 
-获取当前 Machine Timer 时间（毫秒）。
+Get the current Machine Timer time (milliseconds).
 
 ```c
 uint64_t bflb_mtimer_get_time_ms(void);
 ```
 
-**Returns:** 自启动以来的 64 位时间值（毫秒）
+**Returns:** 64-bit time value since startup (milliseconds)
 
 ---
 
 ### bflb_mtimer_delay_us
 
-微秒级阻塞延时。
+Microsecond-level blocking delay.
 
 ```c
 void bflb_mtimer_delay_us(uint32_t time);
@@ -94,15 +94,15 @@ void bflb_mtimer_delay_us(uint32_t time);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `time` | `uint32_t` | 延时时长（微秒） |
+| `time` | `uint32_t` | Delay duration (microseconds) |
 
-**说明:** 忙等待方式。对于 BL616/BL618，支持 ROM API 加速。函数位于 TCM 段。
+**Note:** Busy-wait method. For BL616/BL618, ROM API acceleration is supported. The function is located in the TCM section.
 
 ---
 
 ### bflb_mtimer_delay_ms
 
-毫秒级阻塞延时。
+Millisecond-level blocking delay.
 
 ```c
 void bflb_mtimer_delay_ms(uint32_t time);
@@ -112,13 +112,13 @@ void bflb_mtimer_delay_ms(uint32_t time);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `time` | `uint32_t` | 延时时长（毫秒） |
+| `time` | `uint32_t` | Delay duration (milliseconds) |
 
 ---
 
 ### bflb_mtimer_set_val
 
-直接设置 Machine Timer 计数值（仅 BL616CL 支持）。
+Directly set the Machine Timer count value (BL616CL only).
 
 ```c
 void bflb_mtimer_set_val(uint64_t val);
@@ -128,28 +128,28 @@ void bflb_mtimer_set_val(uint64_t val);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `val` | `uint64_t` | 要设置的定时器值 |
+| `val` | `uint64_t` | Timer value to set |
 
 ---
 
 ## Usage Examples
 
-### Example 1: 基本延时
+### Example 1: Basic Delay
 
 ```c
 #include "bflb_mtimer.h"
 
 void delay_example(void)
 {
-    // 微秒延时
-    bflb_mtimer_delay_us(100);   // 延时 100 μs
+    // Microsecond delay
+    bflb_mtimer_delay_us(100);   // Delay 100 μs
 
-    // 毫秒延时
-    bflb_mtimer_delay_ms(500);   // 延时 500 ms
+    // Millisecond delay
+    bflb_mtimer_delay_ms(500);   // Delay 500 ms
 }
 ```
 
-### Example 2: 性能计时
+### Example 2: Performance Timing
 
 ```c
 #include "bflb_mtimer.h"
@@ -161,7 +161,7 @@ void benchmark_example(void)
 
     start = bflb_mtimer_get_time_us();
 
-    // 执行被测代码
+    // Execute code under test
     some_operation();
 
     end = bflb_mtimer_get_time_us();
@@ -170,7 +170,7 @@ void benchmark_example(void)
 }
 ```
 
-### Example 3: 定时器中断
+### Example 3: Timer Interrupt
 
 ```c
 #include "bflb_mtimer.h"
@@ -180,22 +180,22 @@ static volatile uint32_t tick_count = 0;
 void my_timer_callback(void)
 {
     tick_count++;
-    // 每 1ms 调用一次
+    // Called every 1 ms
 }
 
 void timer_interrupt_example(void)
 {
-    // 配置 1ms 定时中断 (默认 1 MHz, 1000 ticks = 1 ms)
+    // Configure 1 ms periodic interrupt (default 1 MHz, 1000 ticks = 1 ms)
     bflb_mtimer_config(1000, my_timer_callback);
 
     while (1) {
-        // 定时器在后台产生中断
-        // tick_count 每秒增加 1000
+        // Timer generates interrupts in background
+        // tick_count increments by 1000 every second
     }
 }
 ```
 
-### Example 4: 超时判断
+### Example 4: Timeout Detection
 
 ```c
 #include "bflb_mtimer.h"
@@ -206,14 +206,14 @@ bool wait_for_condition_with_timeout(uint32_t timeout_ms)
 
     while (!condition_met()) {
         if (bflb_mtimer_get_time_ms() - start >= timeout_ms) {
-            return false;  // 超时
+            return false;  // Timeout
         }
     }
-    return true;  // 条件满足
+    return true;  // Condition met
 }
 ```
 
-### Example 5: 微秒延时精度测试
+### Example 5: Microsecond Delay Accuracy Test
 
 ```c
 #include "bflb_mtimer.h"
@@ -237,77 +237,77 @@ void delay_accuracy_test(void)
 
 ---
 
-## 架构细节
+## Architecture Details
 
 ### BL602 / BL702 / BL702L
 
-这些芯片直接使用 RISC-V CLIC (Core Local Interrupt Controller) 中的 MTIME/MTIMECMP 寄存器：
+These chips directly use the MTIME/MTIMECMP registers in the RISC-V CLIC (Core Local Interrupt Controller):
 
-- `CLIC_MTIME`: 64 位单调递增计数器
-- `CLIC_MTIMECMP`: 64 位比较值寄存器
+- `CLIC_MTIME`: 64-bit monotonically incrementing counter
+- `CLIC_MTIMECMP`: 64-bit compare value register
 
-地址通过 `CLIC_CTRL_BASE + CLIC_MTIME_OFFSET` 和 `CLIC_CTRL_BASE + CLIC_MTIMECMP_OFFSET` 访问。
+Addresses are accessed via `CLIC_CTRL_BASE + CLIC_MTIME_OFFSET` and `CLIC_CTRL_BASE + CLIC_MTIMECMP_OFFSET`.
 
 ### BL616 / BL618 / BL618DG
 
-这些芯片使用 CSI Core Timer (C-SKY 架构核心定时器)：
+These chips use the CSI Core Timer (C-SKY architecture core timer):
 
-- `csi_coret_get_value()` / `csi_coret_get_valueh()`: 读取 64 位定时器值
-- `csi_coret_config()`: 配置比较值和中断
-- `SysTimer_*` 系列函数 (NMSIS Core API)
+- `csi_coret_get_value()` / `csi_coret_get_valueh()`: Read 64-bit timer value
+- `csi_coret_config()`: Configure compare value and interrupt
+- `SysTimer_*` family functions (NMSIS Core API)
 
-中断号固定为 **IRQ 7**（Machine Timer Interrupt）。
+The interrupt number is fixed to **IRQ 7** (Machine Timer Interrupt).
 
 ### BL616CL
 
-BL616CL 变体使用 MCU_MISC 模块中的 E907 RTC 定时器：
+The BL616CL variant uses the E907 RTC timer in the MCU_MISC module:
 
-| 寄存器偏移 | 用途 |
+| Register Offset | Purpose |
 |-----------|------|
-| `0x08` | RTC 加载值低 32 位 |
-| `0x0C` | RTC 加载值高 32 位 |
-| `0x14` | RTC 控制（bit 0: 使能, bit 1: 复位, bit 28: 加载脉冲） |
+| `0x08` | RTC load value lower 32 bits |
+| `0x0C` | RTC load value upper 32 bits |
+| `0x14` | RTC control (bit 0: enable, bit 1: reset, bit 28: load pulse) |
 
-基地址: `BFLB_MISC_BASE = 0x20009000`
+Base address: `BFLB_MISC_BASE = 0x20009000`
 
 ---
 
-## 中断配置
+## Interrupt Configuration
 
-MTIMER 使用 RISC-V 标准 Machine Timer 中断（IRQ 7）。
+MTIMER uses the RISC-V standard Machine Timer interrupt (IRQ 7).
 
-**中断注册示例：**
+**Interrupt Registration Example:**
 
 ```c
 void mtimer_handler(int irq, void *arg)
 {
-    // 定时器中断处理
-    // 框架自动重置 mtimecmp 以维持周期性中断
+    // Timer interrupt handling
+    // The framework automatically resets mtimecmp to maintain periodic interrupts
 }
 
-// 配置定时器在 1000 ticks 后触发
+// Configure timer to trigger after 1000 ticks
 bflb_mtimer_config(1000, mtimer_handler);
 ```
 
-内部实现会自动：
-1. 保存 ticks 值和回调函数
-2. 禁用 IRQ 7
-3. 设置 mtimecmp 比较值
-4. 注册 ISR 回调（`bflb_irq_attach(7, systick_isr, NULL)`）
-5. 使能 IRQ 7
+The internal implementation automatically:
+1. Saves the ticks value and callback function
+2. Disables IRQ 7
+3. Sets the mtimecmp compare value
+4. Registers the ISR callback (`bflb_irq_attach(7, systick_isr, NULL)`)
+5. Enables IRQ 7
 
-在 ISR 中自动将比较值递增 `current_set_ticks`，实现周期性定时。
+In the ISR, the compare value is automatically incremented by `current_set_ticks` to achieve periodic timing.
 
 ---
 
-## 注意事项
+## Important Notes
 
-1. **TCM 驻留:** `bflb_mtimer_get_time_us()`、`bflb_mtimer_delay_us()`、`bflb_mtimer_delay_ms()` 等函数标记为 `ATTR_TCM_SECTION`，驻留在 TCM（Tightly Coupled Memory）中以获得最低访问延迟。
+1. **TCM Resident:** Functions such as `bflb_mtimer_get_time_us()`, `bflb_mtimer_delay_us()`, `bflb_mtimer_delay_ms()` are marked `ATTR_TCM_SECTION` and reside in TCM (Tightly Coupled Memory) for the lowest access latency.
 
-2. **忙等待:** 延时函数采用忙等待（busy-wait），会持续占用 CPU。对于需要低功耗的场景，请考虑使用 RTC 定时器或硬件 Timer 外设。
+2. **Busy-Wait:** Delay functions use busy-wait and will continuously occupy the CPU. For low-power scenarios, consider using the RTC timer or hardware Timer peripherals.
 
-3. **频率精度:** 默认 1 MHz 是近似值。若需精确时序，请测量实际频率并通过 `bflb_mtimer_get_freq()` 返回精确值，同时启用 `CONFIG_MTIMER_CUSTOM_FREQUENCE`。
+3. **Frequency Accuracy:** The default 1 MHz is an approximate value. If precise timing is required, measure the actual frequency and return the exact value via `bflb_mtimer_get_freq()`, while also enabling `CONFIG_MTIMER_CUSTOM_FREQUENCE`.
 
-4. **中断冲突:** 定时器中断使用 IRQ 7，请勿与其他外设共享此中断号。
+4. **Interrupt Conflict:** The timer interrupt uses IRQ 7. Do not share this interrupt number with other peripherals.
 
-5. **32 位安全:** 在 32 位 RISC-V 平台读取 64 位 `mtime` 寄存器时，库函数内部采用双读防翻转机制，确保读取一致性。
+5. **32-bit Safety:** When reading the 64-bit `mtime` register on 32-bit RISC-V platforms, the library function internally uses a double-read anti-rollover mechanism to ensure read consistency.
