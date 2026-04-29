@@ -1,6 +1,6 @@
 # BL616/BL618 Series Module Development Guide
 
-## Ai-Thinker Ai-Tool Series Modules (BL616/BL618)
+## Ai-Thinker Ai-M61/Ai-M62 Series Modules (BL616/BL618)
 
 This skill provides a complete development guide for Ai-Thinker **BL616/BL618 Series Wi-Fi 6 + BLE 5.0 modules**.
 

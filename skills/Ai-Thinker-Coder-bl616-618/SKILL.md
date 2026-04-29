@@ -16,7 +16,7 @@ author: Ai-Thinker Technology & Hermes Agent
 license: MIT-0
 metadata:
   chip: [BL616, BL618]
-  module_family: Ai-Tool
+  module_family: Ai-M61/Ai-M62
   protocols: [Wi-Fi 6, BLE 5.0]
 ---
 
@@ -56,12 +56,11 @@ metadata:
 
 ### Selection Guide
 
-| Model | Package | Flash | RAM | Antenna | Features |
+| Model | Package | Flash | Antenna | Chip | Features |
 |-----|------|-------|-----|------|-----|
-| Ai-Tool-01F | SMD | 2MB | - | PCB On-board | Wi-Fi 6 + BLE 5.0 |
-| Ai-Tool-01M | SMD | 2MB | - | Stamp Hole | - |
-| Ai-Tool-01S | SMD | 2MB | - | IPEX | - |
-| Ai-Tool-12F | SMD | 4MB | - | PCB On-board | High Cost-Effectiveness |
+| Ai-M61-32S | SMD | 4MB | PCB On-board | BL618 | Multimedia, Audio, Camera |
+| Ai-M61-32SU | SMD | 4MB | IPEX | BL618 | Multimedia, Audio, Camera |
+| Ai-M62-12F | SMD | 2MB | PCB On-board | BL616 | Wi-Fi 6, Cost-Effective |
 
 ---
 
