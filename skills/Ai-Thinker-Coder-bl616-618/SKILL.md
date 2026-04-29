@@ -32,10 +32,11 @@ metadata:
 - Delays: `vTaskDelay` (not `HAL_Delay`)
 
 **BL616/BL618 FreeRTOS Special Notes**:
-- **No need to call `vTaskStartScheduler()`**, the system automatically starts the scheduler during boot code
-- The scheduler is already running when `app_main()` executes
-- **If the main loop has no business logic, `vTaskDelay` must be called to yield the CPU**, otherwise tasks cannot switch and the system will appear to hang
-- Correct approach: `while(1) { process business; vTaskDelay(pdMS_TO_TICKS(100)); }`
+- **Must call `vTaskStartScheduler()`** to start the task scheduler — this is **NOT** automatic on BL616/BL618
+- After `vTaskStartScheduler()` is called, it never returns; place task creation before it
+- **Before the scheduler starts, `vTaskDelay` CANNOT be used** — the delay relies on the scheduler being active
+- **If a task's loop has no delay, `vTaskDelay` must be called to yield the CPU**, otherwise other tasks cannot run and the system will appear to hang
+- Correct approach: create tasks → call `vTaskStartScheduler()`; inside tasks: `while(1) { process business; vTaskDelay(pdMS_TO_TICKS(100)); }`
 
 **Register-Level Programming** (when explicitly requested by the user):
 - Directly manipulate `*(volatile uint32_t *)addr` to access peripheral registers
@@ -633,7 +634,7 @@ bflb_i2c_recv(i2c, 0x44, buf, 6);
 
 ### Task Creation Example
 
-BL616/BL618 FreeRTOS applications typically complete peripheral initialization in `app_main()`, then create business tasks.
+BL616/BL618 FreeRTOS applications typically complete peripheral initialization, create business tasks, then call `vTaskStartScheduler()` to start the scheduler. **Do NOT** call `vTaskDelay` before the scheduler starts.
 
 ```c
 #include "FreeRTOS.h"
@@ -656,10 +657,10 @@ void app_main(void)
 {
     printf("System init\r\n");
 
-    // Initialize peripherals
+    // 1. Initialize peripherals
     // ...
 
-    // Create task (priority 5, stack 512 words)
+    // 2. Create tasks (before scheduler starts)
     BaseType_t ret = xTaskCreate(
         my_task,               // Task function
         "my_task",             // Task name (for debugging only)
@@ -671,10 +672,13 @@ void app_main(void)
 
     if (ret != pdPASS) {
         printf("Task create failed\r\n");
+        return;
     }
 
-    // BL616/BL618 do not need to manually call vTaskStartScheduler()
-    // Scheduler is automatically started during system initialization
+    // 3. Start the scheduler — this call NEVER returns
+    vTaskStartScheduler();
+
+    // Code after this line will NOT execute
 }
 ```
 
@@ -682,8 +686,9 @@ void app_main(void)
 
 | Key Point | Description |
 |-----|------|
-| **Do not call `vTaskStartScheduler()`** | Scheduler is automatically started by the system. The scheduler is already running when `app_main()` executes. |
-| **Main loop must delay** | If the main loop or idle task has no delay, other tasks cannot be scheduled, and the system will appear to hang. |
+| **Must call `vTaskStartScheduler()`** | Scheduler is **NOT** auto-started. Create all tasks first, then call it. This call never returns. |
+| **No `vTaskDelay` before scheduler** | `vTaskDelay` relies on the scheduler being active. Calling it before `vTaskStartScheduler()` will fail. |
+| **Main loop must delay** | Inside tasks, if the loop has no delay, other tasks cannot be scheduled and the system will appear to hang. |
 | **Use `vTaskDelay`** | Do not use non-RTOS delays like `HAL_Delay`, `usleep`. |
 | **`pdMS_TO_TICKS`** | Converts milliseconds to ticks, e.g. `pdMS_TO_TICKS(500)` = 500ms. |
 | **Stack depth unit** | FreeRTOS stack depth is measured in **words (4 bytes)**, 512 = 2048 bytes. |

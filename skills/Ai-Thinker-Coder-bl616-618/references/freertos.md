@@ -5,20 +5,23 @@ FreeRTOS Kernel V10.6.2 support for Bouffalo Lab BL616/BL618 chips. Based on RIS
 ## Important BL616/BL618 Specific Notes
 
 ### Scheduler Startup
-**Unlike standard FreeRTOS, BL616/BL618 does NOT use `vTaskStartScheduler()`.**
+**Unlike BL602, BL616/BL618 REQUIRES explicit `vTaskStartScheduler()`.**
 
-The scheduler is started automatically when the first task is created in `main()`. The typical entry pattern is:
+The scheduler is NOT auto-started. Tasks must be created BEFORE calling `vTaskStartScheduler()`, and this call never returns. **Do NOT** call `vTaskDelay` before the scheduler starts — it depends on the scheduler being active.
 
 ```c
 void main(void)
 {
-    // Hardware init first
+    // 1. Hardware init first
     hosal_uart_init(&uart_stdio1);
-    
-    // Create first task - scheduler starts automatically when a task is created
+
+    // 2. Create all tasks before starting scheduler
     xTaskCreate(proc_main_entry, "main_entry", 1024, NULL, 15, NULL);
-    
-    // DO NOT call vTaskStartScheduler() - it does not exist or is no-op
+
+    // 3. Start the scheduler — NEVER returns
+    vTaskStartScheduler();
+
+    // Code here will NOT execute
 }
 ```
 
@@ -542,8 +545,9 @@ void main(void)
     // Create tasks
     xTaskCreate(producer_task, "producer", 512, NULL, 2, NULL);
     xTaskCreate(consumer_task, "consumer", 512, NULL, 2, NULL);
-    
-    // Scheduler starts automatically - no vTaskStartScheduler() needed
+
+    // Must explicitly start the scheduler
+    vTaskStartScheduler();
 }
 ```
 
