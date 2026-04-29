@@ -56,11 +56,26 @@ metadata:
 
 ### Selection Guide
 
-| Model | Package | Flash | Antenna | Chip | Features |
-|-----|------|-------|-----|------|-----|
-| Ai-M61-32S | SMD | 4MB | PCB On-board | BL618 | Multimedia, Audio, Camera |
-| Ai-M61-32SU | SMD | 4MB | IPEX | BL618 | Multimedia, Audio, Camera |
-| Ai-M62-12F | SMD | 2MB | PCB On-board | BL616 | Wi-Fi 6, Cost-Effective |
+| Model | Chip | Package | Antenna | Key Feature |
+|-----|------|------|-----|------|
+| **Ai-M61 Series** (BL618) | | | | |
+| Ai-M61-32S | BL618 | SMD-38 | PCB On-board | Audio Codec, DVP Camera, Display |
+| Ai-M61-32SU | BL618 | SMD-38 | IPEX | Audio Codec, DVP Camera, Display |
+| **Ai-M62 Series** (BL616) | | | | |
+| Ai-M62-07S | BL616 | SMD-22 | PCB On-board | Ultra-compact, Wi-Fi 6 |
+| Ai-M62-12F | BL616 | SMD-22 | PCB On-board | Classic, Wi-Fi 6 |
+| Ai-M62-13 | BL616 | SMD-18 | Stamp Hole | Open board, Wi-Fi 6 |
+| Ai-M62-13U | BL616 | SMD-18 | IPEX | Open board, IPEX |
+| Ai-M62-32S | BL616 | SMD-38 | PCB On-board | More GPIO, Wi-Fi 6 |
+| Ai-M62-M2-I | BL616 | M.2 | IPEX | M.2 form factor |
+| Ai-M62-M01L | BL616 | SMD-16 | PCB On-board | Ultra-compact |
+| Ai-M62-CBS | BL616 | CBS-61 | — | SDIO/USB slave interface |
+| **Development Boards** | | | | |
+| Ai-M61-32S-Kit | BL618 | NodeMCU | — | Ai-M61 dev board |
+| Ai-M62-12F-Kit | BL616 | NodeMCU | — | Ai-M62 dev board |
+| Ai-M62-13-Kit | BL616 | NodeMCU | — | Ai-M62 dev board |
+| Ai-M62-32S-Kit | BL616 | NodeMCU | — | Ai-M62 dev board |
+| Ai-M62-M2-I-Kit | BL616 | NodeMCU | — | Ai-M62 M.2 dev board |
 
 ---
 
